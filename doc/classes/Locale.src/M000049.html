@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>set (Locale)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File vendor/plugins/multilingual/lib/multilingual/locale.rb, line 12</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">set</span>(<span class="ruby-identifier">locale</span>)
+    <span class="ruby-ivar">@@current_locale</span>  = <span class="ruby-identifier">locale</span>
+    <span class="ruby-ivar">@@current_language</span>, <span class="ruby-ivar">@@current_country</span> = <span class="ruby-identifier">locale</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">'_'</span>)
+    <span class="ruby-constant">Language</span>.<span class="ruby-identifier">active_language_code</span> = <span class="ruby-ivar">@@current_language</span>
+    
+    [<span class="ruby-value str">'.utf8'</span>,<span class="ruby-value str">'.UTF-8'</span>,<span class="ruby-value str">'.utf-8'</span>,<span class="ruby-value str">'.UTF8'</span>,<span class="ruby-value str">''</span>].<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">encoding</span><span class="ruby-operator">|</span>
+      <span class="ruby-keyword kw">begin</span>
+        <span class="ruby-identifier">setlocale</span>(<span class="ruby-constant">Locale</span><span class="ruby-operator">::</span><span class="ruby-constant">LC_ALL</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{locale}#{encoding}&quot;</span>)
+        <span class="ruby-ivar">@@current_locale</span> = <span class="ruby-node">&quot;#{locale}#{encoding}&quot;</span>
+        <span class="ruby-keyword kw">break</span>
+      <span class="ruby-keyword kw">rescue</span>
+        <span class="ruby-keyword kw">next</span>
+      <span class="ruby-keyword kw">end</span>
+    <span class="ruby-keyword kw">end</span>
+    
+    <span class="ruby-identifier">load_lang_data</span>(<span class="ruby-identifier">locale</span>)
+    <span class="ruby-identifier">load_country_data</span>(<span class="ruby-ivar">@@current_country</span>)
+
+    <span class="ruby-constant">Date</span><span class="ruby-operator">::</span><span class="ruby-constant">MONTHNAMES</span>.<span class="ruby-identifier">replace</span> <span class="ruby-ivar">@@lang_data</span>[<span class="ruby-ivar">@@current_locale</span>][<span class="ruby-identifier">:months</span>]
+    <span class="ruby-constant">Date</span><span class="ruby-operator">::</span><span class="ruby-constant">DAYNAMES</span>.<span class="ruby-identifier">replace</span> <span class="ruby-ivar">@@lang_data</span>[<span class="ruby-ivar">@@current_locale</span>][<span class="ruby-identifier">:days</span>]
+    <span class="ruby-keyword kw">true</span>
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

@@ -1,0 +1,41 @@
+@translation = {
+
+  # Time in words
+  'half_a_minute'  => ["en halv minut"],
+  'half_an_hour'   => ["en halvtimme"],
+  'half_a_year'    => ["ett halvår"],
+  'x_minutes'      => ["%P", "0 minuter", "en minut", "%d minuter"],
+  'x_hours'        => ["%P", "0 timmar", "en timme", "%d timmar"],
+  'x_days'         => ["%P", "0 dygn", "ett dygn", "%d dagar"],
+  'x_weeks'        => ["%P", "0 veckor", "en vecka", "%d veckor"],
+  'x_months'       => ["%P", "0 månader", "en månad", "%d månader"],
+  'x_years'        => ["%P", "0 år", "ett år", "%d år"],
+  'less_than_time' => ["mindre än %s"],
+  'more_than_time' => ["mer än %s"],
+  'time_about'     => ["cirka %s"],
+  'time_ago'       => ["för %s sedan"],
+  'time_coming'    => ["om %s"],
+  
+  # Misc interface words
+  'yes'      => ["Ja"],
+  'no'       => ["Nej"],
+  'true'     => ["Sant"],
+  'false'    => ["Falskt"],
+  'on'       => ["På"],
+  'off'      => ["Av"],
+  'next'     => ["Nästa"],
+  'previous' => ["Föregående"],
+  'back'     => ["Tillbaka"],
+  'forward'  => ["Vidare"],
+  'skip'     => ["Hoppa över"],
+  'cancel'   => ["Avbryt"],
+  'abort'    => ["Avbryt"],
+  'stop'     => ["Sluta"],
+  'quit'     => ["Avsluta"],
+  'save'     => ["Spara"],
+  'discard'  => ["Kasta"],
+  'reset'    => ["Återställ"],
+  'delete'   => ["Radera"],
+  'edit'     => ["Ändra"],
+
+}

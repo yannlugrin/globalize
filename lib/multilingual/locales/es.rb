@@ -1,0 +1,41 @@
+@translation = {
+
+  # Time in words
+  'half_a_minute'  => ["medio minuto"],
+  'half_an_hour'   => ["media hora"],
+  'half_a_year'    => ["medio año"],
+  'x_minutes'      => ["%P", "0 minutos", "un minuto",  "%d minutos"],
+  'x_hours'        => ["%P", "0 horas",   "una hora",   "%d horas"],
+  'x_days'         => ["%P", "0 dias",    "a dia",      "%d dias"],
+  'x_weeks'        => ["%P", "0 semanas", "una semana", "%d semanas"],
+  'x_months'       => ["%P", "0 meses",   "un mes",     "%d meses"],
+  'x_years'        => ["%P", "0 años",    "un año",     "%d años"],
+  'less_than_time' => ["menos de %s"],
+  'more_than_time' => ["mas de %s"],
+  'time_about'     => ["a eso de %s"],
+  'time_ago'       => ["hace %s"],
+  'time_coming'    => ["en %s"],
+
+  # Misc interface words
+  'yes'      => ["Sí"],
+  'no'       => ["No"],
+  'true'     => ["Verdadero"],
+  'false'    => ["Falso"],
+  'on'       => ["Encendido"],
+  'off'      => ["Apagado"],
+  'next'     => ["Próximo"],
+  'previous' => ["Anterior"],
+  'back'     => ["Atrás"],
+  'forward'  => ["Adelante"],
+  'skip'     => ["Saltar"],
+  'cancel'   => ["Cancelar"],
+  'abort'    => ["Abortar"],
+  'stop'     => ["Parar"],
+  'quit'     => ["Salir"],
+  'save'     => ["Guardar"],
+  'discard'  => ["Descartar"],
+  'reset'    => ["Resetear"],
+  'delete'   => ["Eliminar"],
+  'edit'     => ["Editar"],
+
+}

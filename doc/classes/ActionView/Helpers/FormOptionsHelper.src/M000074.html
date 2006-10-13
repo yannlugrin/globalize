@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>country_options_for_select (ActionView::Helpers::FormOptionsHelper)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../../../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File vendor/plugins/multilingual/lib/multilingual/rails/country_helpers.rb, line 10</span>
+    <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">country_options_for_select</span>(<span class="ruby-identifier">selected</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">options</span> = {})
+      <span class="ruby-identifier">country_options</span> = <span class="ruby-value str">&quot;&quot;</span>
+
+      <span class="ruby-identifier">countries</span> = (<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:countries</span>] <span class="ruby-operator">||</span> <span class="ruby-constant">Locale</span>.<span class="ruby-identifier">countries</span>).<span class="ruby-identifier">collect</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">c</span>,<span class="ruby-identifier">s</span><span class="ruby-operator">|</span>
+        [(<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:variant</span>] <span class="ruby-operator">==</span> <span class="ruby-identifier">:formal</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">s</span>[<span class="ruby-identifier">:formal</span>] <span class="ruby-operator">:</span> <span class="ruby-identifier">s</span>[<span class="ruby-identifier">:common</span>]), <span class="ruby-identifier">c</span>]
+      <span class="ruby-keyword kw">end</span>
+
+      <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:prioritized</span>].<span class="ruby-identifier">collect!</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">code</span><span class="ruby-operator">|</span> (<span class="ruby-constant">MLR_ISO3166_CODE</span> <span class="ruby-operator">||</span> <span class="ruby-constant">DEFAULT_MLR_ISO3166_CODE</span>).<span class="ruby-identifier">to_s</span> <span class="ruby-operator">==</span> <span class="ruby-value str">'numeric'</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">code</span>.<span class="ruby-identifier">to_i</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">code</span>.<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">upcase</span> } <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:prioritized</span>]
+      <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:only</span>].<span class="ruby-identifier">collect!</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">code</span><span class="ruby-operator">|</span> (<span class="ruby-constant">MLR_ISO3166_CODE</span> <span class="ruby-operator">||</span> <span class="ruby-constant">DEFAULT_MLR_ISO3166_CODE</span>).<span class="ruby-identifier">to_s</span> <span class="ruby-operator">==</span> <span class="ruby-value str">'numeric'</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">code</span>.<span class="ruby-identifier">to_i</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">code</span>.<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">upcase</span> } <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:only</span>]
+      <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:exclude</span>].<span class="ruby-identifier">collect!</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">code</span><span class="ruby-operator">|</span> (<span class="ruby-constant">MLR_ISO3166_CODE</span> <span class="ruby-operator">||</span> <span class="ruby-constant">DEFAULT_MLR_ISO3166_CODE</span>).<span class="ruby-identifier">to_s</span> <span class="ruby-operator">==</span> <span class="ruby-value str">'numeric'</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">code</span>.<span class="ruby-identifier">to_i</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">code</span>.<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">upcase</span> } <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:exclude</span>]
+
+      <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:swap_parts</span>]
+        <span class="ruby-identifier">countries</span>.<span class="ruby-identifier">collect!</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">a</span><span class="ruby-operator">|</span>
+          <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">a</span>[<span class="ruby-value">0</span>] <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^[A-Z].*-$/</span>
+            <span class="ruby-identifier">a</span>[<span class="ruby-value">0</span>] = <span class="ruby-identifier">a</span>[<span class="ruby-value">0</span>][<span class="ruby-value">0</span><span class="ruby-operator">...</span><span class="ruby-value">-1</span>].<span class="ruby-identifier">split</span>(<span class="ruby-value str">''</span>)
+            <span class="ruby-identifier">a</span>[<span class="ruby-value">0</span>][<span class="ruby-value">0</span>].<span class="ruby-identifier">downcase!</span>
+            <span class="ruby-identifier">a</span>[<span class="ruby-value">0</span>] = <span class="ruby-identifier">a</span>[<span class="ruby-value">0</span>].<span class="ruby-identifier">join</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/\s*,\s*/</span>).<span class="ruby-identifier">reverse</span>.<span class="ruby-identifier">join</span>
+          <span class="ruby-keyword kw">else</span>
+            <span class="ruby-identifier">a</span>[<span class="ruby-value">0</span>] = <span class="ruby-identifier">a</span>[<span class="ruby-value">0</span>].<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/\s*,\s*/</span>).<span class="ruby-identifier">reverse</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">' '</span>)
+          <span class="ruby-keyword kw">end</span>
+          <span class="ruby-identifier">a</span>
+        <span class="ruby-keyword kw">end</span>
+      <span class="ruby-keyword kw">end</span>
+
+      <span class="ruby-identifier">countries</span>.<span class="ruby-identifier">sort!</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">a</span>,<span class="ruby-identifier">b</span><span class="ruby-operator">|</span> <span class="ruby-identifier">a</span>[<span class="ruby-value">0</span>] <span class="ruby-operator">&lt;=&gt;</span> <span class="ruby-identifier">b</span>[<span class="ruby-value">0</span>]}
+
+      <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:prioritized</span>]
+        <span class="ruby-identifier">country_options</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">options_for_select</span>(<span class="ruby-identifier">countries</span>.<span class="ruby-identifier">reject</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">a</span><span class="ruby-operator">|</span> <span class="ruby-operator">!</span><span class="ruby-identifier">options</span>[<span class="ruby-identifier">:prioritized</span>].<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">a</span>[<span class="ruby-value">1</span>])}, <span class="ruby-identifier">selected</span>)
+        <span class="ruby-identifier">country_options</span> <span class="ruby-operator">+=</span> <span class="ruby-value str">&quot;&lt;option value=\&quot;\&quot;&gt;-------------&lt;/option&gt;\n&quot;</span>
+      <span class="ruby-keyword kw">end</span>
+
+      <span class="ruby-identifier">countries</span>.<span class="ruby-identifier">delete_if</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">a</span><span class="ruby-operator">|</span> <span class="ruby-operator">!</span><span class="ruby-identifier">options</span>[<span class="ruby-identifier">:only</span>].<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">a</span>[<span class="ruby-value">1</span>]) } <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:only</span>]
+      <span class="ruby-identifier">countries</span>.<span class="ruby-identifier">delete_if</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">a</span><span class="ruby-operator">|</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:exclude</span>].<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">a</span>[<span class="ruby-value">1</span>]) } <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:exclude</span>]
+
+      <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:prioritized</span>] <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:prioritized</span>].<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">selected</span>)
+        <span class="ruby-identifier">country_options</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">options_for_select</span>(<span class="ruby-identifier">countries</span>.<span class="ruby-identifier">reject</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">a</span><span class="ruby-operator">|</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:prioritized</span>].<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">a</span>[<span class="ruby-value">1</span>])}, <span class="ruby-identifier">selected</span>)
+      <span class="ruby-keyword kw">else</span>
+        <span class="ruby-identifier">country_options</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">options_for_select</span>(<span class="ruby-identifier">countries</span>, <span class="ruby-identifier">selected</span>)
+      <span class="ruby-keyword kw">end</span>
+
+      <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">country_options</span>
+    <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

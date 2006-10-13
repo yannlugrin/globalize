@@ -1,0 +1,242 @@
+# Based on http://pt.wikipedia.org/wiki/ISO_3166-1, but some changes to pt-BR
+
+004 | Afeganistão
+008 | Albania
+010 | Antártica
+012 | Algeria
+016 | Samoa Americana
+020 | Andorra
+024 | Angola
+028 | Antigua e Barbuda
+031 | Azerbaijão
+032 | Argentina
+036 | Austrália
+040 | Áustria
+044 | Bahamas
+048 | Bahrein
+050 | Bangladesh
+051 | Armênia
+052 | Barbados
+056 | Bélgica
+060 | Bermuda
+064 | Butão
+068 | Bolívia
+070 | Bósnia Herzegovina
+072 | Botsuana
+074 | Ilha Bouvet
+076 | Brasil
+084 | Belize
+086 | Território Oceânico da Índia Britânica
+090 | Ilhas Salomão
+092 | Ilhas Virgens Britânicas
+096 | Brunei
+100 | Bulgária
+104 | Mianmar
+108 | Burundi
+112 | Bielo-Rússia
+116 | Camboja
+120 | Camarões
+124 | Canadá
+132 | Cabo Verde
+136 | Ilhas Cayman
+140 | República Centro Africana
+144 | Sri Lanka
+148 | Chade
+152 | Chile
+156 | República Popular da China | China
+158 | Taiwan (República da China) | Taiwan
+162 | Ilha Natividade
+166 | Ilhas Cocos
+170 | Colômbia
+174 | Comores
+175 | Mayotte
+178 | Congo | Congo-Brazzaville
+180 | Congo, República Democrática do | Congo-Kinshasa
+184 | Ilhas Cook
+188 | Costa Rica
+191 | Croácia
+192 | Cuba
+196 | Chipre
+203 | República Checa
+204 | Benin
+208 | Dinamarca
+212 | Dominica
+214 | República Dominicana
+218 | Equador
+222 | El Salvador
+226 | Guiné Equatorial
+231 | Etiópia
+232 | Eritreia
+233 | Estônia
+234 | Ilhas Faroe
+238 | Ilhas Malvinas
+239 | Geórgia do Sul e Ilhas Sandwich do Sul
+242 | Fiji
+246 | Finlândia
+248 | Ilhas Aland
+250 | França
+254 | Guiana Francesa
+258 | Polinésia Francesa
+260 | Territórios Sulistas da Fraça
+262 | Djibuti
+266 | Gabão
+268 | Geórgia
+270 | Gâmbia
+275 | Palestina | Palestina
+276 | Alemanha
+288 | Gana
+292 | Gibraltar
+296 | Quiribati
+300 | Grécia
+304 | Groenlândia
+308 | Grenada
+312 | Guadalupe
+316 | Guam
+320 | Guatemala
+324 | Guiné
+328 | Guiana
+332 | Haiti
+334 | Ilhas Heard e Ilhas McDonald
+336 | Vaticano
+340 | Honduras
+344 | Hong Kong
+348 | Hungria
+352 | Islândia
+356 | Índia
+360 | Indonésia
+364 | Irã
+368 | Iraque
+372 | Irlanda
+376 | Israel
+380 | Itália
+384 | Costa do Marfim
+388 | Jamaica
+392 | Japão
+398 | Cazaquistão
+400 | Jordânia
+404 | Quênia
+408 | Coréia, República Popular Democrática da | Coréia do Norte
+410 | Coréia, República da                     | Coréia do Sul
+414 | Kwait
+417 | Quirguistão
+418 | República Popular Democrática de Laos | Laos
+422 | Líbano
+426 | Lesoto
+428 | Letônia
+430 | Libéria
+434 | Líbia
+438 | Liechtenstein
+440 | Lituânia
+442 | Luxemburgo
+446 | Macao
+450 | Madagascar
+454 | Malawi
+458 | Malásia
+462 | Maldivas
+466 | Mali
+470 | Malta
+474 | Martinica
+478 | Mauritânia
+480 | Maurícios
+484 | México
+492 | Mônaco
+496 | Mongólia
+498 | Moldávia, República da  | Moldávia
+500 | Montserrat
+504 | Marrocos
+508 | Moçambique
+512 | Omã
+516 | Namíbia
+520 | Nauru
+524 | Nepal
+528 | Holanda
+530 | Antilhas Holandesas
+533 | Aruba
+540 | Nova Caledônia
+548 | Vanuatu
+554 | Nova Zelândia
+558 | Nicarágua
+562 | Niger
+566 | Nigéria
+570 | Niue
+574 | Ilhas Norfolk
+578 | Noruega
+580 | Ilhas do Norte Marianas
+581 | Ilhas Ultramarinhas dos Estados Unidos
+583 | Micronésia, Estados Federados da
+584 | Ilhas Marshall
+585 | Palau
+586 | Paquistão
+591 | Panamá
+598 | Papua Nova Guiné
+600 | Paraguai
+604 | Peru
+608 | Filipinas
+612 | Pitcairn
+616 | Polônia
+620 | Portugal
+624 | Guiné-Bissau
+626 | Timor-Leste
+630 | Porto Rico
+634 | Catar
+638 | Reunião
+642 | Romêna
+643 | Rússia
+646 | Ruanda
+654 | Santa Helena
+659 | Santa Kitts e Nevis
+660 | Anguilla
+662 | Santa Lúcia
+666 | São-Pierre e Miquelon
+670 | São-Vicente e Granadas
+674 | São Marino
+678 | São Tomé e Príncipe
+682 | Arábia Saudita
+686 | Senegal
+690 | Seychelles
+694 | Serra Leoa
+702 | Singapura
+703 | Eslováquia
+704 | Vietnã
+705 | Eslovênia
+706 | Somália
+710 | África do Sul
+716 | Zimbábue
+724 | Espanha
+732 | Saára Ocidental
+736 | Sudão
+740 | Suriname
+744 | Esvalbard e Jan Mayen
+748 | Suazilândia
+752 | Suécia
+756 | Suíça
+760 | Síria
+762 | Tajiquistão
+764 | Tailândia
+768 | Togo
+772 | Tokelau
+776 | Tonga
+780 | Trinidad e Tobago
+784 | Emirados Árabes Unidos
+788 | Tunísia
+792 | Turquia
+795 | Turcomenistão
+796 | Ilhas Caicos
+798 | Tuvalu
+800 | Uganda
+804 | Ucrânia
+807 | Macedônia | Macedônia
+818 | Egito
+826 | Reino Unido
+834 | Tanzânia, República Unida da | Tanzânia
+840 | Estados Unidos da América | EUA
+850 | Ilhas Virgens Americanas
+854 | Burkina Faso
+858 | Uruguai
+860 | Uzbequistão
+862 | Venezuela
+876 | Wallis e Futuna
+882 | Samoa
+887 | Iêmen
+891 | Sérvia e Montenegro
+894 | Zâmbia

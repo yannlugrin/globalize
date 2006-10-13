@@ -1,0 +1,37 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+prod_1_facet_1_tr:
+  id: 1
+  table_name: products
+  item_id: 1
+  facet: description
+  language_id: 1
+  text: This is a description of the first product
+prod_1_facet_2_tr:
+  id: 2
+  table_name: products
+  item_id: 1
+  facet: specs
+  language_id: 1
+  text: these are the specs for the first product
+prod_2_facet_1_tr:
+  id: 3
+  table_name: products
+  item_id: 2
+  facet: specs
+  language_id: 1
+  text: these are the specs for the second product
+prod_1_facet_1_he_tr:
+  id: 4
+  table_name: products
+  item_id: 1
+  facet: description
+  language_id: 2
+  text: זהו תיאור המוצר הראשון
+mfr_1_facet_1_he_tr:
+  id: 5
+  table_name: manufacturers
+  item_id: 1
+  facet: name
+  language_id: 2
+  text: רברנד
+    

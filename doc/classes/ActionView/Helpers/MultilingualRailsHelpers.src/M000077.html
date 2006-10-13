@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>money (ActionView::Helpers::MultilingualRailsHelpers)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../../../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File vendor/plugins/multilingual/lib/multilingual/rails/money_helpers.rb, line 12</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">money</span>(<span class="ruby-identifier">m</span>, <span class="ruby-identifier">options</span> = {})
+    <span class="ruby-identifier">raise</span> <span class="ruby-value str">&quot;Not a Money object: %s&quot;</span> <span class="ruby-operator">%</span> [<span class="ruby-identifier">m</span>.<span class="ruby-identifier">inspect</span>] <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">m</span>.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">Money</span>)
+    
+    <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:local</span>] <span class="ruby-operator">||=</span> (<span class="ruby-identifier">m</span>.<span class="ruby-identifier">currency</span> <span class="ruby-operator">==</span> <span class="ruby-constant">Locale</span>.<span class="ruby-identifier">currency</span>)
+    <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:cents</span>] <span class="ruby-operator">||=</span> <span class="ruby-keyword kw">true</span>
+    <span class="ruby-identifier">m</span> = <span class="ruby-identifier">m</span>.<span class="ruby-identifier">exhange_to</span>(<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:exhange_to</span>]) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:exhange_to</span>]
+    
+    <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">m</span>.<span class="ruby-identifier">currency</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'USD'</span>, <span class="ruby-value str">'CAD'</span>, <span class="ruby-value str">'XCD'</span>, <span class="ruby-value str">'ARS'</span>, <span class="ruby-value str">'AUD'</span>, <span class="ruby-value str">'BSD'</span>, <span class="ruby-value str">'BBD'</span>, <span class="ruby-value str">'BZD'</span>, <span class="ruby-value str">'BMD'</span>, <span class="ruby-value str">'BRL'</span>, <span class="ruby-value str">'BND'</span>, <span class="ruby-value str">'KYD'</span>, <span class="ruby-value str">'CLP'</span>, <span class="ruby-value str">'COP'</span>, <span class="ruby-value str">'CUP'</span>, <span class="ruby-value str">'FJD'</span>, <span class="ruby-value str">'GYD'</span>, <span class="ruby-value str">'HKD'</span>, <span class="ruby-value str">'JMD'</span>, <span class="ruby-value str">'LRD'</span>, <span class="ruby-value str">'MXN'</span>, <span class="ruby-value str">'NAD'</span>, <span class="ruby-value str">'NZD'</span>, <span class="ruby-value str">'NIO'</span>, <span class="ruby-value str">'SGD'</span>, <span class="ruby-value str">'SBD'</span>, <span class="ruby-value str">'SRD'</span>, <span class="ruby-value str">'TWD'</span>, <span class="ruby-value str">'TOP'</span>, <span class="ruby-value str">'TTD'</span>, <span class="ruby-value str">'UYU'</span>, <span class="ruby-value str">'WST'</span>, <span class="ruby-value str">'ZWD'</span>
+        <span class="ruby-identifier">fmt</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:local</span>] <span class="ruby-operator">?</span> <span class="ruby-value str">&quot;$!&quot;</span> <span class="ruby-operator">:</span> <span class="ruby-value str">&quot;$! %s&quot;</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'SEK'</span>, <span class="ruby-value str">'NOK'</span>, <span class="ruby-value str">'DKK'</span>, <span class="ruby-value str">'EEK'</span>, <span class="ruby-value str">'ISK'</span>
+        <span class="ruby-identifier">fmt</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:local</span>] <span class="ruby-operator">?</span> <span class="ruby-value str">&quot;! Kr&quot;</span> <span class="ruby-operator">:</span> <span class="ruby-value str">&quot;! %s&quot;</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'EUR'</span>
+        <span class="ruby-identifier">fmt</span> = <span class="ruby-value str">&quot;€!&quot;</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'GBP'</span>, <span class="ruby-value str">'FKP'</span>, <span class="ruby-value str">'CYP'</span>, <span class="ruby-value str">'EGP'</span>, <span class="ruby-value str">'SHP'</span>, <span class="ruby-value str">'SYP'</span>, <span class="ruby-value str">'GIP'</span>
+        <span class="ruby-identifier">fmt</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:local</span>] <span class="ruby-operator">?</span> <span class="ruby-value str">&quot;£!&quot;</span> <span class="ruby-operator">:</span> <span class="ruby-value str">&quot;£! %s&quot;</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'YEN'</span>
+        <span class="ruby-identifier">fmt</span> = <span class="ruby-value str">&quot;¥!&quot;</span>
+      <span class="ruby-keyword kw">else</span>
+        <span class="ruby-identifier">fmt</span> = <span class="ruby-value str">&quot;! %s&quot;</span>
+    <span class="ruby-keyword kw">end</span>
+    
+    <span class="ruby-keyword kw">return</span> ( <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:cents</span>] <span class="ruby-operator">?</span> <span class="ruby-identifier">fmt</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-value str">'!'</span>,<span class="ruby-value str">'%.02f'</span>) <span class="ruby-operator">:</span> <span class="ruby-identifier">fmt</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-value str">'!'</span>,<span class="ruby-value str">'%d'</span>) ) <span class="ruby-operator">%</span> [<span class="ruby-identifier">m</span>.<span class="ruby-identifier">cents</span><span class="ruby-operator">*</span><span class="ruby-value">100</span>, <span class="ruby-identifier">m</span>.<span class="ruby-identifier">currency</span>]
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

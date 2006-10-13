@@ -1,0 +1,262 @@
+Multilingual Rails Plugin 0.9 (beta code)
+
+Multilingual Rails (MLR) is a Ruby on Rails 1.0-compatible plugin that aims to solve the major stumbling blocks in building applications
+for international audiences: interface and content translation (internationalization), and conforming to local standards (localization).
+
+This project is an extension and partial rewrite of the Multilingual Rails package written by Per Wigren, located at http://www.tuxsoft.se/sv/oss/rails/multilingual. Some features have changed or have been removed, so compatibility with the old package is not guaranteed.
+
+Installation
+------------
+
+1. Intall the ruby-unicode gem
+
+MLR uses the ruby-unicode extension for Unicode string-manipulation (upcase/downcase/compose etc).
+
+# gem install unicode
+
+2. Install the plugin, either directly via SVN in your vendor/plugins directory, or using the new Rails plugin installer:
+
+# script/plugin install svn://rashgash.co.il/rails-plugins/multilingual/trunK
+
+3. Run the rake task for setting up the necessary database tables/migrations. This step is only necessary if you need to translate
+content in your database.
+
+---------
+
+Configuration
+-------------
+
+In your environment.rb you can configure MLR like this:
+
+MLR_LOCALE_PATH  = '/config/locale' # Relative to RAILS_ROOT # path to interface translation files
+MLR_LOG_PATH     = "#{SITE_ROOT || RAILS_ROOT}/log/translation-misses/%s.log" # path to missed translation log
+MLR_LOG_FORMAT   = "%3$s: |%2$s|" # See the topic "Logging" below
+MLR_ISO3166_CODE = 'numeric' # Can be 'numeric', 'alpha2' or 'alpha3'
+MLR_TRANSLATOR   = Locale::DefaultTranslator # See below
+
+The example above show the default values.
+
+Usage
+-----
+
+Now we're ready to start using MLR.
+
+First, create a before_filter in your ApplicationController that calls Locale.set to the user's locale of choice. Example app/controllers/application.rb:
+
+class ApplicationController < ActionController::Base
+  before_filter :set_locale
+  
+  private
+    def set_locale
+      Locale.set 'sv_SE' # Swedish
+    end
+end
+
+Next, you need to create your interface translation files.
+
+To output a multilingual string there are a few options:
+
+    * Calling the .t method on strings: "The original string".t
+    * Calling the .t method on symbols: :frontpage_title.t
+    * Using the % operator on symbols: :number_of_posts % [@posts.size]
+    * Gettext-style: _("The original string")
+
+These methods are available everywhere, not only in your views. To get the current locale, use Locale.current
+
+Database content translation via the 'translates' convenience method
+--------------------------------------------------------------------
+
+Translating database content is a simple three step process.
+
+First, define the 'virtual fields' you wish to have available in multiple languages. For example:
+
+class Product << ActiveRecord::Base
+  translates :name, :description
+end
+
+Next, create a translation in whichever locale is currently set:
+
+Locale.set("es_ES")
+product = Product.find 1
+product.name = 'Albondigas'
+product.save!
+
+Locale.set("en_US")
+product = Product.find 1
+product.name = 'Meatballs'
+product.save!
+
+Finally, use your translation in context:
+
+<%= product.name %>
+
+That's it! 
+
+Interface string translation via translation files
+--------------------------------------------------
+
+Take a look at the file config/locale/example_translation_file.rb for an example translation file.
+
+Multilingual Rails will load all *.rb files from config/locale/ in alphabetical order so strings from x.rb will overwrite strings from q.rb.
+
+It is also compatible with productized Rails applications so if the constant SITE_ROOT is set it will also load SITE_ROOT/config/locale/*.rb and overwrite strings from the default RAILS_ROOT/config/locale/*.rb files.
+
+A translation file is really just a Ruby script that set a bunch of @locales[locale][string] = 'translated string'. However, a cleaner alternative is highly recommended:
+
+This is a sample translation:
+
+string "I want ice cream!" do
+  to :sv, "Jag vill ha glass!"
+  to :no, "Jeg vil ha is!"
+end
+
+This could also be written as:
+
+@locales['sv']['I want ice cream!'] = 'Jag vill ha glass!'
+@locales['no']['I want ice cream!'] = 'Jeg vil ha is!'
+
+For those of you who don't like verbosity, the string-method  is aliased as str and s and the to-method as t so you can also write that as:
+
+s "I want ice cream!" do
+  t :sv, "Jag vill ha glass!"
+  t :no, "Jeg vil ha is!"
+end
+
+Because translation files are plain Ruby-scripts you can fetch data from any source and fill the @locales hash with it.
+In production mode the locales will only be loaded once so all translations are only simple hash-lookups, even for strings that aren't found.
+
+Pluralization
+-------------
+
+MLR supports easy pluralization of strings! It adds a proprietary %P-tag to the String % operator.
+
+Example translation file:
+
+string :i_have_some_books do
+  to :en, "I have %P.", "no books", "one book", "%d books"
+end
+
+Example usage:
+
+:i_have_some_books % [0] outputs "I have no books."
+:i_have_some_books % [1] outputs "I have one book."
+:i_have_some_books % [123] outputs "I have 123 books."
+
+MLR also supports pluralization for non-germanic languages that have other pluralization rules. These are the languages supported so far and the number of arguments you have to provide for them:
+
+    * hu ja ko tr: Two
+    * da de el eo en es et fi fr he it nl no pt sv: Three
+    * cs ga gd hr lv lt pl ru sk uk: Four
+    * sl: Five
+
+The translator should already know what the specific arguments are for his/her language. The first argument is always for "none". Then for example English (en) and Swedish (sv) have: "one", "two or more", making it a total of three arguments.
+
+For languages where pluralization formats are repeating, always use %d or %f for the value.
+
+Charset conversion
+------------------
+Three methods are added to the String class to simplify Iconv usage. Multilingual Rails always use UTF-8 internally so all templates and database data should stored as UTF-8.
+
+    * iconv_to(charset) return the string as charset charset
+    * iconv_from(charset) return a UTF-8 string, converted from charset.
+    * iconv_from!(charset) convert the string in-place from charset to UTF-8.
+
+Example usage:
+
+puts "This string is now ISO 8859-1. aao AAO.".iconv_to('iso-8859-1')
+utf8mail = File.read("/tmp/mail-iso8859-1.txt").iconv_from('iso-8859-1')
+mail = File.read("/tmp/mail-euc-jp.txt") # mail is now EUC-JP
+mail.iconv_from! 'euc-jp' # mail is now UTF-8
+puts mail.tosjis # Outputs mail in Shift-JIS encoding.
+
+Translators
+
+The information about translation files above applies to the default translator included with Multilingual Rails. If you want to you can write your own translator instead, for example to use gettext or use some other scheme. Writing a new translator is easy. You only need to write one single method load_locale_data(locale) that fills the @locales hash. Then modify lib/multilingual.rb to use your new translator instead of the default one.
+
+You can use lib/multilingual/translators/default.rb (the default translator) as a template.
+Logging
+
+Multilingual Rails will log all translation misses. Set Locale::LOG_PATH in lib/multilingual.rb to specify a log file. You can use %s for the current locale. The default log-path is set to:
+"#{SITE_ROOT || RAILS_ROOT}/log/translation-misses/%s.log"
+which means that it will log strings in separate files for each locale in the directory log/translation-misses/. If you want to log to a single file, just skip the %s.
+
+You can also specify the log format in the Locale::LOG_FORMAT constant. Default is:
+"%3$s - |%2$s|"
+which will make log-entries look like:
+2005-07-30 07:12:34 - |This string wasn't translated|
+
+You can use these variables in the format string (standard sprintf style):
+
+    * %1$s = The current locale
+    * %2$s = The missed string
+    * %3$s = The current time
+
+Translating templates and partials
+
+If the locale is set to "sv_SE", a request to {:controller => 'shop', :action => 'ice_creams' } will try loading templates in this order:
+
+   1. app/views/shop/ice_creams.sv_SE.rhtml
+   2. app/views/shop/ice_creams.sv.rhtml
+   3. app/views/shop/sv_SE/ice_creams.rhtml
+   4. app/views/shop/sv/ice_creams.rhtml
+   5. app/views/shop/ice_creams/sv_SE.rhtml
+   6. app/views/shop/ice_creams/sv.rhtml
+   7. app/views/shop/ice_creams.rhtml
+   8. app/views/shop/ice_creams/_default.rhtml
+
+The same thing applies to partials and components.
+
+In production-mode it will cache the file paths so it doesn't have to lookup the file paths on every request so there will be no performance penalty.
+Internal Rails- and Ruby-functions
+
+I've overloaded a bunch of Rails functions to make them translatable. These include the distance_of_time_in_words helper, and the ActiveRecord error-class. The Locale.set method recreates the constants Date::MONTHNAMES and Date::DAYNAMES from the OS locales so the date-helpers will also be translated, including everything in the standard Time-class thanks to ruby-locale.
+Active Record validations
+
+Because it is impossible to correctly translate ActiveRecord errors to many languages without having the table field name in the context you should ALWAYS use the full messages and translate those instead of translating the table field name and the message separatly.
+
+ActiveRecord will return already translated messages so you don't need to translate them every time you use them.
+
+It is a good idea to use a separate translation file in your config/locale/ directory for ActiveRecord messages.
+Countries and languages
+
+The following functions are available:
+
+    * Locale.country(iso3166 code, variant=:formal, locale=current) - return the name of the country that has this ISO 3166 code.
+    * Locale.language(iso639-1 code, locale=current) - return the name of the language that has the ISO 639-1 code.
+    * Locale.countries(locale=current) - return a hash of all countries using the format
+      :code => {:common => "Common name", :formal => "Formal name"}
+    * Locale.languages(locale=current) - return a hash of all languages using the format
+      :code => "Language name"
+
+I also added some conversion methods. Currently they are:
+
+    * Locale.iso3166_a2_to_a3(a2) - ISO 3166 Alpha-2 to Alpha-3
+    * Locale.iso3166_a2_to_num(a2) - ISO 3166 Alpha-2 to Numeric
+    * Locale.iso3166_a3_to_a2(a3) - ISO 3166 Alpha-3 to Alpha-2
+    * Locale.iso3166_a3_to_num(a3) - ISO 3166 Alpha-3 to Numeric
+    * Locale.iso3166_num_to_a2(num) - ISO 3166 Numeric to Alpha-2
+    * Locale.iso3166_num_to_a3(num) - ISO 3166 Numeric to Alpha-3
+    * Locale.iso639_1_to_2(code) - ISO 639-1 to ISO 639-2
+    * Locale.iso639_2_to_1(code) - ISO 639-2 to ISO 639-1
+
+ActionView helpers
+
+I've reimplemented the country_select helper to use ISO 3166 codes. This is the only thing in Multilingual Rails that may break old code. That is because the old way of storing countries as hardcoded strings is a bad bad bad thing to do and the sooner you get forced to avoid this the better.
+
+Using ISO 3166-codes allow us to display countries in the users language of choice instead of what is stored in the database.
+
+The new country_select helper works like this:
+country_select( object, method, options = {}, html_options = {} )
+
+Valid options are:
+
+    * :variant => :formal or :common.
+    * :exclude => array of ISO 3166 codes of countries to exclude from the list.
+    * :only => array of ISO 3166 codes. Only show these countries.
+    * :prioritized => array of ISO 3166 codes. Display these countries at the top.
+    * :swap_parts => set to true to display as "North Korea" instead of "Korea, North".
+    * :countries => a hash of {code => country name} to use instead of the default hash returned by Locale.countries.
+
+Setting :variant to :formal will make the helper use the formal name instead of the common name. For example "Korea, Democratic People's Republic of" instead of "Korea, North".
+
+Similar helpers for languages (using ISO 639-1 Alpha-2) are planned. I chose ISO 639-1 over ISO 639-2/3 and SIL because it includes just about any language still in use by more than a couple of thousand persons and it is managable to translate unlike ISO 639-2/3 and SIL which try to include every little language that ever was, including made up ones...
