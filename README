@@ -1,0 +1,50 @@
+=Welcome to Multilingual
+
+*Multilingual* is a Ruby on Rails plugin designed to support multilingual applications. It's under the MIT License, same as Ruby on Rails.
+
+==How to use it
+
+===In your models
+
+  class Product < ActiveRecord::Base
+    translates :name, :description, :specs
+  end
+
+Then:
+
+  Locale.set("en-US")
+  prod = Product.find(1) 
+
+<tt>prod.name</tt> -> "Meatballs"
+
+  Locale.set("es-ES")
+  prod = Product.find(1) 
+
+<tt>prod.name</tt> -> "Albondigas"
+
+=== In your views (or anywhere else)
+
+  Locale.set("he-IL")
+  <%= "Thanks for ordering!".t %> -> "תודה על ההזמנה!" 
+  <%= "You've got %d items in your cart" / 5 %> -> "יש 5 מוצרים בסל שלך"
+
+  Locale.set("es-ES")
+  <%= Time.now.strftime("%d %B %Y") %> -> "17 Octubre 2005"
+  <%= 12345.45.to_s %> -> "12.345,45"
+
+There's more, but let's save that for later.
+
+==How to install
+
+From your rails app root directory:
+
+1. <tt>script/plugin install https ://OpenSVN.csie.org/multi_lingual_rails/multilingual/trunk</tt> (remove the extra space after +http+, I had to put that in to fool rdoc)
+1. <tt>script/generate multilingual</tt>
+1. <tt>rake migrate</tt>
+
+...and you're globalized, dude!
+
+Optionally, try:
+
+* <tt>rake test_plugins</tt>
+* <tt>rake plugindoc</tt>

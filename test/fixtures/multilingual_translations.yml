@@ -1,0 +1,90 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+prod_1_facet_1_he_tr:
+  id: 4
+  table_name: multilingual_products
+  item_id: 1
+  facet: description
+  language_id: 2
+  text: זהו תיאור המוצר הראשון
+  type: ModelTranslation
+mfr_1_facet_1_he_tr:
+  id: 5
+  table_name: multilingual_manufacturers
+  item_id: 1
+  facet: name
+  language_id: 2
+  text: רברנד
+  type: ModelTranslation
+prod_3_facet_1_he_tr:
+  id: 9
+  table_name: multilingual_products
+  item_id: 3
+  facet: name
+  language_id: 2
+  text: סקר
+  type: ModelTranslation
+prod_4_facet_1_he_tr:
+  id: 10
+  table_name: multilingual_products
+  item_id: 4
+  facet: name
+  language_id: 2
+  text: סארט
+  type: ModelTranslation
+prod_5_facet_1_he_tr:
+  id: 11
+  table_name: multilingual_products
+  item_id: 5
+  facet: name
+  language_id: 2
+  text: סארי
+  type: ModelTranslation
+
+view_he_tr_1:
+  id: 12
+  type: ViewTranslation
+  language_id: 2
+  tr_key: And now in Hebrew
+  text: '[ "ועכשיו בעברית" ]'
+
+view_pl_tr_1:
+  id: 13
+  type: ViewTranslation
+  language_id: 4
+  tr_key: "%d file"
+  text: '[ "%d plik", "%d pliki", "%d plików" ]'
+
+view_ur_tr_1:
+  id: 14
+  type: ViewTranslation
+  language_id: 3
+  tr_key: "I have %d bogus numbers"
+  text: '[ "I have %d bogus number", "I have %d bogus numbers" ]'
+
+view_he_tr_plural:
+  id: 15
+  type: ViewTranslation
+  language_id: 2
+  tr_key: "I have %d files"
+  text: '[ "יש לי %d קבצים" ]'
+
+view_he_tr_validation:
+  id: 16
+  type: ViewTranslation
+  language_id: 2
+  tr_key: "Specs is too long (max is %d characters)"
+  text: '[ "המפרט ארוך מדי (המקסימום הוא %d תווים)", "המפרט ארוך מדי (המקסימום הוא תו אחד)" ]'
+
+date_he_oct_abbr:
+  id: 17
+  type: ViewTranslation
+  language_id: 2
+  tr_key: 'Oct [abbreviated month]'
+  text: "[ \"אוק\" ]"
+
+date_he_mon_abbr:
+  id: 18
+  type: ViewTranslation
+  language_id: 2
+  tr_key: 'Mon [abbreviated weekday]'
+  text: "[ \"יום ב'\" ]"
