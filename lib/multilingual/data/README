@@ -1,0 +1,41 @@
+HOW TO MAKE A NEW TRANSLATION
+
+To add another translation, find the iso3166 and iso639-1 tables for your
+language and create the ISO 3166 and ISO 639-1 .dat-files. The .dat files
+must use UTF-8 charset.
+
+You may want to search your local wikipedia or find a non-copyleft Open Source
+project to get the translation data. Put a comment on top of the .dat-file saying
+where you got the data from.
+
+Then run generate_files.rb to generate the locales and if everything seems
+good, send the .dat-files to tuxie@dekadance.se for inclusion in the main
+distribution.
+
+
+ISO 3166 FILES (countries)
+
+The ISO 3166 .dat-file format is:
+iso3166 numeric | formal name | common name
+The common name is optional. If skipped the formal named will be used.
+An example of a country with different formal/common name is China:
+156 | China, People's Republic of | China
+
+The iso3166 numeric value may contain leading zeroes.
+
+The file must must have the name iso3166-#{language}.dat. For example
+"iso3166-sv.dat" for the Swedish translation.
+
+
+ISO 639-1 FILES (languages)
+
+The ISO 639-1 .dat-file format is:
+code | language
+
+Example:
+sv | Swedish
+
+The code is case insensitive.
+
+The file must have the name iso639-1-#{language}.dat. For example
+"iso639-1-sv.dat" for the Swedish translation.

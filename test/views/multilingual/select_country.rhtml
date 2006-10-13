@@ -1,0 +1,56 @@
+<style type="text/css">
+  .example {
+    background-color: #eee;
+    color: black;
+    margin: 1ex;
+    padding: 0.5ex;
+  }
+  .example code {
+    display: block;
+    background-color: #ddd;
+    margin: 1ex;
+    padding: 0.5ex;
+  }
+</style>
+
+<div class="example" id="test1">
+  <h4><%= :all_countries.t %></h4>
+  <code>country_select 'foo', 'bar'</code>
+  <%= country_select 'foo', 'bar' %>
+</div>
+
+<div class="example" id="test2">
+  <h4><%= :all_countries_except_norway.t %></h4>
+  <code>country_select 'foo', 'bar', :exclude =&gt; [578]</code>
+  <%= country_select 'foo', 'bar', :exclude => [578] %>
+</div>
+
+<div class="example" id="test3">
+  <h4><%= :countries_with_some_prioritized.t %></h4>
+  <code>country_select 'foo', 'bar', :prioritized =&gt; [752,162]</code>
+  <%= country_select 'foo', 'bar', :prioritized => [752,162] %>
+</div>
+
+<div class="example" id="test4">
+  <h4><%= :only_a_few_selected_countries.t %></h4>
+  <code>country_select 'foo', 'bar', :only =&gt; [156,158,162,166,170,174,175,178,180,408,410]</code>
+  <%= country_select 'foo', 'bar', :only => [156,158,162,166,170,174,175,178,180,408,410] %>
+</div>
+
+<div class="example" id="test5">
+  <h4><%= :same_countries_as_above_with_formal_name.t %></h4>
+  <code>country_select 'foo', 'bar', :only =&gt; [156,158,162,166,170,174,175,178,180,408,410], :variant =&gt; :formal</code>
+  <%= country_select 'foo', 'bar', :only => [156,158,162,166,170,174,175,178,180,408,410], :variant => :formal %>
+</div>
+
+<div class="example" id="test6">
+  <h4><%= :same_countries_as_above_with_swap_parts.t %></h4>
+  <code>country_select 'foo', 'bar', :only =&gt; [156,158,162,166,170,174,175,178,180,408,410], :variant =&gt; :formal, :swap_parts =&gt; true</code>
+  <%= country_select 'foo', 'bar', :only => [156,158,162,166,170,174,175,178,180,408,410], :variant => :formal, :swap_parts => true %>
+</div>
+
+<div class="example" id="test7">
+  <h4><%= :same_countries_as_above_with_common_name.t %></h4>
+  <code>country_select 'foo', 'bar', :only =&gt; [156,158,162,166,170,174,175,178,180,408,410], :swap_parts =&gt; true</code>
+  <%= country_select 'foo', 'bar', :only => [156,158,162,166,170,174,175,178,180,408,410], :swap_parts => true %>
+</div>

@@ -1,0 +1,242 @@
+# List taken from http://nl.wikipedia.org/wiki/ISO_3166-1
+
+004 | Afghanistan      
+008 | Albanië      
+012 | Algerije      
+016 | Amerikaans Samoa     
+850 | Amerikaanse Maagdeneilanden     
+020 | Andorra      
+024 | Angola      
+660 | Anguilla      
+010 | Antarctica      
+028 | Antigua en Barbuda    
+032 | Argentinië      
+051 | Armenië      
+533 | Aruba      
+036 | Australië      
+031 | Azerbeidzjan      
+044 | Bahama's      
+048 | Bahrein      
+050 | Bangladesh      
+052 | Barbados      
+056 | België      
+084 | Belize      
+204 | Benin      
+060 | Bermuda      
+064 | Bhutan      
+068 | Bolivia      
+070 | Bosnië-Herzegovina      
+072 | Botswana      
+074 | Bouvet      
+076 | Brazilië      
+092 | Brits Indische Oceaan Territorium   
+092 | Britse Maagdeneilanden     
+096 | Brunei      
+100 | Bulgarije      
+854 | Burkina Faso     
+108 | Burundi      
+116 | Cambodja      
+124 | Canada      
+136 | Caymaneilanden      
+140 | Centraal-Afrikaanse Republiek     
+152 | Chili      
+156 | China      
+162 | Christmaseiland      
+166 | Cocoseilanden      
+170 | Colombia      
+174 | Comoren      
+178 | Republiek Congo     
+180 | Democratische Republiek Congo    
+184 | Cookeilanden      
+188 | Costa Rica     
+192 | Cuba      
+196 | Cyprus      
+208 | Denemarken      
+262 | Djibouti      
+212 | Dominica      
+214 | Dominicaanse Republiek     
+276 | Duitsland      
+218 | Ecuador      
+818 | Egypte      
+222 | El Salvador     
+226 | Equatoriaal Guinea     
+232 | Eritrea      
+233 | Estland      
+231 | Ethiopië      
+234 | Faeröer      
+238 | Falklandeilanden      
+242 | Fiji      
+608 | Filipijnen      
+246 | Finland      
+250 | Frankrijk      
+254 | Frans-Guyana      
+258 | Frans-Polynesië      
+260 | Franse Zuidelijke Gebieden    
+266 | Gabon      
+270 | Gambia      
+268 | Georgië      
+288 | Ghana      
+292 | Gibraltar      
+308 | Grenada      
+300 | Griekenland      
+304 | Groenland      
+312 | Guadeloupe      
+316 | Guam      
+320 | Guatemala      
+324 | Guinee      
+624 | Guinee-Bissau      
+328 | Guyana      
+332 | Haiti      
+334 | Heard- en McDonaldeilanden    
+340 | Honduras      
+348 | Hongarije      
+344 | Hongkong      
+372 | Ierland      
+352 | IJsland      
+356 | India      
+360 | Indonesië      
+368 | Irak      
+364 | Iran      
+833 | Man      
+376 | Israël      
+380 | Italië      
+384 | Ivoorkust      
+388 | Jamaica      
+392 | Japan      
+887 | Jemen      
+400 | Jordanië      
+132 | Kaapverdië      
+120 | Kameroen      
+398 | Kazachstan      
+404 | Kenia      
+417 | Kirgizië      
+296 | Kiribati      
+414 | Koeweit      
+191 | Kroatië      
+418 | Laos      
+426 | Lesotho      
+428 | Letland      
+422 | Libanon      
+430 | Liberia      
+434 | Libië      
+438 | Liechtenstein      
+440 | Litouwen      
+442 | Groothertogdom Luxemburg     
+446 | Macao      
+807 | Macedonië      
+450 | Madagaskar      
+454 | Malawi      
+462 | Maldiven      
+458 | Maleisië      
+466 | Mali      
+470 | Malta      
+504 | Marokko      
+584 | Marshalleilanden      
+474 | Martinique      
+478 | Mauritanië      
+480 | Mauritius      
+175 | Mayotte      
+484 | Mexico      
+583 | Micronesië      
+498 | Republiek Moldavië     
+492 | Monaco      
+496 | Mongolië      
+500 | Montserrat      
+508 | Mozambique      
+104 | Myanmar      
+516 | Namibië      
+520 | Nauru      
+528 | Nederland      
+530 | Nederlandse Antillen     
+524 | Nepal      
+558 | Nicaragua      
+540 | Nieuw-Caledonië      
+554 | Nieuw-Zeeland      
+562 | Niger      
+566 | Nigeria      
+570 | Niue      
+580 | Noordelijke Marianen     
+408 | Noord-Korea      
+578 | Noorwegen      
+574 | Norfolkeiland      
+800 | Oeganda      
+804 | Oekraïne      
+860 | Oezbekistan      
+512 | Oman      
+040 | Oostenrijk      
+626 | Oost-Timor      
+586 | Pakistan      
+585 | Palau      
+275 | Palestina      
+591 | Panama      
+598 | Papoea-Nieuw-Guinea      
+600 | Paraguay      
+604 | Peru      
+612 | Pitcairneilanden      
+616 | Polen      
+620 | Portugal      
+630 | Puerto Rico     
+634 | Qatar      
+638 | Réunion      
+642 | Roemenië      
+643 | Rusland      
+646 | Rwanda      
+659 | Saint Kitts en Nevis   
+662 | Saint Lucia     
+666 | Saint-Pierre en Miquelon    
+670 | Saint Vincent en de Grenadines  
+090 | Salomonseilanden      
+882 | Samoa      
+674 | San Marino     
+678 | Sao Tomé en Principe   
+682 | Saoedi-Arabië      
+686 | Senegal      
+891 | Servië en Montenegro    
+690 | Seychellen      
+694 | Sierra Leone     
+702 | Singapore      
+654 | Sint-Helena      
+705 | Slovenië      
+703 | Slowakije      
+706 | Somalië      
+724 | Spanje      
+144 | Sri Lanka     
+736 | Sudan      
+740 | Suriname      
+744 | Svalbard en Jan Mayen   
+748 | Swaziland      
+760 | Syrië      
+762 | Tadzjikistan      
+158 | Taiwan      
+834 | Tanzania      
+764 | Thailand      
+768 | Togo      
+772 | Tokelau-eilanden      
+776 | Tonga      
+780 | Trinidad en Tobago    
+148 | Tsjaad      
+203 | Tsjechië      
+788 | Tunesië      
+792 | Turkije      
+795 | Turkmenistan      
+796 | Turks- en Caicoseilanden    
+798 | Tuvalu      
+581 | Kleine Pacifische eilanden van de Verenigde Staten
+858 | Uruguay      
+548 | Vanuatu      
+336 | Vaticaanstad      
+862 | Venezuela      
+784 | Verenigde Arabische Emiraten    
+826 | Verenigd Koninkrijk     
+840 | Verenigde Staten     
+704 | Vietnam      
+876 | Wallis en Futuna    
+732 | Westelijke Sahara     
+112 | Wit-Rusland      
+894 | Zambia      
+716 | Zimbabwe      
+710 | Zuid-Afrika      
+239 | Zuid-Georgië en de Zuidelijke Sandwicheilanden  
+410 | Zuid-Korea      
+752 | Zweden      
+756 | Zwitserland

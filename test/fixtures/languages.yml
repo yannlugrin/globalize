@@ -1,0 +1,25 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+english:
+  id: 1
+  iso_639_1: en
+  iso_639_2: eng
+  english_name: English
+  native_name: English
+  scope: L
+  macro_language: false
+
+hebrew:
+  id: 2
+  iso_639_1: he
+  iso_639_2: heb
+  english_name: Hebrew
+  native_name: עברית
+  scope: L
+  macro_language: false
+
+urdu:
+  id: 3
+  iso_639_1: ur
+  english_name: Urdu
+  scope: L
+  macro_language: false

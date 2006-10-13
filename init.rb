@@ -1,0 +1,1 @@
+require 'multilingual/base'

@@ -1,0 +1,42 @@
+@translation = {
+
+  # Time in words
+  'half_a_minute'  => ["half a minute"],
+  'half_an_hour'   => ["half an hour"],
+  'half_a_year'    => ["half a year"],
+  'x_minutes'      => ["%P", "0 minutes", "a minute", "%d minutes"],
+  'x_hours'        => ["%P", "0 hours",   "an hour",  "%d hours"],
+  'x_days'         => ["%P", "0 days",    "a day",    "%d days"],
+  'x_weeks'        => ["%P", "0 weeks",   "a week",   "%d weeks"],
+  'x_months'       => ["%P", "0 months",  "a month",  "%d months"],
+  'x_years'        => ["%P", "0 years",   "a year",   "%d years"],
+  'less_than_time' => ["less than %s"],
+  'more_than_time' => ["more than %s"],
+  'time_about'     => ["about %s"],
+  'time_ago'       => ["%s ago"],
+  'time_coming'    => ["in %s"],
+
+  # Misc interface words. These are meant to be used in buttons and similar,
+  # not interpolated.
+  'yes'      => ["Yes"],
+  'no'       => ["No"],
+  'true'     => ["True"],
+  'false'    => ["False"],
+  'on'       => ["On"],
+  'off'      => ["Off"],
+  'next'     => ["Next"],
+  'previous' => ["Previous"],
+  'back'     => ["Back"],
+  'forward'  => ["Forward"],
+  'skip'     => ["Skip"],
+  'cancel'   => ["Cancel"],
+  'abort'    => ["Abort"],
+  'stop'     => ["Stop"],
+  'quit'     => ["Quit"],
+  'save'     => ["Save"],
+  'discard'  => ["Discard"],
+  'reset'    => ["Reset"],
+  'delete'   => ["Delete"],
+  'edit'     => ["Edit"],
+
+}

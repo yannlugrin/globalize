@@ -1,0 +1,42 @@
+@translation = {
+
+  # Time in words
+  'half_a_minute'  => ["halve minuut"],
+  'half_an_hour'   => ["half uur"],
+  'half_a_year'    => ["half jaar"],
+  'x_minutes'      => ["%P", "0 minuten", "een minuut", "%d minuten"],
+  'x_hours'        => ["%P", "0 hours",   "een uur",    "%d uren"],
+  'x_days'         => ["%P", "0 days",    "een dag",    "%d dagen"],
+  'x_weeks'        => ["%P", "0 weeks",   "een week",   "%d weken"],
+  'x_months'       => ["%P", "0 months",  "een maand",  "%d maanden"],
+  'x_years'        => ["%P", "0 years",   "een jaar",   "%d jaar"],
+  'less_than_time' => ["minder dan %s"],
+  'more_than_time' => ["langer dan %s"],
+  'time_about'     => ["ongeveer %s"],
+  'time_ago'       => ["%s geleden"],
+  'time_coming'    => ["over %s"],
+
+  # Misc interface words. These are meant to be used in buttons and similar,
+  # not interpolated.
+  'yes'      => ["Ja"],
+  'no'       => ["Nee"],
+  'true'     => ["Waar"],
+  'false'    => ["Niet waar"],
+  'on'       => ["Aan"],
+  'off'      => ["Uit"],
+  'next'     => ["Volgende"],
+  'previous' => ["Vorige"],
+  'back'     => ["Terug"],
+  'forward'  => ["Vooruit"],
+  'skip'     => ["Sla over"],
+  'cancel'   => ["Herstel"],
+  'abort'    => ["Breek af"],
+  'stop'     => ["Stop"],
+  'quit'     => ["Beëindig"],
+  'save'     => ["Sla op"],
+  'discard'  => ["Negeer"],
+  'reset'    => ["Herstel"],
+  'delete'   => ["Verwijder"],
+  'edit'     => ["Wijzig"],
+
+}
