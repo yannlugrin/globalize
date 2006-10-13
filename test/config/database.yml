@@ -1,0 +1,13 @@
+test2:
+  adapter: mysql
+  database: mlr_test
+  username: root
+  password: root
+
+sqlite:
+  adapter: sqlite
+  dbfile: vendor/plugins/multilingual/test/db/test.sqlite.db
+
+test:
+  adapter: sqlite3
+  dbfile: vendor/plugins/multilingual/test/db/test.sqlite3.db
