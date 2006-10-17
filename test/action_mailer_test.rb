@@ -39,7 +39,7 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_match "This is the hebrew [he] mail.", mail.to_s
   end
 
-  def test_en
+  def test_he
     Locale.set('he')
     mail = GlobalizeMailer.create_test
     assert_match "This is the hebrew [he] mail.", mail.to_s
