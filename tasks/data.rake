@@ -127,14 +127,4 @@ namespace :globalize do
     t.test_files = FileList["#{File.dirname( __FILE__ )}/../test/*_test.rb"]
     t.verbose = true
   end
-  
-  namespace :test do
-    desc 'launch rails actionpack unit tests with globalized model'
-    Rake::TestTask.new :actionpack do |t|
-      puts RAILS_ROOT + "/vendor/rails/actionpack/test/**/*_test.rb"
-      puts Dir.glob(RAILS_ROOT + "/vendor/rails/actionpack/test/**/*_test.rb").inspect
-      t.test_files = Dir.glob(RAILS_ROOT + "/vendor/rails/actionpack/test/**/*_test.rb")
-      t.verbose = true
-    end
-  end
 end
