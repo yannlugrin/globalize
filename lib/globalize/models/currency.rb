@@ -149,7 +149,7 @@ module Globalize
       when num.is_a?(String)
         raise ArgumentError, "Not an amount (#{num})" if num.delete("^0-9").empty?
         _dollars, _cents = num.delete("^0-9.").split('.', 2)
-        _cents = 0 if !_cents
+        _cents = _cents ? _cents[0,2] : 0
         Currency.new(_dollars.to_i * 100 + _cents.to_i)
       when num.is_a?(Numeric)
         Currency.new(num * 100)

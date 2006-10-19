@@ -90,6 +90,16 @@ class CurrencyTest < Test::Unit::TestCase
     assert_raise(ArgumentError) { Currency.parse("abc.de") }
   end
 
+  def test_parse2
+    m1 = Currency.parse("$134.5483726")
+    assert_equal 13454, m1.cents  
+  end
+
+  def test_parse2
+    m1 = Currency.parse('54')
+    assert_equal 5400, m1.cents  
+  end
+  
   def test_format
     m1 = Currency.new(1234567)
     assert_equal "12,345.67", m1.amount

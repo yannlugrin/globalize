@@ -24,6 +24,6 @@ class ValidationTest < Test::Unit::TestCase
 
     prod = Product.find(3)
     assert !prod.valid?
-    assert_equal "Name is too short (min is 5 characters)", prod.errors.full_messages.first 
+    assert_equal "Name is too short (minimum is 5 characters)", prod.errors.full_messages.first 
   end
 end

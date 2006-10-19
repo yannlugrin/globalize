@@ -1,4 +1,6 @@
 # Reads a CSV file from the data/ dir.
+require 'csv'
+
 def csv_file filename
   path = File.join File.dirname( __FILE__ ), '../data', "#{filename}.csv"
   File.open( path ).read
@@ -60,6 +62,7 @@ namespace :globalize do
       t.column :table_name,             :string
       t.column :item_id,                :integer
       t.column :facet,                  :string
+      t.column :built_in,               :boolean, :default => true
       t.column :language_id,            :integer
       t.column :pluralization_index,    :integer
       t.column :text,                   :text
@@ -86,14 +89,7 @@ namespace :globalize do
     ActiveRecord::Base.connection.add_index :globalize_languages, :iso_639_1
     ActiveRecord::Base.connection.add_index :globalize_languages, :iso_639_2  
     ActiveRecord::Base.connection.add_index :globalize_languages, :iso_639_3  
-    ActiveRecord::Base.connection.add_index :globalize_languages, :rfc_3066
-    
-    # Dirty hack to force initalization of pg indexes
-    if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
-      ActiveRecord::Base.connection.execute "SELECT nextval('public.globalize_countries_id_seq')"
-      ActiveRecord::Base.connection.execute "SELECT nextval('public.globalize_translations_id_seq')"
-      ActiveRecord::Base.connection.execute "SELECT nextval('public.globalize_languages_id_seq')"
-    end
+    ActiveRecord::Base.connection.add_index :globalize_languages, :rfc_3066 
   end
   
   desc 'Drops Globalize database tables'
@@ -107,6 +103,13 @@ namespace :globalize do
   
   desc 'Load locale data'
   task :load_locale_data => :environment do
+    # This needs to be called here, so that we can load the structure without
+    # the data. It's needed for using currval() as used in loading
+    if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
+      ActiveRecord::Base.connection.execute "SELECT nextval('globalize_countries_id_seq')"
+      ActiveRecord::Base.connection.execute "SELECT nextval('globalize_translations_id_seq')"
+      ActiveRecord::Base.connection.execute "SELECT nextval('globalize_languages_id_seq')"
+    end
     load_from_csv 'globalize_countries',    csv_file( :country_data )
     load_from_csv 'globalize_languages',    csv_file( :language_data )
     load_from_csv 'globalize_translations', csv_file( :translation_data )
@@ -117,5 +120,11 @@ namespace :globalize do
     Globalize::Country.destroy_all
     Globalize::Language.destroy_all
     Globalize::Translation.destroy_all
+  end
+  
+  desc 'Run Globalize tests'
+  Rake::TestTask.new do |t|
+    t.test_files = FileList["#{File.dirname( __FILE__ )}/../test/*_test.rb"]
+    t.verbose = true
   end
 end

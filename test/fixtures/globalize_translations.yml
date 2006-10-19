@@ -99,14 +99,14 @@ view_he_tr_validation_1:
   id: 19
   type: ViewTranslation
   language_id: 2
-  tr_key: "Specs is too long (max is %d characters)"
+  tr_key: "Specs is too long (maximum is %d characters)"
   pluralization_index: 1
   text: "המפרט ארוך מדי (המקסימום הוא תו אחד)"
 view_he_tr_validation_2:
   id: 20
   type: ViewTranslation
   language_id: 2
-  tr_key: "Specs is too long (max is %d characters)"
+  tr_key: "Specs is too long (maximum is %d characters)"
   pluralization_index: 2
   text: "המפרט ארוך מדי (המקסימום הוא %d תווים)"
 
@@ -333,3 +333,22 @@ view_he_tr_month_dec:
   tr_key: 'December [month]'
   pluralization_index: 1
   text: "דצמבר"
+
+model_simple_name_1:
+  id: 50
+  table_name: globalize_simples
+  item_id: 1
+  facet: name
+  language_id: 2
+  text: זהו השם הראשון
+  type: ModelTranslation
+
+model_simple_desc_1:
+  id: 51
+  table_name: globalize_simples
+  item_id: 1
+  facet: description
+  language_id: 2
+  text: זהו התיאור הראשון
+  type: ModelTranslation
+  

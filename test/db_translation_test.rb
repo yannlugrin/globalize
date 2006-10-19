@@ -4,7 +4,7 @@ class TranslationTest < Test::Unit::TestCase
   self.use_instantiated_fixtures = true
   fixtures :globalize_languages, :globalize_translations, :globalize_countries, 
     :globalize_products, :globalize_manufacturers, :globalize_categories, 
-    :globalize_categories_products
+    :globalize_categories_products, :globalize_simples
 
   class Product < ActiveRecord::Base
     set_table_name "globalize_products"
@@ -30,11 +30,50 @@ class TranslationTest < Test::Unit::TestCase
     translates :name  
   end
 
-  def setup
-    Globalize::Locale.set("en-US")
-    Globalize::Locale.set_base_language("en-US")
+  class Simple < ActiveRecord::Base
+    set_table_name "globalize_simples"
+
+    translates :name, :description
   end
 
+  def setup
+    Globalize::Locale.set_base_language("en-US")
+    Globalize::Locale.set("en-US")
+  end
+
+  def test_simple
+    simp = Simple.find(1)
+    assert_equal "first", simp.name
+    assert_equal "This is a description of the first simple", simp.description   
+    
+    Globalize::Locale.set 'he-IL'
+    simp = Simple.find(1)
+    assert_equal "זהו השם הראשון", simp.name
+    assert_equal "זהו התיאור הראשון", simp.description   
+  end
+
+  def test_simple_save
+    simp = Simple.find(1)
+    simp.name = '1st'
+    simp.save!
+    
+    Globalize::Locale.set 'he-IL'
+    simp = Simple.find(1)
+    simp.name = 'ה-1'
+    simp.save!
+  end
+
+  def test_simple_create
+    simp = Simple.new
+    simp.name = '1st'
+    simp.save!
+    
+    Globalize::Locale.set 'he-IL'
+    simp = Simple.new
+    simp.name = 'ה-1'
+    simp.save!
+  end
+  
   def test_native_language
     heb = Globalize::Language.pick("he")
     assert_equal "עברית", heb.native_name

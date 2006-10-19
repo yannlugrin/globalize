@@ -75,7 +75,38 @@ module ActionView
           )
         end
 
-        select_html(options[:field_name] || 'month', month_options, options[:prefix], options[:include_blank], options[:discard_type], options[:disabled])
+        select_html(options[:field_name] || 'month', month_options, options[:prefix], options[:include_blank], options[:discard_type], options[:disabled], options[:id], options[:class])
+      end
+
+      def select_year(date, options = {})
+        year_options = []
+        y = date ? (date.kind_of?(Fixnum) ? (y = (date == 0) ? Date.today.year : date) : date.year) : Date.today.year
+
+        start_year, end_year = (options[:start_year] || y-5), (options[:end_year] || y+5)
+        step_val = start_year < end_year ? 1 : -1
+
+        start_year.step(end_year, step_val) do |year|
+          year_options << ((date && (date.kind_of?(Fixnum) ? date : date.year) == year) ?
+            %(<option value="#{year}" selected="selected">#{year}</option>\n) :
+            %(<option value="#{year}">#{year}</option>\n)
+          )
+        end
+
+        select_html(options[:field_name] || 'year', year_options, options[:prefix], options[:include_blank], options[:discard_type], options[:disabled], options[:id], options[:class])
+      end
+      
+      private
+        def select_html(type, options, prefix = nil, include_blank = false, discard_type = false, disabled = false, id = nil, klass = nil)
+          select_html  = %(<select name="#{prefix || DEFAULT_PREFIX})
+          select_html << "[#{type}]" unless discard_type
+          select_html << %(")
+          select_html << %( disabled="disabled") if disabled
+          select_html << %( id="#{id}") if id
+          select_html << %( class="#{klass}") if klass
+          select_html << %(>\n)
+          select_html << %(<option value=""></option>\n) if include_blank
+          select_html << options.to_s
+          select_html << "</select>\n"
       end
     end
 

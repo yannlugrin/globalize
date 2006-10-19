@@ -36,15 +36,46 @@ module Globalize # :nodoc:
             
             Locale.set("es_ES")
             product.name -> guitarra
+            
+        The standard ActiveRecord +find+ method has been tweaked to work with Globalize.
+        Use it in the exact same way you would the regular find, except for the 
+        following provisos:
+
+        1. At this point, it will not work with the <tt>:include</tt> option...
+        1. However, there is a replacement: <tt>:include_translated</tt>, which will 
+         be described below.
+        1. The <tt>:select</tt> option is prohibited.
+
+        +find+ returns the retreived models, with all translated fields correctly
+        loaded, depending on the active language.
+            
+        <tt>:include_translated</tt> works as follows: 
+        any model specified in the <tt>:include_translated</tt> option
+        will be eagerly loaded and added to the current model as attributes,
+        prefixed with the name of the associated model. This is often referred
+        to as _piggybacking_.
+
+        Example:
+          class Product < ActiveRecord::Base
+            belongs_to :manufacturer
+            belongs_to :category
+          end
+
+          class Category < ActiveRecord::Base
+            has_many :products
+            translates :name
+          end
+
+          prods = Product.find(:all, :include_translated => [ :manufacturer, :category ])
+          prods.first.category_name -> "batedeira"            
 =end
       def translates(*facets)
-
         # parse out options hash
         options = facets.pop if facets.last.kind_of? Hash
         options ||= {}
 
         facets_string = "[" + facets.map {|facet| ":#{facet}"}.join(", ") + "]"
-        class_eval <<-HERE
+        class_eval <<-HERE   
           @@facet_options = {}
           attr_writer :fully_loaded
           def fully_loaded?; @fully_loaded; end
@@ -73,13 +104,14 @@ module Globalize # :nodoc:
             def postload_facets
               @@postload_facets ||= @@globalize_facets - @@preload_facets
             end
-            alias_method :globalize_old_find, :find unless
-              respond_to? :globalize_old_find
+            alias_method :globalize_old_find_every, :find_every unless
+              respond_to? :globalize_old_find_every
           end
           alias_method :globalize_old_reload,   :reload
           alias_method :globalize_old_destroy,  :destroy
           alias_method :globalize_old_create_or_update, :create_or_update
-        
+          alias_method :globalize_old_update, :update        
+          
           include Globalize::DbTranslate::TranslateObjectMethods
           extend  Globalize::DbTranslate::TranslateClassMethods        
 
@@ -236,8 +268,15 @@ module Globalize # :nodoc:
         end
 
         def create_or_update
-          globalize_old_create_or_update
-          update_translation if Locale.active
+          result = globalize_old_create_or_update
+          update_translation if Locale.active && result
+          result
+        end
+        
+        def update
+          status = true
+          status = globalize_old_update unless attributes_with_quotes(false).empty?
+          status
         end
         
         def update_translation
@@ -276,177 +315,6 @@ module Globalize # :nodoc:
     end
 
     module TranslateClassMethods
-      
-=begin rdoc
-      This is a replacement for the standard ActiveRecord +find+ method.
-      Use it in the exact same way you would the regular find, except for the 
-      following provisos:
-
-      1. At this point, it will not work with the <tt>:include</tt> option...
-      1. However, there is a replacement: <tt>:include_translated</tt>, which will 
-       be described below.
-      1. The <tt>:select</tt> option is prohibited.
-
-      +find+ returns the retreived models, with all translated fields correctly
-      loaded, depending on the active language.
-          
-      <tt>:include_translated</tt> works as follows: 
-      any model specified in the <tt>:include_translated</tt> option
-      will be eagerly loaded and added to the current model as attributes,
-      prefixed with the name of the associated model. This is often referred
-      to as _piggybacking_.
-
-      Example:
-        class Product < ActiveRecord::Base
-          belongs_to :manufacturer
-          belongs_to :category
-        end
-
-        class Category < ActiveRecord::Base
-          has_many :products
-          translates :name
-        end
-
-        prods = Product.find(:all, :include_translated => [ :manufacturer, :category ])
-        prods.first.category_name -> "batedeira"
-=end
-      def find(*args)
-        options = args.last.is_a?(Hash) ? args.last : {}
-
-        return globalize_old_find(*args) if options[:untranslated]
-
-        find_type = args.first
-        if find_type == :first
-          options[:translate_all] = true
-          return globalize_old_find(:first, options)
-        elsif find_type != :all
-          return globalize_old_find(*args)
-        end
-
-        raise StandardError, 
-          ":select option not allowed on translatable models " +
-          "(#{options[:select]})" if options[:select] && !options[:select].empty?
-
-        # do quick version if base language is active
-        if Locale.base? && !options.has_key?(:include_translated) 
-          results = untranslated_find(*args) 
-          results.each {|result|
-            result.set_original_language
-          }
-          return results
-        end
-
-        options[:conditions] = fix_conditions(options[:conditions]) if options[:conditions]
-
-        # there will at least be an +id+ field here
-        select_clause = untranslated_fields.map {|f| "#{table_name}.#{f}" }.join(", ")
-
-        joins_clause = options[:joins].nil? ? "" : options[:joins].dup
-        joins_args = []
-        load_full = options[:translate_all]
-        facets = load_full ? globalize_facets : preload_facets
-
-        if Locale.base?
-          select_clause <<  ', ' << facets.map {|f| "#{table_name}.#{f}" }.join(", ")
-        else
-          language_id = Locale.active.language.id
-          load_full = options[:translate_all]
-          facets = load_full ? globalize_facets : preload_facets
-          
-=begin
-        There's a bug in sqlite that messes up sorting when aliasing fields, 
-        see: <http://www.sqlite.org/cvstrac/tktview?tn=1521,33>.
-
-        Since I want to use sqlite, and sorting, I'm hacking this to make it work.
-        This involves renaming order by fields and adding them to the SELECT part. 
-        It's a sucky hack, but hopefully sqlite will fix the bug soon.
-=end
-
-          # sqlite bug hack          
-          select_position = untranslated_fields.size
-
-          # initialize where tweaking
-          if options[:conditions].nil?
-            where_clause = ""
-          else
-            if options[:conditions].kind_of? Array          
-              conditions_is_array = true
-              where_clause = options[:conditions].shift
-            else
-              where_clause = options[:conditions]
-            end
-          end
-
-          facets.each do |facet| 
-            facet = facet.to_s
-            facet_table_alias = "t_#{facet}"
-
-            # sqlite bug hack          
-            select_position += 1
-            options[:order].sub!(/\b#{facet}\b/, select_position.to_s) if options[:order] && sqlite?
-
-            select_clause << ", COALESCE(#{facet_table_alias}.text, #{table_name}.#{facet}) AS #{facet}, " 
-            select_clause << " #{facet_table_alias}.text AS #{facet}_not_base " 
-            joins_clause  << " LEFT OUTER JOIN globalize_translations AS #{facet_table_alias} " +
-              "ON #{facet_table_alias}.table_name = ? " +
-              "AND #{table_name}.#{primary_key} = #{facet_table_alias}.item_id " +
-              "AND #{facet_table_alias}.facet = ? AND #{facet_table_alias}.language_id = ? "
-            joins_args << table_name << facet << language_id            
-            
-            #for translated fields inside WHERE clause substitute corresponding COALESCE string
-            where_clause.gsub!(/((((#{table_name}\.)|\W)#{facet})|^#{facet})\W/, " COALESCE(#{facet_table_alias}.text, #{table_name}.#{facet}) ")          
-          end
-          
-          options[:conditions] = sanitize_sql( 
-            conditions_is_array ? [ where_clause ] + options[:conditions] : where_clause 
-          ) unless options[:conditions].nil?          
-        end
-
-        # add in associations (of :belongs_to nature) if applicable
-        associations = options[:include_translated] || []
-        associations = [ associations ].flatten
-        associations.each do |assoc|
-          rfxn = reflect_on_association(assoc)
-          assoc_type = rfxn.macro
-          raise StandardError, 
-            ":include_translated associations must be of type :belongs_to;" +
-            "#{assoc} is #{assoc_type}" if assoc_type != :belongs_to
-          klass = rfxn.klass
-          assoc_facets = klass.preload_facets
-          included_table = klass.table_name
-          included_fk = klass.primary_key
-          fk = rfxn.options[:foreign_key] || "#{assoc}_id"
-          assoc_facets.each do |facet|
-            facet_table_alias = "t_#{assoc}_#{facet}"
-
-           if Locale.base?
-              select_clause << ", #{included_table}.#{facet} AS #{assoc}_#{facet} "
-            else            
-              select_clause << ", COALESCE(#{facet_table_alias}.text, #{included_table}.#{facet}) " +
-                "AS #{assoc}_#{facet} "
-              joins_clause << " LEFT OUTER JOIN globalize_translations AS #{facet_table_alias} " +
-                "ON #{facet_table_alias}.table_name = ? " +
-                "AND #{table_name}.#{fk} = #{facet_table_alias}.item_id " +
-                "AND #{facet_table_alias}.facet = ? AND #{facet_table_alias}.language_id = ? "
-              joins_args << klass.table_name << facet.to_s << language_id                        
-            end                        
-          end
-          joins_clause << "LEFT OUTER JOIN #{included_table} " + 
-              "ON #{table_name}.#{fk} = #{included_table}.#{included_fk} "
-        end
-
-        options[:select] = select_clause
-        options[:readonly] = false
-
-        sanitized_joins_clause = sanitize_sql( [ joins_clause, *joins_args ] )        
-        options[:joins] = sanitized_joins_clause
-        results = globalize_old_find(:all, options)
-
-        results.each {|result|
-          result.set_original_language
-          result.fully_loaded = true if load_full
-        }
-      end
 
       # Use this instead of +find+ if you want to bypass the translation
       # code for any reason. 
@@ -455,18 +323,148 @@ module Globalize # :nodoc:
         options = has_options ? args.last : {}
         options[:untranslated] = true
         args << options if !has_options
-        globalize_old_find(*args)
+        find(*args)
       end
-
-
+      
       protected
-        def validate_find_options(options) # :nodoc:
-          options.assert_valid_keys [ :conditions, :group, :include, :include_translated, 
-            :group, :joins, :limit, :offset, :order, :select, :readonly, :translate_all,
-            :untranslated ]
-        end
+        # FIX: figure out how to use default rails VALID_FIND_OPTIONS constant
+        VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset,
+                               :order, :select, :readonly, :group, :from, 
+                               :untranslated, :include_translated ]
 
+        def validate_find_options(options) #:nodoc:
+          options.assert_valid_keys(VALID_FIND_OPTIONS)
+        end
+      
       private
+        def find_every(options)
+          return globalize_old_find_every(options) if options[:untranslated]
+          raise StandardError, 
+            ":select option not allowed on translatable models " +
+            "(#{options[:select]})" if options[:select] && !options[:select].empty?
+
+          # do quick version if base language is active
+          if Locale.base? && !options.has_key?(:include_translated) 
+            results = globalize_old_find_every(options) 
+            results.each {|result|
+              result.set_original_language
+            }
+            return results
+          end
+
+          options[:conditions] = fix_conditions(options[:conditions]) if options[:conditions]
+
+          # there will at least be an +id+ field here
+          select_clause = untranslated_fields.map {|f| "#{table_name}.#{f}" }.join(", ")
+
+          joins_clause = options[:joins].nil? ? "" : options[:joins].dup
+          joins_args = []
+          load_full = options[:translate_all]
+          facets = load_full ? globalize_facets : preload_facets
+
+          if Locale.base?
+            select_clause <<  ', ' << facets.map {|f| "#{table_name}.#{f}" }.join(", ")
+          else
+            language_id = Locale.active.language.id
+            load_full = options[:translate_all]
+            facets = load_full ? globalize_facets : preload_facets
+            
+=begin
+          There's a bug in sqlite that messes up sorting when aliasing fields, 
+          see: <http://www.sqlite.org/cvstrac/tktview?tn=1521,33>.
+
+          Since I want to use sqlite, and sorting, I'm hacking this to make it work.
+          This involves renaming order by fields and adding them to the SELECT part. 
+          It's a sucky hack, but hopefully sqlite will fix the bug soon.
+=end
+
+            # sqlite bug hack          
+            select_position = untranslated_fields.size
+
+            # initialize where tweaking
+            if options[:conditions].nil?
+              where_clause = ""
+            else
+              if options[:conditions].kind_of? Array          
+                conditions_is_array = true
+                where_clause = options[:conditions].shift
+              else
+                where_clause = options[:conditions]
+              end
+            end
+
+            facets.each do |facet| 
+              facet = facet.to_s
+              facet_table_alias = "t_#{facet}"
+
+              # sqlite bug hack          
+              select_position += 1
+              options[:order].sub!(/\b#{facet}\b/, select_position.to_s) if options[:order] && sqlite?
+
+              select_clause << ", COALESCE(#{facet_table_alias}.text, #{table_name}.#{facet}) AS #{facet}, " 
+              select_clause << " #{facet_table_alias}.text AS #{facet}_not_base " 
+              joins_clause  << " LEFT OUTER JOIN globalize_translations AS #{facet_table_alias} " +
+                "ON #{facet_table_alias}.table_name = ? " +
+                "AND #{table_name}.#{primary_key} = #{facet_table_alias}.item_id " +
+                "AND #{facet_table_alias}.facet = ? AND #{facet_table_alias}.language_id = ? "
+              joins_args << table_name << facet << language_id            
+              
+              #for translated fields inside WHERE clause substitute corresponding COALESCE string
+              where_clause.gsub!(/((((#{table_name}\.)|\W)#{facet})|^#{facet})\W/, " COALESCE(#{facet_table_alias}.text, #{table_name}.#{facet}) ")          
+            end
+            
+            options[:conditions] = sanitize_sql( 
+              conditions_is_array ? [ where_clause ] + options[:conditions] : where_clause 
+            ) unless options[:conditions].nil?          
+          end
+
+          # add in associations (of :belongs_to nature) if applicable
+          associations = options[:include_translated] || []
+          associations = [ associations ].flatten
+          associations.each do |assoc|
+            rfxn = reflect_on_association(assoc)
+            assoc_type = rfxn.macro
+            raise StandardError, 
+              ":include_translated associations must be of type :belongs_to;" +
+              "#{assoc} is #{assoc_type}" if assoc_type != :belongs_to
+            klass = rfxn.klass
+            assoc_facets = klass.preload_facets
+            included_table = klass.table_name
+            included_fk = klass.primary_key
+            fk = rfxn.options[:foreign_key] || "#{assoc}_id"
+            assoc_facets.each do |facet|
+              facet_table_alias = "t_#{assoc}_#{facet}"
+
+             if Locale.base?
+                select_clause << ", #{included_table}.#{facet} AS #{assoc}_#{facet} "
+              else            
+                select_clause << ", COALESCE(#{facet_table_alias}.text, #{included_table}.#{facet}) " +
+                  "AS #{assoc}_#{facet} "
+                joins_clause << " LEFT OUTER JOIN globalize_translations AS #{facet_table_alias} " +
+                  "ON #{facet_table_alias}.table_name = ? " +
+                  "AND #{table_name}.#{fk} = #{facet_table_alias}.item_id " +
+                  "AND #{facet_table_alias}.facet = ? AND #{facet_table_alias}.language_id = ? "
+                joins_args << klass.table_name << facet.to_s << language_id                        
+              end                        
+            end
+            joins_clause << "LEFT OUTER JOIN #{included_table} " + 
+                "ON #{table_name}.#{fk} = #{included_table}.#{included_fk} "
+          end
+
+          options[:select] = select_clause
+          options[:readonly] = false
+
+          sanitized_joins_clause = sanitize_sql( [ joins_clause, *joins_args ] )        
+          options[:joins] = sanitized_joins_clause
+          results = globalize_old_find_every(options)
+
+          results.each {|result|
+            result.set_original_language
+            result.fully_loaded = true if load_full
+          }
+          
+          return results
+        end
 
         # properly scope conditions to table
         def fix_conditions(conditions)

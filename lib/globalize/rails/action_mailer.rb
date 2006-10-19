@@ -24,7 +24,7 @@ module ActionMailer # :nodoc:
     def create!(method_name, *parameters) #:nodoc:
       initialize_defaults(method_name)
       send(method_name, *parameters)
-
+      
       # If an explicit, textual body has not been set, we check assumptions.
       unless String === @body
         # First, we look to see if there are any likely templates that match,
@@ -39,7 +39,7 @@ module ActionMailer # :nodoc:
             @parts = sort_parts(@parts, @implicit_parts_order)
           end
         end
-
+        
         # Then, if there were such templates, we check to see if we ought to
         # also render a "normal" template (without the content type). If a
         # normal template exists (or if there were no implicit parts) we render
@@ -61,6 +61,7 @@ module ActionMailer # :nodoc:
 
       # build the mail object itself
       @mail = create_mail
+
     end
 
     private
@@ -81,11 +82,13 @@ module ActionMailer # :nodoc:
             # skip either template name and locale, or just template name
             type_sections = code ? sections[2..-1] : sections[1..-1]
             type = type_sections.join("/")
+            
             next if type.empty?
             @parts << Part.new(:content_type => type,
               :disposition => "inline", :charset => charset,
               :body => render_message(sections.join('.'), @body))
           end
+          
 
           # if we found templates at this stage, no need to continue to defaults
           break if !templates.empty?
