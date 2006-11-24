@@ -252,7 +252,7 @@ module Globalize # :nodoc:
           if Locale.base?
             attributes.inject({}) do |quoted, (name, value)|
               if column = column_for_attribute(name)
-                quoted[name] = quote(value, column) unless !include_primary_key && column.primary
+                quoted[name] = quote_value(value, column) unless !include_primary_key && column.primary
               end
               quoted
             end
@@ -260,7 +260,7 @@ module Globalize # :nodoc:
             attributes.inject({}) do |quoted, (name, value)|
               if !self.class.globalize_facets_hash.has_key?(name) && 
                   column = column_for_attribute(name)
-                quoted[name] = quote(value, column) unless !include_primary_key && column.primary
+                quoted[name] = quote_value(value, column) unless !include_primary_key && column.primary
               end
               quoted
             end
@@ -468,19 +468,32 @@ module Globalize # :nodoc:
 
         # properly scope conditions to table
         def fix_conditions(conditions)
-          if conditions.kind_of? Array          
+          conditions = sanitize_sql(conditions)
+          
+          if conditions.kind_of? Array
             is_array = true
             sql = conditions.shift
+          elsif conditions.kind_of? Hash
+            is_hash = true
           else
             is_array = false
             sql = conditions
           end
-
+          
           column_names.each do |column_name|
-            sql.gsub!( /(^|([^\.\w"'`]+))(["'`]?)#{column_name}(?!\w)/,
-              '\1' + "#{table_name}." + '\3' + "#{column_name}" )           
+            sql = {sql => nil} unless is_hash
+            hash = {}
+            
+            sql.each_key do |key, value|
+              hash[
+                key.gsub( /(^|([^\.\w"'`]+))(["'`]?)#{column_name}(?!\w)/,
+                '\1' + "#{table_name}." + '\3' + "#{column_name}" )
+               ] = value
+            end
+            
+            sql = is_hash ? hash : hash.keys.first
           end
-
+          
           if is_array
             [ sql ] + conditions
           else
