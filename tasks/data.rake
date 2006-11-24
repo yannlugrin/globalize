@@ -68,7 +68,7 @@ namespace :globalize do
       t.column :text,                   :text
     end
     ActiveRecord::Base.connection.add_index :globalize_translations, [ :tr_key, :language_id ]
-    ActiveRecord::Base.connection.add_index :globalize_translations, [ :table_name, :item_id, :language_id ]
+    ActiveRecord::Base.connection.add_index :globalize_translations, [ :table_name, :item_id, :language_id ], :name => 'globalize_translations_table_name_and_item_and_language'
     
     ActiveRecord::Base.connection.create_table :globalize_languages, :force => true do |t|
       t.column :iso_639_1,              :string,  :limit => 2
