@@ -10,6 +10,8 @@ module ActionView # :nodoc: all
     @@globalize_path_cache = {}
 
     def render_file(template_path, use_full_path = true, local_assigns = {})
+      @first_render ||= template_path
+      
       if Globalize::Locale.active?
         localized_path = locate_globalize_path(template_path, use_full_path)
         # don't use_full_path -- we've already expanded the path
