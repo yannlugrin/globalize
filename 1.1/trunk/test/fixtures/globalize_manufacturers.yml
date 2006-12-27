@@ -1,0 +1,6 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+first_manufacturer:
+  id: 1
+  code: first-mfr
+  name: Reverend
+  name_es: Reverendo
