@@ -124,7 +124,6 @@ end
 
 class ActiveRecord::Base # :nodoc:
   include Globalize::DbTranslate
-  include Globalize::DbLocalize
 end
 
 

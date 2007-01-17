@@ -12,7 +12,6 @@ require "globalize/localization/db_view_translator"
 require "globalize/localization/rfc_3066"
 require "globalize/localization/locale"
 require "globalize/localization/db_translate"
-require "globalize/localization/db_localize"
 require "globalize/localization/core_ext"
 require "globalize/localization/core_ext_hooks"
 

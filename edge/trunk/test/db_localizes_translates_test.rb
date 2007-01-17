@@ -1,6 +1,8 @@
 require File.dirname(__FILE__) + '/test_helper'
 
-class LocalizesTest < Test::Unit::TestCase
+class LocalizesTranslatesTest < Test::Unit::TestCase
+  Globalize::DbTranslate.keep_translations_in_model = true
+
   self.use_instantiated_fixtures = true
   fixtures :globalize_languages, :globalize_translations, :globalize_countries,
     :globalize_products, :globalize_manufacturers, :globalize_categories,
@@ -12,27 +14,27 @@ class LocalizesTest < Test::Unit::TestCase
     has_and_belongs_to_many :categories, :join_table => "globalize_categories_products"
     belongs_to :manufacturer, :foreign_key => 'manufacturer_id'
 
-    localizes :name, :description, :specs
+    translates :name, :description, :specs
   end
 
   class Category < ActiveRecord::Base
     set_table_name "globalize_categories"
     has_and_belongs_to_many :products, :join_table => "globalize_categories_products"
 
-    localizes :name
+    translates :name
   end
 
   class Manufacturer < ActiveRecord::Base
     set_table_name "globalize_manufacturers"
     has_many :products
 
-    localizes :name
+    translates :name
   end
 
   class Simple < ActiveRecord::Base
     set_table_name "globalize_simples"
 
-    localizes :name, :description
+    translates :name, :description
   end
 
   class UnlocalizedClass < ActiveRecord::Base
@@ -111,7 +113,7 @@ class LocalizesTest < Test::Unit::TestCase
   def test_base_as_default_true
 
     Product.class_eval %{
-      localizes :name, :description, :specs, :base_as_default => true
+      translates :name, :description, :specs, :base_as_default => true
     }
 
     prod = Product.create!(:code => 'test-base', :name => 'english test')
@@ -148,7 +150,7 @@ class LocalizesTest < Test::Unit::TestCase
     assert_equal "english test two", prod.name_before_type_cast
 
     Product.class_eval %{
-      localizes :name, :description, :specs, :base_as_default => false
+      translates :name, :description, :specs, :base_as_default => false
     }
   end
 

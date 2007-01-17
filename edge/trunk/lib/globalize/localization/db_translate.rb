@@ -12,11 +12,18 @@ module Globalize # :nodoc:
 
   module DbTranslate  # :nodoc:
 
+    @@keep_translations_in_model = false
+    mattr_reader :keep_translations_in_model
+    mattr_writer :keep_translations_in_model
+
     def self.included(base)
       base.extend(ClassMethods)
     end
 
     module ClassMethods
+
+      attr_accessor :keep_translations_in_model
+
 =begin rdoc
           Specifies fields that can be translated. These are normal ActiveRecord
           fields, with corresponding database columns, but they are shadowed
@@ -73,97 +80,16 @@ module Globalize # :nodoc:
         # parse out options hash
         options = facets.pop if facets.last.kind_of? Hash
         options ||= {}
+        options.reverse_merge!({:base_as_default => false})
 
-        facets_string = "[" + facets.map {|facet| ":#{facet}"}.join(", ") + "]"
-        class_eval <<-HERE
-          @@facet_options = {}
-          attr_writer :fully_loaded
-          def fully_loaded?; @fully_loaded; end
-          @@globalize_facets = #{facets_string}
-          @@preload_facets ||= @@globalize_facets
-          class << self
-
-            def sqlite?; connection.kind_of? ActiveRecord::ConnectionAdapters::SQLiteAdapter end
-
-            def globalize_facets
-              @@globalize_facets
-            end
-
-            def globalize_facets_hash
-              @@globalize_facets_hash ||= globalize_facets.inject({}) {|hash, facet|
-                hash[facet.to_s] = true; hash
-              }
-            end
-
-            def untranslated_fields
-              @@untranslated_fields ||=
-                column_names.map {|cn| cn.intern } - globalize_facets
-            end
-
-            def preload_facets; @@preload_facets; end
-            def postload_facets
-              @@postload_facets ||= @@globalize_facets - @@preload_facets
-            end
-            alias_method :globalize_old_find_every, :find_every unless
-              respond_to? :globalize_old_find_every
-          end
-          alias_method :globalize_old_reload,   :reload
-          alias_method :globalize_old_destroy,  :destroy
-          alias_method :globalize_old_create_or_update, :create_or_update
-          alias_method :globalize_old_update, :update
-
-          include Globalize::DbTranslate::TranslateObjectMethods
-          extend  Globalize::DbTranslate::TranslateClassMethods
-
-        HERE
-
-        facets.each do |facet|
-          bidi = (!(options[facet] && !options[facet][:bidi_embed])).to_s
-          class_eval <<-HERE
-            @@facet_options[:#{facet}] ||= {}
-            @@facet_options[:#{facet}][:bidi] = #{bidi}
-
-            def #{facet}
-              if not_original_language
-                raise WrongLanguageError.new(@original_language, Locale.language)
-              end
-              load_other_translations if
-                !fully_loaded? && !self.class.preload_facets.include?(:#{facet})
-              result = read_attribute(:#{facet})
-              return nil if result.nil?
-              result.direction = #{facet}_is_base? ?
-                (Locale.base_language ? Locale.base_language.direction : nil) :
-                (@original_language ? @original_language.direction : nil)
-
-              # insert bidi embedding characters, if necessary
-              if @@facet_options[:#{facet}][:bidi] &&
-                  Locale.language && Locale.language.direction && result.direction
-                if Locale.language.direction == 'ltr' && result.direction == 'rtl'
-                  bidi_str = "\xe2\x80\xab" + result + "\xe2\x80\xac"
-                  bidi_str.direction = result.direction
-                  return bidi_str
-                elsif Locale.language.direction == 'rtl' && result.direction == 'ltr'
-                  bidi_str = "\xe2\x80\xaa" + result + "\xe2\x80\xac"
-                  bidi_str.direction = result.direction
-                  return bidi_str
-                end
-              end
-
-              return result
-            end
-
-            def #{facet}=(arg)
-              raise WrongLanguageError.new(@original_language, Locale.language) if
-                not_original_language
-              write_attribute(:#{facet}, arg)
-            end
-
-            def #{facet}_is_base?
-              self['#{facet}_not_base'].nil?
-            end
-          HERE
+        keep_translations_internally = true
+        if self.keep_translations_in_model.nil?
+          keep_translations_internally = ::Globalize::DbTranslate.keep_translations_in_model
+        else
+          keep_translations_internally = self.keep_translations_in_model
         end
 
+        keep_translations_internally ? translate_internal(facets, options) : translate_external(facets, options)
       end
 
 =begin rdoc
@@ -191,6 +117,260 @@ module Globalize # :nodoc:
       HERE
       end
 
+      protected
+
+        def translate_internal(facets, options)
+          facets_string = "[" + facets.map {|facet| ":#{facet}"}.join(", ") + "]"
+          class_eval %{
+            @@globalize_facets = #{facets_string}
+
+            def self.globalize_facets
+              @@globalize_facets
+            end
+
+            def globalize_facets_hash
+              @@globalize_facets_hash ||= globalize_facets.inject({}) {|hash, facet|
+                hash[facet.to_s] = true; hash
+              }
+            end
+
+            def non_localized_fields
+              @@non_localized_fields ||=
+                column_names.map {|cn| cn.intern } - globalize_facets
+            end
+
+            #Is field translated?
+            #Returns true if translated
+            #Warning! Depends on Locale.switch_locale
+            def translated?(facet, locale_code = nil)
+              localized_method = "\#{facet}_\#{Locale.active.language.code}"
+
+              Locale.switch_locale(locale_code) do
+                localized_method = "\#{facet}_\#{Locale.active.language.code}"
+              end if locale_code
+
+              value = send(localized_method.to_sym) if respond_to?(localized_method.to_sym)
+              return !value.nil?
+            end
+          }
+
+          facets.each do |facet|
+            class_eval %{
+
+              #Accessor that proxies to the right accessor for the current locale
+              def #{facet}
+                unless Locale.base?
+                  localized_method = "#{facet}_\#{Locale.active.language.code}"
+                  value = send(localized_method.to_sym) if respond_to?(localized_method.to_sym)
+                  value = value ? value : read_attribute(:#{facet}) if #{options[:base_as_default]}
+                  return value
+                end
+                read_attribute(:#{facet})
+              end
+
+              #Accessor before typecasting that proxies to the right accessor for the current locale
+              def #{facet}_before_type_cast
+                unless Locale.base?
+                  localized_method = "#{facet}_\#{Locale.active.language.code}_before_type_cast"
+                  value = send(localized_method.to_sym) if respond_to?(localized_method.to_sym)
+                  value = value ? value : read_attribute_before_type_cast('#{facet}') if #{options[:base_as_default]}
+                  return value
+                end
+                read_attribute_before_type_cast('#{facet}')
+              end
+
+              #Write to appropriate localized attribute
+              def #{facet}=(value)
+                unless Locale.base?
+                  localized_method = "#{facet}_\#{Locale.active.language.code}"
+                  write_attribute(localized_method.to_sym, value) if respond_to?(localized_method.to_sym)
+                else
+                  write_attribute(:#{facet}, value)
+                end
+              end
+
+              #Is field translated?
+              #Returns true if untranslated
+              def #{facet}_is_base?
+                localized_method = "#{facet}_\#{Locale.active.language.code}"
+                value = send(localized_method.to_sym) if respond_to?(localized_method.to_sym)
+                return value.nil?
+              end
+
+              #Read base language attribute directly
+              def _#{facet}
+                read_attribute(:#{facet})
+              end
+
+              #Read base language attribute directly without typecasting
+              def _#{facet}_before_type_cast
+                read_attribute_before_type_cast('#{facet}')
+              end
+
+              #Write base language attribute directly
+              def _#{facet}=(value)
+                write_attribute(:#{facet}, value)
+              end
+            }
+          end
+
+          #Returns the localized_name of the supplied attribute for the
+          #current locale
+          #Useful when you have to build up sql by hand or for AR::Base::find conditions
+          def localized_facet(facet)
+            unless Locale.base?
+              "#{facet}_#{Locale.active.language.code}"
+            else
+              facet.to_s
+            end
+          end
+
+          # Overridden to ensure that dynamic finders using localized attributes
+          # like find_by_user_name(user_name) or find_by_user_name_and_password(user_name, password)
+          # use the appropriately localized column.
+          def method_missing(method_id, *arguments)
+            if match = /find_(all_by|by)_([_a-zA-Z]\w*)/.match(method_id.to_s)
+              finder, deprecated_finder = determine_finder(match), determine_deprecated_finder(match)
+
+              facets = extract_facets_from_match(match)
+              super unless all_attributes_exists?(facets)
+
+              #Overrride facets to use appropriate attribute name for current locale
+              facets.collect! {|attr_name| respond_to?(:globalize_facets) && globalize_facets.include?(attr_name.intern) ? localized_facet(attr_name) : attr_name}
+
+              attributes = construct_attributes_from_arguments(facets, arguments)
+
+              case extra_options = arguments[facets.size]
+                when nil
+                  options = { :conditions => attributes }
+                  set_readonly_option!(options)
+                  ActiveSupport::Deprecation.silence { send(finder, options) }
+
+                when Hash
+                  finder_options = extra_options.merge(:conditions => attributes)
+                  validate_find_options(finder_options)
+                  set_readonly_option!(finder_options)
+
+                  if extra_options[:conditions]
+                    with_scope(:find => { :conditions => extra_options[:conditions] }) do
+                      ActiveSupport::Deprecation.silence { send(finder, finder_options) }
+                    end
+                  else
+                    ActiveSupport::Deprecation.silence { send(finder, finder_options) }
+                  end
+
+                else
+                  ActiveSupport::Deprecation.silence do
+                    send(deprecated_finder, sanitize_sql(attributes), *arguments[facets.length..-1])
+                  end
+              end
+            elsif match = /find_or_(initialize|create)_by_([_a-zA-Z]\w*)/.match(method_id.to_s)
+              instantiator = determine_instantiator(match)
+              facets = extract_facets_from_match(match)
+              super unless all_attributes_exists?(facets)
+
+              attributes = construct_attributes_from_arguments(facets, arguments)
+              options = { :conditions => attributes }
+              set_readonly_option!(options)
+
+              find_initial(options) || send(instantiator, attributes)
+            else
+              super
+            end
+          end
+        end
+
+        def translate_external(facets, options)
+          facets_string = "[" + facets.map {|facet| ":#{facet}"}.join(", ") + "]"
+          class_eval <<-HERE
+            @@facet_options = {}
+            attr_writer :fully_loaded
+            def fully_loaded?; @fully_loaded; end
+            @@globalize_facets = #{facets_string}
+            @@preload_facets ||= @@globalize_facets
+            class << self
+
+              def sqlite?; connection.kind_of? ActiveRecord::ConnectionAdapters::SQLiteAdapter end
+
+              def globalize_facets
+                @@globalize_facets
+              end
+
+              def globalize_facets_hash
+                @@globalize_facets_hash ||= globalize_facets.inject({}) {|hash, facet|
+                  hash[facet.to_s] = true; hash
+                }
+              end
+
+              def untranslated_fields
+                @@untranslated_fields ||=
+                  column_names.map {|cn| cn.intern } - globalize_facets
+              end
+
+              def preload_facets; @@preload_facets; end
+              def postload_facets
+                @@postload_facets ||= @@globalize_facets - @@preload_facets
+              end
+              alias_method :globalize_old_find_every, :find_every unless
+                respond_to? :globalize_old_find_every
+            end
+            alias_method :globalize_old_reload,   :reload
+            alias_method :globalize_old_destroy,  :destroy
+            alias_method :globalize_old_create_or_update, :create_or_update
+            alias_method :globalize_old_update, :update
+
+            include Globalize::DbTranslate::TranslateObjectMethods
+            extend  Globalize::DbTranslate::TranslateClassMethods
+
+          HERE
+
+          facets.each do |facet|
+            bidi = (!(options[facet] && !options[facet][:bidi_embed])).to_s
+            class_eval <<-HERE
+              @@facet_options[:#{facet}] ||= {}
+              @@facet_options[:#{facet}][:bidi] = #{bidi}
+
+              def #{facet}
+                if not_original_language
+                  raise WrongLanguageError.new(@original_language, Locale.language)
+                end
+                load_other_translations if
+                  !fully_loaded? && !self.class.preload_facets.include?(:#{facet})
+                result = read_attribute(:#{facet})
+                return nil if result.nil?
+                result.direction = #{facet}_is_base? ?
+                  (Locale.base_language ? Locale.base_language.direction : nil) :
+                  (@original_language ? @original_language.direction : nil)
+
+                # insert bidi embedding characters, if necessary
+                if @@facet_options[:#{facet}][:bidi] &&
+                    Locale.language && Locale.language.direction && result.direction
+                  if Locale.language.direction == 'ltr' && result.direction == 'rtl'
+                    bidi_str = "\xe2\x80\xab" + result + "\xe2\x80\xac"
+                    bidi_str.direction = result.direction
+                    return bidi_str
+                  elsif Locale.language.direction == 'rtl' && result.direction == 'ltr'
+                    bidi_str = "\xe2\x80\xaa" + result + "\xe2\x80\xac"
+                    bidi_str.direction = result.direction
+                    return bidi_str
+                  end
+                end
+
+                return result
+              end
+
+              def #{facet}=(arg)
+                raise WrongLanguageError.new(@original_language, Locale.language) if
+                  not_original_language
+                write_attribute(:#{facet}, arg)
+              end
+
+              def #{facet}_is_base?
+                self['#{facet}_not_base'].nil?
+              end
+            HERE
+          end
+        end
     end
 
     module TranslateObjectMethods # :nodoc: all
