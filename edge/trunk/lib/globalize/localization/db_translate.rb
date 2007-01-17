@@ -432,7 +432,7 @@ module Globalize # :nodoc:
           if Locale.base?
             attributes.inject({}) do |quoted, (name, value)|
               if column = column_for_attribute(name)
-                quoted[name] = quote(value, column) unless !include_primary_key && column.primary
+                quoted[name] = quote_value(value, column) unless !include_primary_key && column.primary
               end
               quoted
             end
@@ -440,7 +440,7 @@ module Globalize # :nodoc:
             attributes.inject({}) do |quoted, (name, value)|
               if !self.class.globalize_facets_hash.has_key?(name) &&
                   column = column_for_attribute(name)
-                quoted[name] = quote(value, column) unless !include_primary_key && column.primary
+                quoted[name] = quote_value(value, column) unless !include_primary_key && column.primary
               end
               quoted
             end

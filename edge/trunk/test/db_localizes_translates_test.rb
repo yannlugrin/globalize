@@ -113,6 +113,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
   def test_base_as_default_true
 
     Product.class_eval %{
+      self.keep_translations_in_model = true
       translates :name, :description, :specs, :base_as_default => true
     }
 
@@ -150,6 +151,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     assert_equal "english test two", prod.name_before_type_cast
 
     Product.class_eval %{
+      self.keep_translations_in_model = true
       translates :name, :description, :specs, :base_as_default => false
     }
   end
