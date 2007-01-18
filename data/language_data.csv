@@ -45,7 +45,7 @@
 1889,"fa","fas","fas",,"Persian",,,"فارسی",,,1,"ltr",,"L"
 1901,"fj","fij","fij",,"Fijian",,,,,,0,"ltr",,"L"
 1903,"fi","fin","fin",,"Finnish",,,"suomi",,,0,"ltr","c == 1 ? 1 : 2","L"
-1930,"fr","fra","fra",,"French",,,"français",,,0,"ltr","c == 1 ? 1 : 2","L"
+1930,"fr","fra","fra",,"French",,,"Français",,,0,"ltr","c == 1 ? 1 : 2","L"
 1942,"fy","fry","fry",,"Frisian",,,,,,1,"ltr",,"L"
 1954,"ff","ful","ful",,"Fulah",,,"Fulfulde, Pulaar, Pular",,,1,"ltr",,"L"
 2112,"gd","gla","gla",,"Gaelic","Scots",,,,,0,"ltr","c==1 ? 1 : c==2 ? 2 : 3","L"
