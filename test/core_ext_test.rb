@@ -51,7 +51,7 @@ class CoreExtTest < Test::Unit::TestCase
 
   def test_nil_locale
     Locale.set(nil)
-    assert_equal "12,345", 12345.localize 
+    assert_equal "12,345", 12345.localize
     assert_equal "Not translated", _("Not translated")
   end
 

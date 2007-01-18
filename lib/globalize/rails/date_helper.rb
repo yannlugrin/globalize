@@ -21,22 +21,26 @@ module ActionView
           when 0..1
             return (distance_in_minutes==0) ? 'less than a minute'.t : ('%d minutes' / 1) unless include_seconds
             case distance_in_seconds
-              when 0..5   then 'less than %d seconds' / 5
-              when 6..10  then 'less than %d seconds' / 10
-              when 11..20 then 'less than %d seconds' / 20
-              when 21..40 then 'half a minute'.t
-              when 41..59 then 'less than a minute'.t
+              when 0..4   then 'less than %d seconds' / 5
+              when 5..9  then 'less than %d seconds' / 10
+              when 10..19 then 'less than %d seconds' / 20
+              when 20..39 then 'half a minute'.t
+              when 40..59 then 'less than a minute'.t
               else             '%d minutes' / 1
             end
-                                
-          when 2..45      then '%d minutes' / distance_in_minutes
-          when 46..90     then 'about %d hours' / 1
-          when 90..1440   then 'about %d hours' / (distance_in_minutes.to_f / 60.0).round
-          when 1441..2880 then '%d days' / 1
-          else                 '%d days' / (distance_in_minutes / 1440).round
+
+          when 2..44           then '%d minutes' / distance_in_minutes
+          when 45..89          then 'about %d hours' / 1
+          when 90..1439        then 'about %d hours' / (distance_in_minutes.to_f / 60.0).round
+          when 1440..2879      then '%d days' / 1
+          when 2880..43199     then 'about %d days' / (distance_in_minutes.to_f / 1440.0).round
+          when 43200..86399    then 'about %d months' / 1
+          when 86400..525959   then 'about %d months' / (distance_in_minutes.to_f / 432.0).round
+          when 525960..1051919 then 'about %d years' / 1
+          else                      'over %d years' / (distance_in_minutes.to_f / 525960.0).round
         end
       end
-            
+
       # Returns a select tag with options for each of the months January through December with the current month selected.
       # The month names are presented as keys (what's shown to the user) and the month numbers (1-12) are used as values
       # (what's submitted to the server). It's also possible to use month numbers for the presentation instead of names --
@@ -52,61 +56,30 @@ module ActionView
       # If you would prefer to show month names as abbreviations, set the
       # <tt>:use_short_month</tt> key in +options+ to true.
       def select_month(date, options = {})
-        month_options = []
-        abbr = options[:use_short_month]
-        abbr_key = abbr ? 'abbreviated month' : 'month'
-        month_names = abbr ? Date::ABBR_MONTHNAMES : Date::MONTHNAMES
+        val = date ? (date.kind_of?(Fixnum) ? date : date.month) : ''
+        if options[:use_hidden]
+          hidden_html(options[:field_name] || 'month', val, options)
+        else
+          month_options = []
+          month_names = options[:use_month_names] || (options[:use_short_month] ? Date::ABBR_MONTHNAMES : Date::MONTHNAMES)
+          abbr_key = options[:use_short_month] ? 'abbreviated month' : 'month'
+          month_names.unshift(nil) if month_names.size < 13
+          1.upto(12) do |month_number|
+            month_name = if options[:use_month_numbers]
+              month_number
+            elsif options[:add_month_numbers]
+              month_number.to_s + ' - ' + "#{month_names[month_number]} [#{abbr_key}]".t(month_names[month_number])
+            else
+              "#{month_names[month_number]} [#{abbr_key}]".t(month_names[month_number])
+            end
 
-        1.upto(12) do |month_number|
-          month_name = if options[:use_month_numbers]
-            month_number
-          elsif options[:add_month_numbers]
-            month_name_text = month_names[month_number]
-            month_number.to_s + ' - ' +  
-              "#{month_name_text} [#{abbr_key}]".t(month_name_text)
-          else
-            month_name_text = month_names[month_number]
-            "#{month_name_text} [#{abbr_key}]".t(month_name_text)          
+            month_options << ((val == month_number) ?
+              %(<option value="#{month_number}" selected="selected">#{month_name}</option>\n) :
+              %(<option value="#{month_number}">#{month_name}</option>\n)
+            )
           end
-
-          month_options << ((date && (date.kind_of?(Fixnum) ? date : date.month) == month_number) ?
-            %(<option value="#{month_number}" selected="selected">#{month_name}</option>\n) :
-            %(<option value="#{month_number}">#{month_name}</option>\n)
-          )
+          select_html(options[:field_name] || 'month', month_options, options)
         end
-
-        select_html(options[:field_name] || 'month', month_options, options[:prefix], options[:include_blank], options[:discard_type], options[:disabled], options[:id], options[:class])
-      end
-
-      def select_year(date, options = {})
-        year_options = []
-        y = date ? (date.kind_of?(Fixnum) ? (y = (date == 0) ? Date.today.year : date) : date.year) : Date.today.year
-
-        start_year, end_year = (options[:start_year] || y-5), (options[:end_year] || y+5)
-        step_val = start_year < end_year ? 1 : -1
-
-        start_year.step(end_year, step_val) do |year|
-          year_options << ((date && (date.kind_of?(Fixnum) ? date : date.year) == year) ?
-            %(<option value="#{year}" selected="selected">#{year}</option>\n) :
-            %(<option value="#{year}">#{year}</option>\n)
-          )
-        end
-
-        select_html(options[:field_name] || 'year', year_options, options[:prefix], options[:include_blank], options[:discard_type], options[:disabled], options[:id], options[:class])
-      end
-      
-      private
-        def select_html(type, options, prefix = nil, include_blank = false, discard_type = false, disabled = false, id = nil, klass = nil)
-          select_html  = %(<select name="#{prefix || DEFAULT_PREFIX})
-          select_html << "[#{type}]" unless discard_type
-          select_html << %(")
-          select_html << %( disabled="disabled") if disabled
-          select_html << %( id="#{id}") if id
-          select_html << %( class="#{klass}") if klass
-          select_html << %(>\n)
-          select_html << %(<option value=""></option>\n) if include_blank
-          select_html << options.to_s
-          select_html << "</select>\n"
       end
     end
 

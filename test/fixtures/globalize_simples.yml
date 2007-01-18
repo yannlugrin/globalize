@@ -2,4 +2,6 @@
 first_simple:
   id: 1
   name: first
+  name_es: primer
   description: This is a description of the first simple
+  description_es: Esta es una descripcion del primer simple

@@ -1,5 +1,13 @@
-mysql: &mysql
-  adapter:  mysql
+sqlite: &sqlite
+  :adapter: sqlite
+  :dbfile: globalize_plugin.sqlite.db
+
+sqlite3: &sqlite3
+  :adapter: sqlite3
+  :dbfile: globalize_plugin.sqlite3.db
+
+mysql:
+  adapter: mysql
   database: globalize_test
   username: change-me
   password: change-me
@@ -11,12 +19,8 @@ postgresql: &postgresql
   host:     localhost
   username: change-me
   password: change-me
+  encoding: utf8
 
-sqlite: &sqlite
-  adapter: sqlite
-  dbfile: vendor/plugins/globalize/test/db/test.sqlite.db
-
-# Replace "postgresql" with the settings of the database you wish to test Globalize with.
+  # Replace "postgresql" with the settings of the database you wish to test Globalize with.
 test:
   <<: *postgresql
-

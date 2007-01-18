@@ -6,9 +6,9 @@ module Globalize
   Locale defines the currenctly active _locale_. You'll mostly use it like this:
     Locale.set("en-US")
 
-  +en+ is the code for English, and +US+ is the country code. The country code is 
+  +en+ is the code for English, and +US+ is the country code. The country code is
   optional, but you'll need to define it to get a lot of the localization features.
-=end   
+=end
   class Locale
     attr_reader :language, :country, :code
     attr_accessor :date_format, :currency_format, :currency_code,
@@ -28,7 +28,7 @@ module Globalize
 
     # This is the focal point of the class. Sets the locale in the familiar
     # RFC 3066 format (see: http://www.faqs.org/rfcs/rfc3066.html). It can
-    # also take a Locale object. Set it to the +nil+ object, to deactivate 
+    # also take a Locale object. Set it to the +nil+ object, to deactivate
     # the locale.
     def self.set(locale)
       if locale.kind_of? Locale
@@ -53,7 +53,7 @@ module Globalize
     # model with a +name+ field, the base language is the language in which names
     # are stored in the model itself, and not in the translations table.
     #
-    # Takes either a language code (valid RFC 3066 code like +en+ or <tt>en-US</tt>) 
+    # Takes either a language code (valid RFC 3066 code like +en+ or <tt>en-US</tt>)
     # or a language object.
     #
     # May be set with a language code in environment.rb, without accessing the db.
@@ -66,9 +66,9 @@ module Globalize
     end
 
     # Returns the base language. Raises an exception if none is set.
-    def self.base_language 
+    def self.base_language
       @@base_language ? @@base_language :
-        (@@base_language_code ? 
+        (@@base_language_code ?
         (@@base_language = Language.pick(@@base_language_code)) :
         raise(NoBaseLanguageError, "base language must be defined"))
     end
@@ -93,6 +93,14 @@ module Globalize
       active? ? active.country : nil
     end
 
+    def self.switch_locale(code)
+      current_locale = Locale.active
+      Locale.set(code)
+      result = yield
+      Locale.set(current_locale.code)
+      result
+    end
+
     # Creates a new locale object by looking up an RFC 3066 code in the database.
     def initialize(code)
       if code.nil?
@@ -103,7 +111,7 @@ module Globalize
       @code = rfc.locale
 
       @language = Language.pick(rfc)
-      @country = Country.pick(rfc) 
+      @country = Country.pick(rfc)
 
       setup_fields
     end
@@ -111,20 +119,20 @@ module Globalize
     # Sets the translation for +key+.
     #
     # :call-seq:
-    #   Locale.set_translation(key, language, *translations) 
-    #   Locale.set_translation(key, *translations) 
+    #   Locale.set_translation(key, language, *translations)
+    #   Locale.set_translation(key, *translations)
     #
     # If +language+ is given, define a translation using that language
     # model, otherwise use the active language.
     #
     # Multiple translation strings may be given, in order to define plural forms.
-    # In English, there are only two plural forms, singular and plural, so you 
-    # would provide two strings at the most. The order is determined by the 
+    # In English, there are only two plural forms, singular and plural, so you
+    # would provide two strings at the most. The order is determined by the
     # formula in the languages database. For English, the order is: singular form,
     # then plural.
     #
-    # Example: 
-    #   Locale.set_translation("There are %d items in your cart", 
+    # Example:
+    #   Locale.set_translation("There are %d items in your cart",
     #   "There is one item in your cart", "There are %d items in your cart")
     def self.set_translation(key, *options)
       key = key.to_s.gsub('_', ' ') if key.kind_of? Symbol
@@ -149,7 +157,7 @@ module Globalize
       raise ArgumentError, "No translations given" if options.empty?
       translator.set_pluralized(key, language, *options)
     end
-    
+
     def self.translate(key, default = nil, arg = nil) # :nodoc:
       key = key.to_s.gsub('_', ' ') if key.kind_of? Symbol
 
@@ -157,14 +165,14 @@ module Globalize
     end
 
     # Returns the translator object -- mostly for testing and adjusting the cache.
-    def self.translator; @@translator end 
+    def self.translator; @@translator end
 
     private
 
       def setup_fields
         return if !@country
 
-        [:date_format, :currency_format, :currency_code, :thousands_sep, 
+        [:date_format, :currency_format, :currency_code, :thousands_sep,
           :decimal_sep, :currency_decimal_sep, :number_grouping_scheme
         ].each {|f| instance_variable_set "@#{f}", @country.send(f) }
       end

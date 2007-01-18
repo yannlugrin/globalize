@@ -1,6 +1,6 @@
 module ActiveRecord # :nodoc:
 
-  # Overrode Errors methods to handle numbers correctly for translation, and 
+  # Overrode Errors methods to handle numbers correctly for translation, and
   # to automatically translate error messages. Messages are translated after
   # the field names have been substituted.
   class Errors
@@ -19,8 +19,8 @@ module ActiveRecord # :nodoc:
     end
 
     # Like the regular add_on_boundary_breaking, but automatically translates the error message.
-    def add_on_boundary_breaking(attributes, range, 
-        too_long_msg = @@default_error_messages[:too_long], 
+    def add_on_boundary_breaking(attributes, range,
+        too_long_msg = @@default_error_messages[:too_long],
         too_short_msg = @@default_error_messages[:too_short])
       for attr in [attributes].flatten
         value = @base.respond_to?(attr.to_s) ? @base.send(attr.to_s) : @base[attr.to_s]
@@ -40,7 +40,7 @@ module ActiveRecord # :nodoc:
           if attr == "base"
             full_messages << msg_text / msg_num
           else
-            full_messages << 
+            full_messages <<
               (@base.class.human_attribute_name(attr) + " " + msg_text) / msg_num
           end
         end

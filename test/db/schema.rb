@@ -2,15 +2,20 @@ ActiveRecord::Schema.define do
 
   create_table :globalize_simples, :force => true do |t|
     t.column :name, :string
+    t.column :name_es, :string
     t.column :description, :string
+    t.column :description_es, :string
   end
 
   create_table :globalize_products, :force => true do |t|
     t.column :code, :string
     t.column :manufacturer_id, :integer
     t.column :name, :string
+    t.column :name_es, :string
     t.column :description, :string
+    t.column :description_es, :string
     t.column :specs, :string
+    t.column :specs_es, :string
   end
 
   add_index :globalize_products, :code, :unique
@@ -19,6 +24,7 @@ ActiveRecord::Schema.define do
   create_table :globalize_manufacturers, :force => true do |t|
     t.column :code, :string
     t.column :name, :string
+    t.column :name_es, :string
   end
 
   add_index :globalize_manufacturers, :code, :unique
@@ -26,6 +32,7 @@ ActiveRecord::Schema.define do
   create_table :globalize_categories, :force => true do |t|
     t.column :code, :string
     t.column :name, :string
+    t.column :name_es, :string
   end
 
   add_index :globalize_categories, :code, :unique
@@ -82,9 +89,15 @@ ActiveRecord::Schema.define do
     t.column :scope, :string, :limit => 1
   end
 
-  add_index :globalize_languages, :iso_639_1 
+  add_index :globalize_languages, :iso_639_1
   add_index :globalize_languages, :iso_639_2
   add_index :globalize_languages, :iso_639_3
   add_index :globalize_languages, :rfc_3066
 
+  create_table :globalize_unlocalized_classes, :force => true do |t|
+    t.column :code, :string
+    t.column :name, :string
+  end
+
+  add_index :globalize_unlocalized_classes, :code, :unique
 end

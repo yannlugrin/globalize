@@ -57,8 +57,18 @@ twi:
 
   # intentional bad syntax (too long)
   pluralization: |
-    c = c = c = c = c = c = c = c = c = c = c = c = c = c = c = c = 
-    c = c = c = c = c = c = c = c = c = c = c = c = c = c = c = c = 
-    c = c = c = c = c = c = c = c = c = c = c = c = c = c = c = c = 
+    c = c = c = c = c = c = c = c = c = c = c = c = c = c = c = c =
+    c = c = c = c = c = c = c = c = c = c = c = c = c = c = c = c =
+    c = c = c = c = c = c = c = c = c = c = c = c = c = c = c = c =
     c = c = c = c = c = c = c = c = c = c = c = c = c = c = 1
 
+spanish:
+  id: 7
+  iso_639_1: es
+  iso_639_2: spa
+  english_name: Spanish
+  native_name: Español
+  direction: ltr
+  scope: L
+  macro_language: false
+  pluralization: 'c == 1 ? 1 : 2'
