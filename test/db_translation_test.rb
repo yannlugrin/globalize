@@ -323,22 +323,23 @@ class TranslationTest < Test::Unit::TestCase
     assert_nil tr
   end
 
-  def test_fix_conditions
-    assert_equal 'globalize_products.name="test"',
-      Product.class_eval { fix_conditions('name="test"') }
-    assert_equal '(globalize_products.name="test" OR globalize_products.name = "test2")',
-      Product.class_eval { fix_conditions('(name="test" OR name = "test2")') }
-    assert_equal 'globalize_products.name = globalize_translations.name',
-      Product.class_eval { fix_conditions('globalize_products.name = globalize_translations.name') }
-    assert_equal ' globalize_products.name = globalize_translations.name',
-      Product.class_eval { fix_conditions(' name = globalize_translations.name') }
-    assert_equal ' globalize_products."name" = globalize_translations.name',
-      Product.class_eval { fix_conditions(' "name" = globalize_translations.name') }
-    assert_equal ' globalize_products.\'name\' = globalize_translations.name',
-      Product.class_eval { fix_conditions(' \'name\' = globalize_translations.name') }
-    assert_equal ' globalize_products.`name` = globalize_translations.name',
-      Product.class_eval { fix_conditions(' `name` = globalize_translations.name') }
-  end
+# Function is removed, Globalite work fine without.
+#  def test_fix_conditions
+#    assert_equal 'globalize_products.name="test"',
+#      Product.class_eval { fix_conditions('name="test"') }
+#    assert_equal '(globalize_products.name="test" OR globalize_products.name = "test2")',
+#      Product.class_eval { fix_conditions('(name="test" OR name = "test2")') }
+#    assert_equal 'globalize_products.name = globalize_translations.name',
+#      Product.class_eval { fix_conditions('globalize_products.name = globalize_translations.name') }
+#    assert_equal ' globalize_products.name = globalize_translations.name',
+#      Product.class_eval { fix_conditions(' name = globalize_translations.name') }
+#    assert_equal ' globalize_products."name" = globalize_translations.name',
+#      Product.class_eval { fix_conditions(' "name" = globalize_translations.name') }
+#    assert_equal ' globalize_products.\'name\' = globalize_translations.name',
+#      Product.class_eval { fix_conditions(' \'name\' = globalize_translations.name') }
+#    assert_equal ' globalize_products.`name` = globalize_translations.name',
+#      Product.class_eval { fix_conditions(' `name` = globalize_translations.name') }
+#  end
 
   def test_native_name
     heb = Globalize::Language.pick('he')

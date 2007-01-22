@@ -725,7 +725,7 @@ module Globalize # :nodoc:
             return results
           end
 
-          options[:conditions] = fix_conditions(options[:conditions]) if options[:conditions]
+          options[:conditions] = sanitize_sql(options[:conditions]) if options[:conditions]
 
           # there will at least be an +id+ field here
           select_clause = untranslated_fields.map {|f| "#{table_name}.#{f}" }.join(", ")
@@ -838,29 +838,6 @@ module Globalize # :nodoc:
 
           return results
         end
-
-        # properly scope conditions to table
-        def fix_conditions(conditions)
-          if conditions.kind_of? Array
-            is_array = true
-            sql = conditions.shift
-          else
-            is_array = false
-            sql = conditions
-          end
-
-          column_names.each do |column_name|
-            sql.gsub!( /(^|([^\.\w"'`]+))(["'`]?)#{column_name}(?!\w)/,
-              '\1' + "#{table_name}." + '\3' + "#{column_name}" )
-          end
-
-          if is_array
-            [ sql ] + conditions
-          else
-            sql
-          end
-        end
-
     end
   end
 
