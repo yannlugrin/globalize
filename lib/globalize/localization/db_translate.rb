@@ -197,7 +197,7 @@ module Globalize # :nodoc:
         puts product.name #Accesses name_es column (spanish),
         > 'botas'
 
-        puts product._name #Accesses original 'title' column
+        puts product._name #Accesses original 'name' column
         > 'boots'
 
         Locale.set('en-US')
@@ -224,18 +224,46 @@ module Globalize # :nodoc:
         puts product.name
         > 'botas'
 
+      Use #{facet}_is_base? to check if a translation exists.
 
-      Note: The column name suffix that should be used to name the localized
-        columns (in example Spanish) is that returned by:
+        Locale.set('en-US')
+        product = Product.create(:name => 'shoes')
+
+        Locale.set('es-ES')
+        product.name_is_base?
+        > true
+
+        product.name = 'zapatos'
+        product.save
+        product.name_is_base?
+        > false
+
+      Use MyModel.localized_facet(facet) class method to return the correct localized
+      column name of the current locale. Useful for custom ActiveRecord find queries.
+
+      e.g.
+
+        Product.find(:all , :conditions = ["#{Product.localized_facet(:name)} = ?", name])
+
+
+      <b>Note</b>: The column name suffix that should be used to name the localized columns
+      (in example Spanish) is that returned by:
 
         Locale.new('es-ES').language.code (For this example)
 
+
+      ==== Further Options
       When using this mechanism the following option is available:
 
         :base_as_default
 
-      Set to true, when you switch to a non-base locale, localized attributes
-      will return the base locales value rather than nil if no translation exists
+        e.g.
+          class Product
+            translates :name, :base_as_default => true
+          end
+
+      Set to true (default is false), when you switch to a non-base locale, localized attributes
+      will return the base locale's value rather than nil if no translation exists
       for that attribute.
 
         e.g.
@@ -253,7 +281,7 @@ module Globalize # :nodoc:
           #With :base_as_default => false
           product.name #=> nil
 
-          Then:
+        Then:
 
           product.name = guitarra
 
@@ -298,15 +326,21 @@ module Globalize # :nodoc:
       By default (if no translates_preload is specified), Globalize will preload
       the first field given to <tt>translates</tt>. It will also fully load on
       a <tt>find(:first)</tt> or when <tt>:translate_all => true</tt> is given as a find option.
+
+      # Note: <i>Use when Globalize::DbTranslate.keep_translations_in_model is false</i>
 =end
       def translates_preload(*facets)
-      module_eval <<-HERE
-        @@preload_facets = facets
-      HERE
+        module_eval <<-HERE
+          @@preload_facets = facets
+        HERE
       end
 
       protected
 
+        #Alternative storage mechanism storing the translations in the models
+        #own tables.
+        #
+        #<i>i.e. Globalize::DbTranslate.keep_translations_in_model is true</i>
         def translate_internal(facets, options)
           facets_string = "[" + facets.map {|facet| ":#{facet}"}.join(", ") + "]"
           class_eval %{
@@ -402,9 +436,14 @@ module Globalize # :nodoc:
             }
           end
 
-          #Returns the localized_name of the supplied attribute for the
+          #Returns the localized column name of the supplied attribute for the
           #current locale
+          #
           #Useful when you have to build up sql by hand or for AR::Base::find conditions
+          #
+          #  e.g. Product.find(:all , :conditions = ["#{Product.localized_facet(:name)} = ?", name])
+          #
+          # Note: <i>Used when Globalize::DbTranslate.keep_translations_in_model is true</i>
           def localized_facet(facet)
             unless Locale.base?
               "#{facet}_#{Locale.active.language.code}"
@@ -416,6 +455,8 @@ module Globalize # :nodoc:
           # Overridden to ensure that dynamic finders using localized attributes
           # like find_by_user_name(user_name) or find_by_user_name_and_password(user_name, password)
           # use the appropriately localized column.
+          #
+          # Note: <i>Used when Globalize::DbTranslate.keep_translations_in_model is true</i>
           def method_missing(method_id, *arguments)
             if match = /find_(all_by|by)_([_a-zA-Z]\w*)/.match(method_id.to_s)
               finder, deprecated_finder = determine_finder(match), determine_deprecated_finder(match)
@@ -469,6 +510,7 @@ module Globalize # :nodoc:
         end
 
         #Default Globalize translations storage mechanism
+        #<i>i.e. Globalize::DbTranslate.keep_translations_in_model is false</i>
         def translate_external(facets, options)
           facets_string = "[" + facets.map {|facet| ":#{facet}"}.join(", ") + "]"
           class_eval <<-HERE
@@ -687,6 +729,8 @@ module Globalize # :nodoc:
 
       # Use this instead of +find+ if you want to bypass the translation
       # code for any reason.
+      #
+      # Note: <i>Use when Globalize::DbTranslate.keep_translations_in_model is false</i>
       def untranslated_find(*args)
         has_options = args.last.is_a?(Hash)
         options = has_options ? args.last : {}
