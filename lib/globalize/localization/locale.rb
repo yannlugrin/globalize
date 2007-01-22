@@ -93,6 +93,17 @@ module Globalize
       active? ? active.country : nil
     end
 
+    # Allows you to switch the current locale while within the block.
+    # The previously current locale is reset after the block is finished.
+    #
+    # e.g
+    #     Locale.set('en-US')
+    #     Locale.switch_locale('es-ES') do
+    #       product.name = 'esquis'
+    #     end
+    #
+    #     product.name
+    #     > skis
     def self.switch_locale(code)
       current_locale = Locale.active
       Locale.set(code)
