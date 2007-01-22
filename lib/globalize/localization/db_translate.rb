@@ -25,247 +25,243 @@ module Globalize # :nodoc:
       attr_accessor :keep_translations_in_model
 
 =begin rdoc
-          Specifies fields that can be translated. These are normal ActiveRecord
-          fields, with corresponding database columns. All the translation
-          stuff is done behind the scenes.
+      Specifies fields that can be translated. These are normal ActiveRecord
+      fields, with corresponding database columns. All the translation
+      stuff is done behind the scenes.
 
-          This method takes an array of symbols which are the model attributes
-          to be localized.
+      This method takes an array of symbols which are the model attributes
+      to be localized.
 
-          === Example:
+      === Example:
 
-          ==== In your model:
-            class Product < ActiveRecord::Base
-              translates :name, :description
-            end
+        #### In your model:
 
-          ==== In environment.rb:
+        class Product < ActiveRecord::Base
+          translates :name, :description
+        end
 
-            Locale.set_base_language("en_US")
+        #### In environment.rb:
 
-          ==== In your controller:
+        Locale.set_base_language("en_US")
 
-            Locale.set("en_US")
-            product.name -> guitar
+        #### In your controller:
 
-            Locale.set("es_ES")
-            product.name -> guitarra
+        Locale.set("en_US")
+        product.name -> guitar
 
-
-          The last entry of the array may be an options hash e.g.
-
-            translates :name, :description, {:some_option => true}
-
-          The available options are described below.
+        Locale.set("es_ES")
+        product.name -> guitarra
 
 
-        Storage Mechanisms
-        ==================
+      The last entry of the array may be an options hash e.g.
 
-        Globalize now supports two methods of storing model translations:
+        translates :name, :description, {:some_option => true}
 
-         - The original globalize mechanism shadows the model's attributes by
-           translations in a special translation table
+      The available options are described below.
 
-         - A newer alternative approach is to store the translations directly
-           within the models own table by duplicating the columns and using
-           suffixes to identify the locale.
+      == Storage Mechanisms
 
-        Both approaches have their advantages and limitations.
+      Globalize now supports two methods of storing model translations:
 
-        By default globalize will use the external table to store translations
-        so you don't have to do anything special.
+      * The original globalize mechanism shadows the model's attributes by
+        translations in a special translation table
 
-        To set the other storage mechanism you have two options.
+      * A newer alternative approach is to store the translations directly
+        within the models own table by duplicating the columns and using
+        suffixes to identify the locale.
 
-        1. You can use an application-wide setting which will apply to all
-           models by setting the following in your environment.rb:
+      Both approaches have their advantages and limitations.
 
-             Globalize::DbTranslate.keep_translations_in_model = true
+      By default globalize will use the external table to store translations
+      so you don't have to do anything special.
 
-        2. The following example shows how you can override this global setting
-        for a particular model:
+      To set the other storage mechanism you have two options.
 
-            class Product < ActiveRecord::Base
-              self.keep_translations_in_model = true
-              localizes :name, :description, :specs
-            end
+      1. You can use an application-wide setting which will apply to all
+         models by setting the following in your environment.rb:
 
+           Globalize::DbTranslate.keep_translations_in_model = true
 
-        The External Table Storage Mechanism
-        ====================================
+      2. The following example shows how you can override this global setting
+      for a particular model:
 
-        The standard ActiveRecord +find+ method has been tweaked to work with
-        Globalize. Use it in the exact same way you would the regular find,
-        except for the following provisos:
-
-        1. At this point, it will not work with the <tt>:include</tt> option...
-        2. However, there is a replacement: <tt>:include_translated</tt>, which
-           is described below.
-        3. The <tt>:select</tt> option is prohibited.
-
-        +find+ returns the retreived models, with all translated fields
-        correctly loaded, depending on the active language.
-
-        <tt>:include_translated</tt> works as follows:
-        any model specified in the <tt>:include_translated</tt> option
-        will be eagerly loaded and added to the current model as attributes,
-        prefixed with the name of the associated model. This is often referred
-        to as _piggybacking_.
-
-        Example:
           class Product < ActiveRecord::Base
-            belongs_to :manufacturer
-            belongs_to :category
+            self.keep_translations_in_model = true
+            localizes :name, :description, :specs
           end
 
-          class Category < ActiveRecord::Base
-            has_many :products
-            translates :name
-          end
 
-          prods = Product.find(:all, :include_translated => [ :manufacturer, :category ])
-          prods.first.category_name -> "batedeira"
+      === The External Table Storage Mechanism
 
+      The standard ActiveRecord +find+ method has been tweaked to work with
+      Globalize. Use it in the exact same way you would the regular find,
+      except for the following provisos:
 
-        With this option, for every locale change you need to reload your
-        model instance.
+      1. At this point, it will not work with the <tt>:include</tt> option...
+      2. However, there is a replacement: <tt>:include_translated</tt>, which
+         is described below.
+      3. The <tt>:select</tt> option is prohibited.
 
+      +find+ returns the retreived models, with all translated fields
+      correctly loaded, depending on the active language.
 
-        The Same Table As Model Storage Mechanism
-        =========================================
+      <tt>:include_translated</tt> works as follows:
+      any model specified in the <tt>:include_translated</tt> option
+      will be eagerly loaded and added to the current model as attributes,
+      prefixed with the name of the associated model. This is often referred
+      to as _piggybacking_.
 
-          Your model's fields, with their corresponding database columns, need
-          to have a duplicate column that is named with the locale language code
-          as a suffix.
+      === Example:
 
-          i.e. Apart from the original field's column there should be a column
-          for each locale that is to be supported.
+        class Product < ActiveRecord::Base
+          belongs_to :manufacturer
+          belongs_to :category
+        end
 
-          === Example:
+        class Category < ActiveRecord::Base
+          has_many :products
+          translates :name
+        end
 
-          ==== In your model:
-            class Product < ActiveRecord::Base
-              localizes :name, :description
-            end
-
-          ==== In your schema:
-
-           (Assuming english is the base locale, and we want to support spanish)
-
-              create_table :products do |t|
-                t.column :id, :integer
-                t.column :name, :string
-                t.column :name_es, :string
-                t.column :description, :string
-                t.column :description_es, :string
-                ...
-
-              end
-
-              Advantages
-              ==========
-
-             - This method avoids any extra joins (and thus the limitations to
-               ActiveRecord::Base#find that apply when using the default mechanism)
-
-             - This also means that you have all the localized versions of
-               your model instance's data in one query.
-
-             - Changing locale doesn't necesitate a reload of the model object in
-               order to access the localized data for the new locale.
-
-              Disadvantages
-              =============
-
-             - Having to maintain all those extra columns may prove to be a
-               maintenance problem but by using ActiveRecord migrations this
-               should be painless.
+        prods = Product.find(:all, :include_translated => [ :manufacturer, :category ])
+        prods.first.category_name -> "batedeira"
 
 
-          Example usage:
-          =============
-
-          Locale.set_base_language('en-US')
-          Locale.set('en-US')
-
-          #writes to 'name', 'description' columns
-          product = Product.create(:name => 'boots', :description => 'shiny red wellies')
-
-          puts product.name #Accesses name column (english)
-          > 'boots'
-
-          Locale.set('es-ES')
-          product.name = 'botas'
-          product.save
-          puts product.name #Accesses name_es column (spanish),
-          > 'botas'
-
-          puts product._name #Accesses original 'title' column
-          > 'boots'
-
-          Locale.set('en-US')
-          puts product.name #Accesses name column (english)
-          > 'boots'
-
-          You can create any 'find' query you want without limitation.
-
-          A further feature of this mechanism is that the ActiveRecord dynamic
-          attribute finder mechanism has been overriden to automatically use the
-          right field for the active locale:
-
-          Locale.set('es-ES')
-          product = Product.find_by_name('botas')
-          puts product.name
-          > 'botas'
-
-          Locale.set('en-US')
-          product = Product.find_by_name('boots')
-          puts product.name
-          > 'boots'
-
-          Locale.set('es-ES')
-          puts product.name
-          > 'botas'
+      With this option, for every locale change you need to reload your
+      model instance.
 
 
-          Note: The column name suffix that should be used to name the localized
-          columns (in example Spanish) is that returned by:
+      === The Same Table As Model Storage Mechanism
 
-          Locale.new('es-ES').language.code (For this example)
+      Your model's fields, with their corresponding database columns, need
+      to have a duplicate column that is named with the locale language code
+      as a suffix.
 
-        When using this mechanism the following option is available:
+      i.e. Apart from the original field's column there should be a column
+      for each locale that is to be supported.
 
-          :base_as_default
+      === Example:
 
-        Set to true, when you switch to a non-base locale, localized attributes
-        will return the base locales value rather than nil if no translation exists
-        for that attribute.
+       #### In your model:
+
+       class Product < ActiveRecord::Base
+         localizes :name, :description
+       end
+
+       #### In your schema:
+
+       (Assuming english is the base locale, and we want to support spanish)
+
+       create_table :products do |t|
+         t.column :id, :integer
+         t.column :name, :string
+         t.column :name_es, :string
+         t.column :description, :string
+         t.column :description_es, :string
+         ...
+
+       end
+
+      ==== Advantages
+
+      * This method avoids any extra joins (and thus the limitations to
+        ActiveRecord::Base#find that apply when using the default mechanism)
+
+      * This also means that you have all the localized versions of
+        your model instance's data in one query.
+
+      * Changing locale doesn't necesitate a reload of the model object in
+        order to access the localized data for the new locale.
+
+      ==== Disadvantages
+
+      * Having to maintain all those extra columns may prove to be a
+        maintenance problem but by using ActiveRecord migrations this
+        should be painless.
+
+
+      === Example usage:
+
+        Locale.set_base_language('en-US')
+        Locale.set('en-US')
+
+        #writes to 'name', 'description' columns
+        product = Product.create(:name => 'boots', :description => 'shiny red wellies')
+
+        puts product.name #Accesses name column (english)
+        > 'boots'
+
+        Locale.set('es-ES')
+        product.name = 'botas'
+        product.save
+        puts product.name #Accesses name_es column (spanish),
+        > 'botas'
+
+        puts product._name #Accesses original 'title' column
+        > 'boots'
+
+        Locale.set('en-US')
+        puts product.name #Accesses name column (english)
+        > 'boots'
+
+      You can create any 'find' query you want without limitation.
+
+      A further feature of this mechanism is that the ActiveRecord dynamic
+      attribute finder mechanism has been overriden to automatically use the
+      right field for the active locale:
+
+        Locale.set('es-ES')
+        product = Product.find_by_name('botas')
+        puts product.name
+        > 'botas'
+
+        Locale.set('en-US')
+        product = Product.find_by_name('boots')
+        puts product.name
+        > 'boots'
+
+        Locale.set('es-ES')
+        puts product.name
+        > 'botas'
+
+
+      Note: The column name suffix that should be used to name the localized
+        columns (in example Spanish) is that returned by:
+
+        Locale.new('es-ES').language.code (For this example)
+
+      When using this mechanism the following option is available:
+
+        :base_as_default
+
+      Set to true, when you switch to a non-base locale, localized attributes
+      will return the base locales value rather than nil if no translation exists
+      for that attribute.
 
         e.g.
 
-            product = Product.new
+          product = Product.new
 
-            Locale.set("en_US")
-            product.name = guitar
+          Locale.set("en_US")
+          product.name = guitar
 
-            Locale.set("es_ES")
+          Locale.set("es_ES")
 
-            #With :base_as_default => true
-            product.name #=> guitar
+          #With :base_as_default => true
+          product.name #=> guitar
 
-            #With :base_as_default => false
-            product.name #=> nil
+          #With :base_as_default => false
+          product.name #=> nil
 
-            Then:
+          Then:
 
-            product.name = guitarra
+          product.name = guitarra
 
-            Locale.set("en_US")
-            product.name #=> guitar
+          Locale.set("en_US")
+          product.name #=> guitar
 
-            Locale.set("es_ES")
-            product.name #=> guitarra
+          Locale.set("es_ES")
+          product.name #=> guitarra
 
 =end
       def translates(*facets)
