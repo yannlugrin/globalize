@@ -142,10 +142,10 @@ module Globalize # :nodoc:
 
       === Example:
 
-       #### In your model:
+       #### In your model (assuming Globalize::DbTranslate.keep_translations_in_model is true):
 
        class Product < ActiveRecord::Base
-         localizes :name, :description
+         translates :name, :description
        end
 
        #### In your schema:
