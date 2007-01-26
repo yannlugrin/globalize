@@ -3,8 +3,10 @@ ActiveRecord::Schema.define do
   create_table :globalize_simples, :force => true do |t|
     t.column :name, :string
     t.column :name_es, :string
+    t.column :name_he, :string
     t.column :description, :string
     t.column :description_es, :string
+    t.column :description_he, :string
   end
 
   create_table :globalize_products, :force => true do |t|
@@ -12,10 +14,13 @@ ActiveRecord::Schema.define do
     t.column :manufacturer_id, :integer
     t.column :name, :string
     t.column :name_es, :string
+    t.column :name_he, :string
     t.column :description, :string
     t.column :description_es, :string
+    t.column :description_he, :string
     t.column :specs, :string
     t.column :specs_es, :string
+    t.column :specs_he, :string
   end
 
   add_index :globalize_products, :code, :unique
@@ -25,6 +30,7 @@ ActiveRecord::Schema.define do
     t.column :code, :string
     t.column :name, :string
     t.column :name_es, :string
+    t.column :name_he, :string
   end
 
   add_index :globalize_manufacturers, :code, :unique
@@ -33,6 +39,7 @@ ActiveRecord::Schema.define do
     t.column :code, :string
     t.column :name, :string
     t.column :name_es, :string
+    t.column :name_he, :string
   end
 
   add_index :globalize_categories, :code, :unique

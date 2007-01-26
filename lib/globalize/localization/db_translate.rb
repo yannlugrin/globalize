@@ -57,7 +57,32 @@ module Globalize # :nodoc:
 
         translates :name, :description, {:some_option => true}
 
-      The available options are described below.
+      The available options are described below:
+
+      ==== Option for Bidrectional text (bidi)
+
+      Globalize fully supports Bidirectional text. By default all attributes
+      that have been passed to 'translates' will have bidi active.
+
+      If for some reason, you wish do disactivate bidi for a particular attribute
+      then you may specify this in the options hash. e.g.
+
+        translates :name, :description, {:name => {:bidi_embed => false}}
+
+      In this example bidi will be active for the 'description' attribute but
+      not for the 'name' attribute.
+
+      With 'bidi_embed' active the direction of the string is determined in the
+      following manner:
+
+      * If an attribute has no translation for the current locale then the
+      direction will be that of the base locale.
+
+      * If an attribute has a translation for the currently active locale then
+      the direction of it's value will be that of the active locale.
+
+      Note: This feature is valid for both of the currently supported storage mechanisms
+
 
       == Storage Mechanisms
 
@@ -87,7 +112,7 @@ module Globalize # :nodoc:
 
           class Product < ActiveRecord::Base
             self.keep_translations_in_model = true
-            localizes :name, :description, :specs
+            translates :name, :description, :specs
           end
 
 
@@ -344,6 +369,7 @@ module Globalize # :nodoc:
         def translate_internal(facets, options)
           facets_string = "[" + facets.map {|facet| ":#{facet}"}.join(", ") + "]"
           class_eval %{
+            @@facet_options = {}
             @@globalize_facets = #{facets_string}
 
             def self.globalize_facets
@@ -365,10 +391,10 @@ module Globalize # :nodoc:
             #Returns true if translated
             #Warning! Depends on Locale.switch_locale
             def translated?(facet, locale_code = nil)
-              localized_method = "\#{facet}_\#{Locale.active.language.code}"
+              localized_method = "\#{facet}_\#{Locale.language.code}"
 
               Locale.switch_locale(locale_code) do
-                localized_method = "\#{facet}_\#{Locale.active.language.code}"
+                localized_method = "\#{facet}_\#{Locale.language.code}"
               end if locale_code
 
               value = send(localized_method.to_sym) if respond_to?(localized_method.to_sym)
@@ -377,34 +403,43 @@ module Globalize # :nodoc:
           }
 
           facets.each do |facet|
+            bidi = (!(options[facet] && !options[facet][:bidi_embed])).to_s
             class_eval %{
+
+              #Handle facet-specific options (.e.g a bidirectional setting)
+              @@facet_options[:#{facet}] ||= {}
+              @@facet_options[:#{facet}][:bidi] = #{bidi}
 
               #Accessor that proxies to the right accessor for the current locale
               def #{facet}
+                value = nil
                 unless Locale.base?
-                  localized_method = "#{facet}_\#{Locale.active.language.code}"
+                  localized_method = "#{facet}_\#{Locale.language.code}"
                   value = send(localized_method.to_sym) if respond_to?(localized_method.to_sym)
                   value = value ? value : read_attribute(:#{facet}) if #{options[:base_as_default]}
-                  return value
+                else
+                  value = read_attribute(:#{facet})
                 end
-                read_attribute(:#{facet})
+                value.nil? ? nil : add_bidi(value, :#{facet})
               end
 
               #Accessor before typecasting that proxies to the right accessor for the current locale
               def #{facet}_before_type_cast
                 unless Locale.base?
-                  localized_method = "#{facet}_\#{Locale.active.language.code}_before_type_cast"
+                  localized_method = "#{facet}_\#{Locale.language.code}_before_type_cast"
                   value = send(localized_method.to_sym) if respond_to?(localized_method.to_sym)
                   value = value ? value : read_attribute_before_type_cast('#{facet}') if #{options[:base_as_default]}
                   return value
+                else
+                  value = read_attribute_before_type_cast('#{facet}')
                 end
-                read_attribute_before_type_cast('#{facet}')
+                value.nil? ? nil : add_bidi(value, :#{facet})
               end
 
               #Write to appropriate localized attribute
               def #{facet}=(value)
                 unless Locale.base?
-                  localized_method = "#{facet}_\#{Locale.active.language.code}"
+                  localized_method = "#{facet}_\#{Locale.language.code}"
                   write_attribute(localized_method.to_sym, value) if respond_to?(localized_method.to_sym)
                 else
                   write_attribute(:#{facet}, value)
@@ -414,14 +449,15 @@ module Globalize # :nodoc:
               #Is field translated?
               #Returns true if untranslated
               def #{facet}_is_base?
-                localized_method = "#{facet}_\#{Locale.active.language.code}"
+                localized_method = "#{facet}_\#{Locale.language.code}"
                 value = send(localized_method.to_sym) if respond_to?(localized_method.to_sym)
                 return value.nil?
               end
 
               #Read base language attribute directly
               def _#{facet}
-                read_attribute(:#{facet})
+                value = read_attribute(:#{facet})
+                value.nil? ? nil : add_bidi(value, :#{facet})
               end
 
               #Read base language attribute directly without typecasting
@@ -433,6 +469,30 @@ module Globalize # :nodoc:
               def _#{facet}=(value)
                 write_attribute(:#{facet}, value)
               end
+
+              def add_bidi(value, facet)
+                return value unless Locale.active?
+                value.direction = self.send("\#{facet}_is_base?") ?
+                  (Locale.base_language ? Locale.base_language.direction : nil) :
+                  (Locale.active ? Locale.language.direction : nil)
+
+                  # insert bidi embedding characters, if necessary
+                  if @@facet_options[facet][:bidi] &&
+                      Locale.language && Locale.language.direction && value.direction
+                    if Locale.language.direction == 'ltr' && value.direction == 'rtl'
+                      bidi_str = "\xe2\x80\xab" + value + "\xe2\x80\xac"
+                      bidi_str.direction = value.direction
+                      return bidi_str
+                    elsif Locale.language.direction == 'rtl' && value.direction == 'ltr'
+                      bidi_str = "\xe2\x80\xaa" + value + "\xe2\x80\xac"
+                      bidi_str.direction = value.direction
+                      return bidi_str
+                    end
+                  end
+                  return value
+              end
+
+              protected :add_bidi
             }
           end
 
@@ -446,7 +506,7 @@ module Globalize # :nodoc:
           # Note: <i>Used when Globalize::DbTranslate.keep_translations_in_model is true</i>
           def localized_facet(facet)
             unless Locale.base?
-              "#{facet}_#{Locale.active.language.code}"
+              "#{facet}_#{Locale.language.code}"
             else
               facet.to_s
             end
