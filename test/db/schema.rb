@@ -23,7 +23,7 @@ ActiveRecord::Schema.define do
     t.column :specs_he, :string
   end
 
-  add_index :globalize_products, :code, :unique
+  add_index :globalize_products, :code, :unique => true
   add_index :globalize_products, :manufacturer_id
 
   create_table :globalize_manufacturers, :force => true do |t|
