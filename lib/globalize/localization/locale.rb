@@ -146,39 +146,63 @@ module Globalize
     #   Locale.set_translation("There are %d items in your cart",
     #   "There is one item in your cart", "There are %d items in your cart")
     def self.set_translation(key, *options)
-      key = key.to_s.gsub('_', ' ') if key.kind_of? Symbol
-      if options.first.kind_of? Language
-        language = options.shift
-      else
-        language = self.language
-      end
-
+      key, language, translations, zero_form = key_and_language(key, options)
       raise ArgumentError, "No translations given" if options.empty?
-      translator.set(key, language, *options)
+      translator.set(key, language, translations, zero_form, nil)
+    end
+
+    # Same as set_translation but translation is set to a particular namespace
+    #
+    # Example:
+    #   Locale.set('es-ES')
+    #   Locale.set_translation("draw", "dibujar")
+    #   "draw".t => "dibujar"
+    #   Locale.set_translation_with_namespace("draw", "lottery", "seleccionar")
+    #   "draw" >> 'lottery' => "seleccionar"
+    #
+    # or
+    #   Locale.set_translation("draw %d times", "dibujar una vez", "dibujar %d veces")
+    #   Locale.set_translation_with_namespace("draw %d times", "lottery", "seleccionar una vez", "seleccionar %d veces")
+    def self.set_translation_with_namespace(key, namespace, *options)
+      key, language, translations, zero_form = key_and_language(key, options)
+      raise ArgumentError, "No translations given" if options.empty?
+      translator.set(key, language, translations, zero_form, namespace)
     end
 
     def self.set_pluralized_translation(key, *options)
-      key = key.to_s.gsub('_', ' ') if key.kind_of? Symbol
-      if options.first.kind_of? Language
-        language = options.shift
-      else
-        language = self.language
-      end
-
+      key, language, translations, zero_form = key_and_language(key, options)
       raise ArgumentError, "No translations given" if options.empty?
-      translator.set_pluralized(key, language, *options)
+      translator.set_pluralized(key, language, translations, zero_form, nil)
     end
 
-    def self.translate(key, default = nil, arg = nil) # :nodoc:
+    def self.set_pluralized_translation_with_namespace(key, *options)
+      key, language, translations, zero_form = key_and_language(key, options)
+      raise ArgumentError, "No translations given" if options.empty?
+      translator.set_pluralized(key, language, translations, zero_form, namespace)
+    end
+
+    def self.translate(key, default = nil, arg = nil, namespace = nil) # :nodoc:
       key = key.to_s.gsub('_', ' ') if key.kind_of? Symbol
 
-      translator.fetch(key, self.language, default, arg)
+      translator.fetch(key, self.language, default, arg, namespace)
     end
 
     # Returns the translator object -- mostly for testing and adjusting the cache.
     def self.translator; @@translator end
 
     private
+
+      def self.key_and_language(key, options)
+        key = key.to_s.gsub('_', ' ') if key.kind_of? Symbol
+        if options.first.kind_of? Language
+          language = options.shift
+        else
+          language = self.language
+        end
+
+        zero_form = (options.first.kind_of?(Array) && options.last.kind_of?(String)) ? options.pop : nil
+        [key,language,options.flatten, zero_form]
+      end
 
       def setup_fields
         return if !@country
@@ -189,4 +213,3 @@ module Globalize
       end
   end
 end
-

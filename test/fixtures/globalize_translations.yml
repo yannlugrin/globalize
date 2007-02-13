@@ -351,4 +351,63 @@ model_simple_desc_1:
   language_id: 2
   text: זהו התיאור הראשון
   type: ModelTranslation
-  
+
+view_es_tr_namespace_1:
+  id: 60
+  type: ViewTranslation
+  language_id: 7
+  pluralization_index: 1
+  tr_key: draw
+  text: "dibujar"
+
+view_es_tr_namespace_2:
+  id: 61
+  type: ViewTranslation
+  language_id: 7
+  pluralization_index: 1
+  tr_key: draw
+  namespace: lottery
+  text: "seleccionar"
+
+view_es_tr_namespace_3:
+  id: 62
+  type: ViewTranslation
+  language_id: 7
+  pluralization_index: 1
+  tr_key: "draw %d times"
+  text: "dibujar una vez"
+
+view_es_tr_namespace_4:
+  id: 63
+  type: ViewTranslation
+  language_id: 7
+  pluralization_index: 2
+  tr_key: "draw %d times"
+  text: "dibujar %d veces"
+
+
+view_es_tr_namespace_5:
+  id: 64
+  type: ViewTranslation
+  language_id: 7
+  pluralization_index: 1
+  namespace: lottery
+  tr_key: "draw %d times"
+  text: "seleccionar una vez"
+
+view_es_tr_namespace_6:
+  id: 65
+  type: ViewTranslation
+  language_id: 7
+  pluralization_index: 2
+  namespace: lottery
+  tr_key: "draw %d times"
+  text: "seleccionar %d veces"
+
+view_es_tr_namespace_7:
+  id: 66
+  type: ViewTranslation
+  language_id: 1
+  pluralization_index: 1
+  tr_key: "draw %d times"
+  text: "draw once"

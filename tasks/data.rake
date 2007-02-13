@@ -66,6 +66,7 @@ namespace :globalize do
       t.column :language_id,            :integer
       t.column :pluralization_index,    :integer
       t.column :text,                   :text
+      t.column :namespace,              :string
     end
     ActiveRecord::Base.connection.add_index :globalize_translations, [ :tr_key, :language_id ]
     ActiveRecord::Base.connection.add_index :globalize_translations, [ :table_name, :item_id, :language_id ], :name => 'globalize_translations_table_name_and_item_and_language'
@@ -126,6 +127,17 @@ namespace :globalize do
   Rake::TestTask.new do |t|
     t.test_files = FileList["#{File.dirname( __FILE__ )}/../test/*_test.rb"]
     t.verbose = true
+  end
+
+  desc 'Upgrade to Globalize 1.2 schema'
+  task :upgrade_schema_to_1_dot_2 => :environment do
+    existing_column_names = ActiveRecord::Base.connection.columns('globalize_translations').collect(&:name)
+    raise "Schema already upgraded to 1.2" if existing_column_names.include?('namespace')
+    if ActiveRecord::Base.connection.supports_migrations?
+      ActiveRecord::Base.connection.add_column :globalize_translations, :namespace, :string
+    else
+      ActiveRecord::Base.connection.execute "ALTER TABLE globalize_translations ADD COLUMN namespace VARCHAR;"
+    end
   end
 
 end
