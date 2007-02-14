@@ -372,8 +372,31 @@ module Globalize # :nodoc:
             @@facet_options = {}
             @@globalize_facets = #{facets_string}
 
-            def self.globalize_facets
-              @@globalize_facets
+            class << self
+
+              def globalize_facets
+                @@globalize_facets
+              end
+
+
+              #Returns the localized column name of the supplied attribute for the
+              #current locale
+              #
+              #Useful when you have to build up sql by hand or for AR::Base::find conditions
+              #
+              #  e.g. Product.find(:all , :conditions = ["\#{Product.localized_facet(:name)} = ?", name])
+              #
+              # Note: <i>Used when Globalize::DbTranslate.keep_translations_in_model is true</i>
+              def localized_facet(facet)
+                unless Locale.base?
+                  "\#{facet}_\#{Locale.language.code}"
+                else
+                  facet.to_s
+                end
+              end
+
+              alias_method :globalize_old_method_missing, :method_missing unless
+                respond_to? :globalize_old_method_missing
             end
 
             def globalize_facets_hash
@@ -400,6 +423,8 @@ module Globalize # :nodoc:
               value = send(localized_method.to_sym) if respond_to?(localized_method.to_sym)
               return !value.nil?
             end
+
+            extend  Globalize::DbTranslate::InternalStorageClassMethods
           }
 
           facets.each do |facet|
@@ -494,78 +519,6 @@ module Globalize # :nodoc:
 
               protected :add_bidi
             }
-          end
-
-          #Returns the localized column name of the supplied attribute for the
-          #current locale
-          #
-          #Useful when you have to build up sql by hand or for AR::Base::find conditions
-          #
-          #  e.g. Product.find(:all , :conditions = ["#{Product.localized_facet(:name)} = ?", name])
-          #
-          # Note: <i>Used when Globalize::DbTranslate.keep_translations_in_model is true</i>
-          def localized_facet(facet)
-            unless Locale.base?
-              "#{facet}_#{Locale.language.code}"
-            else
-              facet.to_s
-            end
-          end
-
-          # Overridden to ensure that dynamic finders using localized attributes
-          # like find_by_user_name(user_name) or find_by_user_name_and_password(user_name, password)
-          # use the appropriately localized column.
-          #
-          # Note: <i>Used when Globalize::DbTranslate.keep_translations_in_model is true</i>
-          def method_missing(method_id, *arguments)
-            if match = /find_(all_by|by)_([_a-zA-Z]\w*)/.match(method_id.to_s)
-              finder, deprecated_finder = determine_finder(match), determine_deprecated_finder(match)
-
-              facets = extract_facets_from_match(match)
-              super unless all_attributes_exists?(facets)
-
-              #Overrride facets to use appropriate attribute name for current locale
-              facets.collect! {|attr_name| respond_to?(:globalize_facets) && globalize_facets.include?(attr_name.intern) ? localized_facet(attr_name) : attr_name}
-
-              attributes = construct_attributes_from_arguments(facets, arguments)
-
-              case extra_options = arguments[facets.size]
-                when nil
-                  options = { :conditions => attributes }
-                  set_readonly_option!(options)
-                  ActiveSupport::Deprecation.silence { send(finder, options) }
-
-                when Hash
-                  finder_options = extra_options.merge(:conditions => attributes)
-                  validate_find_options(finder_options)
-                  set_readonly_option!(finder_options)
-
-                  if extra_options[:conditions]
-                    with_scope(:find => { :conditions => extra_options[:conditions] }) do
-                      ActiveSupport::Deprecation.silence { send(finder, finder_options) }
-                    end
-                  else
-                    ActiveSupport::Deprecation.silence { send(finder, finder_options) }
-                  end
-
-                else
-                  ActiveSupport::Deprecation.silence do
-                    send(deprecated_finder, sanitize_sql(attributes), *arguments[facets.length..-1])
-                  end
-              end
-            elsif match = /find_or_(initialize|create)_by_([_a-zA-Z]\w*)/.match(method_id.to_s)
-              instantiator = determine_instantiator(match)
-              facets = extract_facets_from_match(match)
-              super unless all_attributes_exists?(facets)
-
-              attributes = construct_attributes_from_arguments(facets, arguments)
-              options = { :conditions => attributes }
-              set_readonly_option!(options)
-
-              find_initial(options) || send(instantiator, attributes)
-            else
-              super
-            end
           end
         end
 
@@ -939,6 +892,66 @@ module Globalize # :nodoc:
           return results
         end
     end
-  end
 
+    module InternalStorageClassMethods
+
+      private
+
+      # Overridden to ensure that dynamic finders using localized attributes
+      # like find_by_user_name(user_name) or find_by_user_name_and_password(user_name, password)
+      # use the appropriately localized column.
+      #
+      # Note: <i>Used when Globalize::DbTranslate.keep_translations_in_model is true</i>
+      def method_missing(method_id, *arguments)
+        if match = /find_(all_by|by)_([_a-zA-Z]\w*)/.match(method_id.to_s)
+          finder, deprecated_finder = determine_finder(match), determine_deprecated_finder(match)
+
+          facets = extract_attribute_names_from_match(match)
+          super unless all_attributes_exists?(facets)
+
+          #Overrride facets to use appropriate attribute name for current locale
+          facets.collect! {|attr_name| respond_to?(:globalize_facets) && globalize_facets.include?(attr_name.intern) ? localized_facet(attr_name) : attr_name}
+
+          attributes = construct_attributes_from_arguments(facets, arguments)
+
+          case extra_options = arguments[facets.size]
+            when nil
+              options = { :conditions => attributes }
+              set_readonly_option!(options)
+              ActiveSupport::Deprecation.silence { send(finder, options) }
+
+            when Hash
+              finder_options = extra_options.merge(:conditions => attributes)
+              validate_find_options(finder_options)
+              set_readonly_option!(finder_options)
+
+              if extra_options[:conditions]
+                with_scope(:find => { :conditions => extra_options[:conditions] }) do
+                  ActiveSupport::Deprecation.silence { send(finder, finder_options) }
+                end
+              else
+                ActiveSupport::Deprecation.silence { send(finder, finder_options) }
+              end
+
+            else
+              ActiveSupport::Deprecation.silence do
+                send(deprecated_finder, sanitize_sql(attributes), *arguments[facets.length..-1])
+              end
+          end
+        elsif match = /find_or_(initialize|create)_by_([_a-zA-Z]\w*)/.match(method_id.to_s)
+          instantiator = determine_instantiator(match)
+          facets = extract_attribute_names_from_match(match)
+          super unless all_attributes_exists?(facets)
+
+          attributes = construct_attributes_from_arguments(facets, arguments)
+          options = { :conditions => attributes }
+          set_readonly_option!(options)
+
+          find_initial(options) || send(instantiator, attributes)
+        else
+          super
+        end
+      end
+    end
+  end
 end
