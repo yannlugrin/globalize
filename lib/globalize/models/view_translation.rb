@@ -11,5 +11,13 @@ module Globalize
       find(:first, :conditions => [conditions,*[key, language.id, idx, namespace].compact])
     end
 
+    #Find all namespaces used in translations
+    def self.find_all_namespaces
+      sql = <<-SQL
+        SELECT distinct(namespace) FROM globalize_translations order by namespace
+      SQL
+      self.connection.select_values(sql).compact
+    end
+
   end
 end
