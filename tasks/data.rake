@@ -131,12 +131,17 @@ namespace :globalize do
 
   desc 'Upgrade to Globalize 1.2 schema'
   task :upgrade_schema_to_1_dot_2 => :environment do
-    existing_column_names = ActiveRecord::Base.connection.columns('globalize_translations').collect(&:name)
-    raise "Schema already upgraded to 1.2" if existing_column_names.include?('namespace')
-    if ActiveRecord::Base.connection.supports_migrations?
-      ActiveRecord::Base.connection.add_column :globalize_translations, :namespace, :string
+    if ActiveRecord::Base.connection.tables.include? 'globalize_translations'
+      puts "Upgrading schema to Globalize 1.2"
+      existing_column_names = ActiveRecord::Base.connection.columns('globalize_translations').collect(&:name)
+      raise "Schema already upgraded to 1.2" if existing_column_names.include?('namespace')
+      if ActiveRecord::Base.connection.supports_migrations?
+        ActiveRecord::Base.connection.add_column :globalize_translations, :namespace, :string
+      else
+        ActiveRecord::Base.connection.execute "ALTER TABLE globalize_translations ADD COLUMN namespace VARCHAR;"
+      end
     else
-      ActiveRecord::Base.connection.execute "ALTER TABLE globalize_translations ADD COLUMN namespace VARCHAR;"
+      puts 'Globalize has not been setup yet. Generate a migration via script/generate globalize or run rake globalize:setup'
     end
   end
 

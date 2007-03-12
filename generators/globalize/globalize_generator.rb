@@ -15,7 +15,7 @@ class GlobalizeGenerator < MigrationGenerator
         @attributes_for_migrations = generate_translated_model_migrations(runtime_args.pop)
         raise %q(No models found using internal storage mechanism or all required columns exist in db.) and return if @attributes_for_migrations.empty?
         @internal = true
-        @migration_file_name = "globalize_add_translated_fields_for_#{@attributes_for_migrations.keys.collect {|key| key.split('/').first.tableize}.join('_')}"
+        @migration_file_name = "globalize_add_translated_fields_for_#{@attributes_for_migrations.keys.collect {|key| key.split('/').first.underscore}.join('_')}"
         @migration_class_name = "GlobalizeAddTranslatedFieldsFor#{@attributes_for_migrations.keys.collect {|key| key.split('/').first}.join}"
       else
         @tiny = false
@@ -77,9 +77,9 @@ class GlobalizeGenerator < MigrationGenerator
     attributes_for_migrations = {}
 
     Dir.glob("#{RAILS_ROOT}/app/models/*.rb").each  do |f|
-      model = File.basename(f).gsub(File.extname(f),'').camelize.constantize
-      if model.class == Class && model.superclass == ActiveRecord::Base
-        if Globalize::DbTranslate.keep_translations_in_model || model.keep_translations_in_model
+      model = File.basename(f).gsub(File.extname(f),'').camelize.constantize rescue nil
+      if model && model.base_class.superclass == ActiveRecord::Base
+        if model.keep_translations_in_model || Globalize::DbTranslate.keep_translations_in_model
         key = "#{model.name}/#{model.table_name}"
         attributes_for_migrations[key] = []
           langs.each do |lang|
