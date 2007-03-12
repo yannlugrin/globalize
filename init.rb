@@ -1,6 +1,3 @@
-require 'jcode'
-$KCODE = 'u' # Always use UTF-8 internally!
-
 require 'pathname'
 require 'singleton'
 

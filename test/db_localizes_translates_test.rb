@@ -68,6 +68,24 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     assert_equal simp.name, simp._name
   end
 
+  def test_find_by_override
+    Globalize::Locale.set("en-US")
+    first_product  = Product.find_by_name('first')
+    fourth_product = Product.find_by_name('eff')
+    second_product = Product.find_by_description('This is a description of the second product')
+    assert_equal second_product, Product.find_by_specs('these are the specs for the second product')
+
+
+    Globalize::Locale.set("es-ES")
+    assert_equal first_product, Product.find_by_name('primer')
+    assert_equal fourth_product, Product.find_by_name('effes')
+    assert_equal second_product, Product.find_by_description('Esta es una descripcion del segundo producto')
+    assert_equal second_product, Product.find_by_specs('estas son las especificaciones del segundo producto')
+
+    Globalize::Locale.set("he-IL")
+    assert_equal fourth_product, Product.find_by_name('סארט')
+  end
+
   def test_base_as_default_false
     prod = Product.create!(:code => 'test-base', :name => 'english test')
     assert_equal 'english test', prod.name

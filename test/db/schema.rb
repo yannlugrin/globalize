@@ -74,6 +74,7 @@ ActiveRecord::Schema.define do
     t.column :language_id,    :integer
     t.column :pluralization_index,    :integer
     t.column :text,           :text
+    t.column :namespace,      :string
   end
 
   add_index :globalize_translations, [ :tr_key, :language_id ], :name => 'tr_key'

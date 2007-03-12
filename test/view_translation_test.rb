@@ -40,14 +40,14 @@ class ViewTranslationTest < Test::Unit::TestCase
   def test_aliases
     Locale.set("he-IL")
     assert_equal "ועכשיו בעברית", "And now in Hebrew".translate
-    assert_equal "ועכשיו בעברית", _("And now in Hebrew")    
+    assert_equal "ועכשיו בעברית", _("And now in Hebrew")
   end
 
   def test_set_translation
     assert_equal "a dark and stormy night", "a dark and stormy night".t
     Locale.set_translation("a dark and stormy night", "quite a dark and stormy night")
     assert_equal "quite a dark and stormy night", "a dark and stormy night".t
-    
+
     Locale.set("he-IL")
     assert_equal "a dark and stormy night", "a dark and stormy night".t
     Locale.set_translation("a dark and stormy night", "ליל קודר וגועש")
@@ -63,13 +63,13 @@ class ViewTranslationTest < Test::Unit::TestCase
   end
 
   def test_set_translation_pl
-    Locale.set_translation("%d dark and stormy nights", "quite a dark and stormy night", 
+    Locale.set_translation("%d dark and stormy nights", "quite a dark and stormy night",
       "%d dark and stormy nights")
     assert_equal "quite a dark and stormy night", "%d dark and stormy nights".t
     assert_equal "5 dark and stormy nights", "%d dark and stormy nights" / 5
-    
+
     Locale.set("he-IL")
-    Locale.set_translation("%d dark and stormy nights", 
+    Locale.set_translation("%d dark and stormy nights",
       [ "ליל קודר וגועש", "%d לילות קודרים וגועשים" ])
     assert_equal "ליל קודר וגועש", "%d dark and stormy nights".t
     assert_equal "7 לילות קודרים וגועשים", "%d dark and stormy nights" / 7
@@ -80,10 +80,10 @@ class ViewTranslationTest < Test::Unit::TestCase
 
   def test_missed_report
     Locale.set("he-IL")
-    assert_nil ViewTranslation.find(:first, 
+    assert_nil ViewTranslation.find(:first,
       :conditions => %q{language_id = 2 AND tr_key = 'not in database'})
     assert_equal "not in database", "not in database".t
-    result = ViewTranslation.find(:first, 
+    result = ViewTranslation.find(:first,
       :conditions => %q{language_id = 2 AND tr_key = 'not in database'})
     assert_not_nil result, "There should be a record in the db with nil text"
     assert_nil result.text
@@ -92,14 +92,14 @@ class ViewTranslationTest < Test::Unit::TestCase
   # for when language doesn't have a translation
   def test_default_number_substitution
     Locale.set("pl-PL")
-    assert_equal "There are 0 translations for this", 
-      "There are %d translations for this" / 0    
+    assert_equal "There are 0 translations for this",
+      "There are %d translations for this" / 0
   end
 
   # for when language only has one pluralization form for translation
   def test_default_number_substitution2
     Locale.set("he-IL")
-    assert_equal "יש לי 5 קבצים", "I have %d files" / 5    
+    assert_equal "יש לי 5 קבצים", "I have %d files" / 5
   end
 
   def test_symbol
@@ -126,15 +126,15 @@ class ViewTranslationTest < Test::Unit::TestCase
   end
 
   def test_zero_form
-    Locale.set_translation("%d items in your cart", 
+    Locale.set_translation("%d items in your cart",
       [ "One item in your cart", "%d items in your cart" ], "Your cart is empty")
     assert_equal "8 items in your cart", "%d items in your cart" / 8
     assert_equal "One item in your cart", "%d items in your cart" / 1
-    assert_equal "Your cart is empty", "%d items in your cart" / 0    
+    assert_equal "Your cart is empty", "%d items in your cart" / 0
   end
 
   def test_zero_form_default
-    Locale.set_translation("%d items in your cart", 
+    Locale.set_translation("%d items in your cart",
       [ "One item in your cart", "%d items in your cart" ])
     assert_equal "8 items in your cart", "%d items in your cart" / 8
     assert_equal "One item in your cart", "%d items in your cart" / 1
@@ -147,7 +147,7 @@ class ViewTranslationTest < Test::Unit::TestCase
   end
 
   def test_no_substitute
-    assert_equal "Don't substitute any %s in %s", 
+    assert_equal "Don't substitute any %s in %s",
       "Don't substitute any %s in %s".t
   end
 
@@ -159,7 +159,7 @@ class ViewTranslationTest < Test::Unit::TestCase
     assert_equal 0, tr.cache_count
     assert_equal 0, tr.cache_total_hits
     assert_equal 0, tr.cache_total_queries
-    
+
     assert_equal "ועכשיו בעברית", :And_now_in_Hebrew.t
     assert_equal 1, tr.cache_count
     assert_equal 42, tr.cache_size
@@ -178,21 +178,21 @@ class ViewTranslationTest < Test::Unit::TestCase
     assert_equal 2, tr.cache_total_hits
     assert_equal 3, tr.cache_total_queries
 
-    assert_equal "ועכשיו בעברית", 
-      tr.instance_eval { 
-        cache_fetch("And now in Hebrew", Locale.language, 
-        Locale.language.plural_index(nil)) 
+    assert_equal "ועכשיו בעברית",
+      tr.instance_eval {
+        cache_fetch("And now in Hebrew", Locale.language,
+        Locale.language.plural_index(nil))
       }
 
     # test for purging
     tr.max_cache_size = 41 / 1024  # in kb
-    assert_equal "יש לי 5 קבצים", "I have %d files" / 5    
+    assert_equal "יש לי 5 קבצים", "I have %d files" / 5
     assert_equal 1, tr.cache_count
     assert_equal 38, tr.cache_size
     assert_equal 3, tr.cache_total_hits
     assert_equal 5, tr.cache_total_queries
 
-    assert_equal "יש לי 5 קבצים", "I have %d files" / 5    
+    assert_equal "יש לי 5 קבצים", "I have %d files" / 5
     assert_equal 1, tr.cache_count
     assert_equal 38, tr.cache_size
     assert_equal 4, tr.cache_total_hits
