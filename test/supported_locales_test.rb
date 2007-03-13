@@ -100,21 +100,24 @@ class SupportedLocalesTest < Test::Unit::TestCase
     assert !SupportedLocales.non_base?(Locale.new('en-US'))
   end
 
-  def test_non_base_locales_should_only_include_active_locales
+  def test_non_base_locales_should_only_include_supported_locales
     SupportedLocales.clear
     SupportedLocales.define(@supported_locales,'en-US', ['es-ES'])
     assert !SupportedLocales.non_base_locales.any? {|l| l.code == 'en-US'}
-    assert !SupportedLocales.non_base_locales.any? {|l| l.code == 'he-IL'}
-    assert ['es-ES'], SupportedLocales.non_base_locale_codes
-    assert ['es'], SupportedLocales.non_base_language_codes
-    assert_equal ['Spanish'], SupportedLocales.non_base_english_language_names
-    assert_equal ['Español'], SupportedLocales.non_base_native_language_names
+    assert SupportedLocales.non_base_locales.any? {|l| l.code == 'he-IL'}
+    assert ['es-ES','he-IL'], SupportedLocales.non_base_locale_codes
+    assert ['es','he'], SupportedLocales.non_base_language_codes
+    assert_equal ['Spanish','Hebrew'], SupportedLocales.non_base_english_language_names
+    assert_equal ['Español','עברית'], SupportedLocales.non_base_native_language_names
     assert !SupportedLocales.non_base?('en-US')
     assert !SupportedLocales.non_base?('en')
     assert !SupportedLocales.non_base?(Locale.new('en-US'))
-    assert !SupportedLocales.non_base?('he-IL')
-    assert !SupportedLocales.non_base?('he')
-    assert !SupportedLocales.non_base?(Locale.new('he-IL'))
+    assert SupportedLocales.non_base?('es-ES')
+    assert SupportedLocales.non_base?('es')
+    assert SupportedLocales.non_base?(Locale.new('es-ES'))
+    assert SupportedLocales.non_base?('he-IL')
+    assert SupportedLocales.non_base?('he')
+    assert SupportedLocales.non_base?(Locale.new('he-IL'))
   end
 
   def test_default_locale_should_be_supported_and_active

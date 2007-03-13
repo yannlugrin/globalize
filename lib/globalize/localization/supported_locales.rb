@@ -194,7 +194,7 @@ module Globalize #:nodoc:
       end
 
       def non_base_locales
-        self.instance.active_locales.dup.delete_if {|locale_code| locale_code == base_locale_code}.collect {|locale_code| self.instance.active_locales_map[locale_code]}.compact
+        self.instance.supported_locales.dup.delete_if {|locale_code| locale_code == base_locale_code}.collect {|locale_code| self.instance.supported_locales_map[locale_code]}.compact
       end
 
       def non_base_locale_codes
