@@ -145,9 +145,9 @@ class SupportedLocalesTest < Test::Unit::TestCase
   end
 
   def test_active_locales_should_be_subset_of_supported_locales
-    SupportedLocales.clear
 
     assert_nothing_raised do
+      SupportedLocales.clear
       SupportedLocales.define(['es-ES','he-IL','pl-PL'],'en-US', ['es-ES','he-IL'])
       assert SupportedLocales.active_locale_codes.all? {|l| SupportedLocales.supported_locale_codes.include?(l)}
       assert SupportedLocales.active_locales.all? {|l| SupportedLocales.supported_locales.include?(l)}
@@ -163,9 +163,8 @@ class SupportedLocalesTest < Test::Unit::TestCase
   end
 
   def test_inactive_locales_should_not_be_subset_of_active_locales
-    SupportedLocales.clear
-
     assert_nothing_raised do
+      SupportedLocales.clear
       SupportedLocales.define(['es-ES','he-IL','pl-PL'],'en-US', ['es-ES','he-IL'])
       assert SupportedLocales.inactive_locale_codes.all? {|l| !SupportedLocales.active_locale_codes.include?(l)}
       assert SupportedLocales.inactive_locales.all? {|l| !SupportedLocales.active_locales.include?(l)}
@@ -176,9 +175,8 @@ class SupportedLocalesTest < Test::Unit::TestCase
   end
 
   def test_inactive_locales_should_be_subset_of_supported_locales
-    SupportedLocales.clear
-
     assert_nothing_raised do
+      SupportedLocales.clear
       SupportedLocales.define(['es-ES','he-IL','pl-PL'],'en-US', ['es-ES','he-IL'])
       assert SupportedLocales.inactive_locale_codes.all? {|l| SupportedLocales.supported_locale_codes.include?(l)}
       assert SupportedLocales.inactive_locales.all? {|l| SupportedLocales.supported_locales.include?(l)}
@@ -186,5 +184,53 @@ class SupportedLocalesTest < Test::Unit::TestCase
       assert SupportedLocales.inactive_english_language_names.all? {|l| SupportedLocales.supported_english_language_names.include?(l)}
       assert SupportedLocales.inactive_native_language_names.all? {|l| SupportedLocales.supported_native_language_names.include?(l)}
     end
+  end
+
+  def test_supported_shortcut
+    SupportedLocales.clear
+    SupportedLocales.define(['es-ES','he-IL','pl-PL'],'en-US', ['es-ES','he-IL'])
+    assert_equal 'en-US', SupportedLocales['en-US'].code
+    assert_equal 'en-US', SupportedLocales['en'].code
+    assert_equal 'es-ES', SupportedLocales['es-ES'].code
+    assert_equal 'es-ES', SupportedLocales['es'].code
+    assert_equal 'he-IL', SupportedLocales['he-IL'].code
+    assert_equal 'he-IL', SupportedLocales['he'].code
+    assert_equal 'pl-PL', SupportedLocales['pl-PL'].code
+    assert_equal 'pl-PL', SupportedLocales['pl'].code
+
+    assert_nil SupportedLocales['fr']
+    assert_nil SupportedLocales['fr-FR']
+  end
+
+  def test_active_shortcut
+    SupportedLocales.clear
+    SupportedLocales.define(['es-ES','he-IL','pl-PL'],'en-US', ['es-ES','he-IL'])
+    assert_equal 'en-US', ActiveLocales['en-US'].code
+    assert_equal 'en-US', ActiveLocales['en'].code
+    assert_equal 'es-ES', ActiveLocales['es-ES'].code
+    assert_equal 'es-ES', ActiveLocales['es'].code
+    assert_equal 'he-IL', ActiveLocales['he-IL'].code
+    assert_equal 'he-IL', ActiveLocales['he'].code
+
+    assert_nil ActiveLocales['pl-PL']
+    assert_nil ActiveLocales['pl']
+    assert_nil ActiveLocales['fr']
+    assert_nil ActiveLocales['fr-FR']
+  end
+
+  def test_non_base_shortcut
+    SupportedLocales.clear
+    SupportedLocales.define(['es-ES','he-IL','pl-PL'],'en-US', ['es-ES','he-IL'])
+    assert_equal 'es-ES', NonBaseLocales['es-ES'].code
+    assert_equal 'es-ES', NonBaseLocales['es'].code
+    assert_equal 'he-IL', NonBaseLocales['he-IL'].code
+    assert_equal 'he-IL', NonBaseLocales['he'].code
+    assert_equal 'pl-PL', NonBaseLocales['pl-PL'].code
+    assert_equal 'pl-PL', NonBaseLocales['pl'].code
+
+    assert_nil NonBaseLocales['en-US']
+    assert_nil NonBaseLocales['en']
+    assert_nil NonBaseLocales['fr']
+    assert_nil NonBaseLocales['fr-FR']
   end
 end

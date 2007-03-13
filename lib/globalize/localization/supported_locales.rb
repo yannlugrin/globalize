@@ -126,6 +126,43 @@ module Globalize #:nodoc:
         end
       end
 
+      def supported(code)
+        self.instance.supported_locales_map[code] || supported_language(code)
+      end
+
+      def supported_language(language_code)
+        supported_code = self.instance.supported_locales_map.keys.detect do |code|
+          code[0..1] == language_code
+        end
+        self.instance.supported_locales_map[supported_code] if supported_code
+      end
+
+      alias_method :[], :supported
+
+      def active(code)
+        self.instance.active_locales_map[code] || active_language(code)
+      end
+
+      def active_language(language_code)
+        active_code = self.instance.active_locales_map.keys.detect do |code|
+          code[0..1] == language_code
+        end
+        self.instance.active_locales_map[active_code] if active_code
+      end
+
+      def non_base(code)
+        return nil if code == base_locale_code || code == base_language_code
+        self.instance.supported_locales_map[code] || non_base_language(code)
+      end
+
+      def non_base_language(language_code)
+        return nil if language_code == base_language_code
+        non_base_code = self.instance.supported_locales_map.keys.detect do |code|
+          code[0..1] == language_code
+        end
+        self.instance.supported_locales_map[non_base_code] if non_base_code
+      end
+
       def non_base?(locale)
         case locale
           when String
@@ -265,5 +302,17 @@ module Globalize #:nodoc:
         @default_locale_object = Globalize::Locale.new(@default_locale)
         raise "Globalize default language undefined!" unless @default_locale_object.language
       end
+  end
+
+  class ActiveLocales < SupportedLocales
+    class << self
+      alias_method :[], :active
+    end
+  end
+
+  class NonBaseLocales < SupportedLocales
+    class << self
+      alias_method :[], :non_base
+    end
   end
 end
