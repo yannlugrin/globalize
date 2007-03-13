@@ -2,11 +2,11 @@ require File.dirname(__FILE__) + '/test_helper'
 
 class RenderController < ActionController::Base
   def test() render :action => 'test'; end
-  
+
   def rescue_action(e) raise; end
 end
 
-RenderController.template_root = File.dirname(__FILE__) + '/views'
+RenderController.prepend_view_path(File.dirname(__FILE__) + "/views")
 
 class RenderControllerTest < Test::Unit::TestCase
   include Globalize
@@ -17,7 +17,7 @@ class RenderControllerTest < Test::Unit::TestCase
     @controller = RenderController.new
     @request, @response = ActionController::TestRequest.new, ActionController::TestResponse.new
   end
-  
+
   def test_rendered_action
     get :test
     assert @response.rendered_with_file?
