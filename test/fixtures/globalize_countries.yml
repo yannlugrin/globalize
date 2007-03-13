@@ -48,3 +48,12 @@ spain:
   thousands_sep: "."
   decimal_sep: ','
   currency_decimal_sep: ','
+poland:
+  id: 7
+  code: PL
+  english_name: Poland
+  currency_format: '%n PLN'
+  currency_code: PLN
+  thousands_sep: "."
+  decimal_sep: ','
+  currency_decimal_sep: ','
