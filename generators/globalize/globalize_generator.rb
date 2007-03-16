@@ -76,7 +76,7 @@ class GlobalizeGenerator < MigrationGenerator
 
     attributes_for_migrations = {}
 
-    Dir.glob("#{RAILS_ROOT}/app/models/*.rb").each  do |f|
+    Dir.glob("#{RAILS_ROOT}/app/models/**/*.rb").each  do |f|
       model = File.basename(f).gsub(File.extname(f),'').camelize.constantize rescue nil
       if model && model.base_class.superclass == ActiveRecord::Base
         if model.keep_translations_in_model || Globalize::DbTranslate.keep_translations_in_model
