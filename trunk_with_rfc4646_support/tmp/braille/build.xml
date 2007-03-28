@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<project name="ubraille" default="dist" basedir=".">
+
+
+<!-- Properties -->
+  <property name="ubuild" location="/files/ubraille"/>
+  <property name="ver" value="1.01"/>
+  <property name="src" location="${ubuild}/src"/>
+  <property name="build" location="${ubuild}/build"/>
+  <property name="libs" location="${ubuild}/lib"/>
+  <property name="docs" location="${ubuild}/docs"/>
+  <property name="dist" location="${ubuild}/dist"/>
+  <property name="zipFileName" value="${dist}/ubraille${ver}.zip"/>
+
+ 
+
+
+<target name="clean" >
+  <echo>Clean out all deliverable directories. Using Build file  ${ant.file} with java ${ant.java.version}</echo>
+  <echo>Delete ${zipFileName}</echo>
+
+  <delete file="${zipFileName}"/>
+  
+  <echo>Delete class files</echo>
+  <delete>
+    <fileset dir="${build}/org/dpawson/format" includes="*.class"/>
+    <fileset dir="${build}/org/dpawson/impl" includes="*.class"/>
+    <fileset dir="${build}/org/dpawson/test" includes="*.class"/>
+    <fileset dir="${build}/org/dpawson/util" includes="*.class"/>
+    <fileset dir="${build}/org/dpawson/xmlinput" includes="*.class"/>
+  </delete>
+
+<echo>Delete javadoc</echo>
+<delete includeemptydirs="yes">
+  <fileset dir="${docs}" includes="**/*.html"/>
+</delete>
+
+</target>
+
+
+
+<target name="compile" depends="clean">
+  <echo>Compile all files from ${src}/org/dpawson/impl/</echo>
+
+  <path id="jars">
+    <pathelement path="${libs}/sax2.jar"/>
+    <pathelement path="${libs}/xercesImpl.jar"/>
+    <pathelement path="${libs}/xom-1.2b1.jar"/>
+  </path>
+
+  <javac srcdir="${src}"
+	 destdir="${build}"
+	 compiler="modern"
+	 verbose="yes">
+    <classpath refid="jars"/>
+    <include name="org/dpawson/util/*.java"/>
+    <include name="org/dpawson/impl/*.java"/>
+    <include name="org/dpawson/test/*.java"/>
+    <include name="org/dpawson/format/*.java"/>
+</javac>
+</target>
+
+
+
+<target name="jar" depends="compile">
+  <echo>create the jar file</echo>
+  <jar destfile="${dist}/ubraille.jar">
+    <fileset dir="${build}"
+	     includes="**/*.class"/>
+    <manifest>
+      <attribute name="Main-Class" value="org.dpawson.test.TestTranslate"/>
+      <attribute name="Built-By" value="${user.name}"/>
+      <attribute name="version-number" value="${ver}"/>
+    </manifest>
+  </jar>
+</target>
+
+
+<target name="javadoc" depends="compile">
+<echo>Generate javadoc</echo>
+
+  <path id="jars">
+    <pathelement path="${libs}/sax2.jar"/>
+    <pathelement path="${libs}/xercesImpl.jar"/>
+    <pathelement path="${libs}/xom-1.2b1.jar"/>
+  </path>
+<javadoc
+    sourcepath="${src}"
+    destdir="docs"
+    classpathref="jars"
+    Package="yes"
+    Doctitle="Ubraille Unicode braille System"
+    author="true"
+    version="true"
+    use="true"
+    windowtitle="Ubraille Unicode braille System"
+    verbose="yes">
+  <package name="org.dpawson.**"/>
+
+
+</javadoc>
+
+
+
+</target>
+
+
+
+
+<target name="dist" depends="jar ">
+  <echo>Build for distribution. //@TODO</echo>
+</target>
+
+
+<target name="zip" depends="clean">
+  <echo>Building Zip file for source distro</echo>
+  
+  <zip 
+    destfile="${zipFileName}"
+    defaultexcludes="yes"
+    basedir="."
+    excludes=".svn .project .classpath build/** etc lib 
+	       site/**  dist/** ubraille/**/*
+	      rules/*.py rules/*.txt .settings/* resources/*.rnc" 
+    encoding="utf-8">
+
+
+    <fileset dir=".">
+      <include name="*.xml src/**/*.java docs/**/*.html "/>
+      <include name="src/**/*.java"/>
+      <include name="resources/brxml.xml resources/brxml.rng resources/org/**/*.properties"/>
+
+      <exclude name=".settings/*.* dist/**/* ubraille/**/* "/>
+      <exclude name="rules/*.py rules/*.txt .svn/**/*"/>
+    </fileset>
+
+
+
+
+
+
+    <fileset dir=".settings">
+      <exclude name="*.prefs"/>
+    </fileset>
+
+</zip>
+
+</target>
+
+</project>

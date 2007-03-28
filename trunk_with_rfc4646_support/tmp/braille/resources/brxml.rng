@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE grammar [
+<!ENTITY brxml "Braille XML, 2006">
+]>
+<grammar 
+    xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" 
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:html="http://www.w3.org/1999/xhtml"
+    ns="http://www.dpawson.co.uk/ns#"
+    xmlns="http://relaxng.org/ns/structure/1.0" 
+    datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+
+  <a:documentation>
+    <dc:title>brxml schema</dc:title>
+    <dc:description>A schema for a brxml instance</dc:description>
+    <dc:identifier>http://www.dpawson.co.uk/braille/brxml.rng
+    </dc:identifier>
+    <dc:hasPart></dc:hasPart>
+    
+    <dc:creator>Dave Pawson</dc:creator>
+    <dc:dateCreated>2006-09-21T11:50:22.0Z</dc:dateCreated>
+    <dc:isPartOf>http://www.dpawson.co.uk/braille/index.html</dc:isPartOf>
+    <dc:hasPart>This is the root schema document</dc:hasPart>
+    <dc:publisher>http://www.dpawson.co.uk/dpawson</dc:publisher>
+    <dc:rights>&#xa9; 2006 Dave Pawson, Mark Frodsham </dc:rights>
+
+ <a:revhistory>
+    <a:revision>
+      <a:revnumber>0.1</a:revnumber>
+      <a:date>2006-09-21T11:51:24.0Z</a:date>
+      <a:authorinitials>Dave P</a:authorinitials>
+      <a:revremark>Initial Issue</a:revremark>
+    </a:revision>
+
+    <a:revision>
+      <a:revnumber>0.2</a:revnumber>
+      <a:date>2006-10-12T10:07:25.0Z</a:date>
+      <a:authorinitials>Dave P</a:authorinitials>
+      <a:revremark>Added lit element for pre-transcribed
+      material</a:revremark>
+    </a:revision>
+
+  
+
+
+
+ </a:revhistory>
+  </a:documentation>
+
+<div html:id="brxml">
+<html:h3>Element brxml  </html:h3>
+<html:p>Root element   </html:p>
+<define name="Brxml"> 
+  <element name="brxml"> 
+  <attribute name="xml:lang">
+    <data type='language'/>
+  </attribute>
+  <optional>
+  <attribute name="grade">
+    <data type="integer">
+      <param name="minInclusive">1</param>
+      <param name="maxInclusive">2</param>
+    </data>
+  </attribute>
+  </optional>
+  <ref name="Meta"/>
+  <ref name="Body"/>
+</element> 
+</define>
+</div>
+
+<div html:id="meta">
+<html:h3>Element  meta.  </html:h3>
+<html:p>Document metadata. Specifies page dimensions with an optional header  </html:p>
+<define name="Meta"> 
+  <element name="meta"> 
+  <ref name='Page'/>
+</element> 
+</define>
+</div>
+
+
+<div html:id="page">
+<html:h3>Element Page  </html:h3>
+<html:p>Page metadata  </html:p>
+<define name="Page"> 
+  <element name="page"> 
+   <ref name='Width'/>
+   <ref name='Height'/>
+   <optional>
+     <ref name='Header'/>
+   </optional>
+</element> 
+</define>
+</div>
+
+
+<div html:id="width">
+<html:h3>Element width  </html:h3>
+<html:p>Specifies the width of the braille page in cells.  Restricted to a range of 20 to 40 cells per line </html:p>
+<define name="Width"> 
+  <element name="width"> 
+      <data type="integer">
+      <param name="minInclusive">20</param>
+      <param name="maxInclusive">40</param>
+    </data>
+</element> 
+</define>
+</div>
+
+
+
+<div html:id="height">
+<html:h3>Element height  </html:h3>
+<html:p>Specifies the height of the braille page, in rows. Restricted to between 11 and 28  </html:p>
+<define name="Height"> 
+  <element name="height"> 
+     <data type="integer">
+      <param name="minInclusive">11</param>
+      <param name="maxInclusive">28</param>
+    </data>
+</element> 
+</define>
+</div>
+
+
+<div html:id="header">
+<html:h3>Element header   </html:h3>
+<html:p>Optional Heder to be placed on each page  </html:p>
+<define name="Header"> 
+  <element name="header"> 
+	<text/>
+	<optional>
+	  <ref name="PageNum"/>
+	</optional>
+  </element> 
+</define>
+</div>
+
+
+<!--
+<div html:id="inline">
+<html:h3>Element inline  </html:h3>
+<html:p>An inline wrapper for alignment purposes.   </html:p>
+<define name="Inline"> 
+  <element name="inline"> 
+    <attribute name='align'>
+      <choice>
+	<value>start</value>
+	<value>end</value>
+      </choice>
+    </attribute>
+    <zeroOrMore>
+      <choice>
+	<text/>
+	<ref name="PageNum"/>
+      </choice>
+    </zeroOrMore>
+    </element> 
+</define>
+</div>
+
+-->
+
+<div html:id="pagenum">
+<html:h3>Element page number  </html:h3>
+<html:p>An indication for the formatter to insert the braille page number at this point in the flow. The prefix attribute value may be used as a literal to prefix the page number  </html:p>
+<define name="PageNum"> 
+  <element name="pagenum"> 
+    <optional>
+      <attribute name='prefix'>
+	<text/>
+      </attribute>
+    </optional>
+    <optional>
+      <attribute name="align">
+	<choice>
+	  <value>start</value>
+	  <value>end</value>
+	</choice>
+      </attribute>
+    </optional>
+    <empty/>
+</element> 
+</define>
+</div>
+
+
+
+
+
+
+<div html:id="body">
+<html:h3>Element body   </html:h3>
+<html:p>Body of the braille document  </html:p>
+<define name="Body"> 
+  <element name="body"> 
+      <zeroOrMore>
+	<choice>
+	  <ref name="Para"/>
+	  <ref name="Literal"/>
+	  <ref name='PageBreak'/>
+	</choice>
+      </zeroOrMore>
+</element> 
+</define>
+</div>
+
+
+<div html:id="para">
+<html:h3>Element paragraph  </html:h3>
+<html:p>Paragraph. A block level element with layout specified by the attributes s (start indent) and r (rest indent).   </html:p>
+<define name="Para"> 
+  <element name="para"> 
+    <optional>
+      <attribute name="xml:space">
+	<choice>
+	  <value>preserve</value>
+	  <value>default</value>
+	</choice>
+      </attribute>
+    </optional>
+    <optional>
+      <choice>
+	<group>
+	  <attribute name='s'>
+	    <data type='nonNegativeInteger'>
+	      <param name='minInclusive'>0</param>
+	      <param name='maxInclusive'>9</param>
+	    </data>
+	  </attribute>
+	  <attribute name='r'>
+	    <data type='nonNegativeInteger'>
+	      <param name='minInclusive'>0</param>
+	      <param name='maxInclusive'>9</param>
+	    </data>
+	  </attribute>
+	</group>
+	<attribute name='align'>
+	  <choice>
+	    <value>center</value>
+	    <value>start</value>
+	    <value>end</value>
+	  </choice>
+	</attribute>
+      </choice>
+    </optional>
+    <mixed>
+      <zeroOrMore>
+	<choice>
+	  <ref name="Inlines"/>
+	</choice>
+      </zeroOrMore>
+    </mixed>
+</element> 
+</define>
+</div>
+
+
+<div html:id="Literal">
+<html:h3>Element lit  </html:h3>
+<html:p>Literal layout. Used for content which has been
+pre-transcribed and is embosser ready and already formatted. Use case
+is for music, mathematics etc. where the transcriber has done the
+work. The issue with this is that the source text is lost. This may be
+unavoidable unless mathml or \TeX is used.
+</html:p>
+<define name="Literal"> 
+  <element name="lit"> 
+    <text/>
+</element> 
+</define>
+</div>
+
+
+
+<div html:id="break">
+<html:h3>Element break  </html:h3>
+<html:p>Required  break. Value taken from list of page,  or non negative integer less than 9, which is implementation dependent. </html:p>
+<define name="PageBreak"> 
+  <element name="break"> 
+    <attribute name='type'>
+        <choice>
+	    <value>page</value>
+	    <data type='token'>
+	      <param name='pattern'>[0-9]{1}</param>
+	    </data>
+	    
+	  </choice>
+    </attribute>
+    <empty/>
+</element> 
+</define>
+</div>
+
+
+<div html:id="inlines">
+<html:h3>Inline Elements   </html:h3>
+<html:p>Small group of inline elements.  </html:p>
+  <define name="Inlines" combine="choice">  
+  
+    <choice>
+      <element name="code">
+        <text/>
+      </element>
+      <element name="em">
+        <text/>
+      </element>
+    </choice>
+  </define>
+</div>
+
+
+<start>
+      <ref name="Brxml"/>
+  </start>
+</grammar>
+
+<!-- 
+<div html:id="">
+<html:h3>Element   </html:h3>
+<html:p>  </html:p>
+<define name=""> 
+  <element name=""> 
+    <mixed>
+      <zeroOrMore>
+	<choice>
+	  <ref name=""/>
+	</choice>
+      </zeroOrMore>
+    </mixed>
+</element> 
+</define>
+</div>
+
+ -->

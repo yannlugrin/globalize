@@ -1,0 +1,74 @@
+>> RFC_4646::LANGUAGE
+=> "([a-zA-Z]{4,8}|([a-zA-Z]{2,3}(([-][a-zA-Z]{3}){0,3})))"
+
+>> RFC_4646::SCRIPT
+=> "([a-zA-Z]{4})"
+
+>> RFC_4646::REGION
+=> "([a-zA-Z]{2}|[0-9]{3})"
+
+>> RFC_4646::VARIANT
+=> "(([a-zA-Z0-9]{5,8}|[0-9][a-zA-Z0-9]{3})([-]([a-zA-Z0-9]{5,8}|[0-9][a-zA-Z0-9]{3}))*)"
+
+>> RFC_4646::EXTENSION
+=> "([a-wy-zA-WY-Z0-9]((([-][a-zA-Z0-9]{2,8})+))+)"
+
+>> RFC_4646::PRIVATEUSE
+=> "([xX]([-][a-zA-Z0-9]{1,8})+)"
+
+>> RFC_4646::IRREGULARS
+=> "en-GB-oed|i-ami|i-bnn|i-default|i-enochian|i-hak|i-klingon|i-lux||i-mingo|i-navajo|i-pwn|i-tao|i-tay|i-tsu|sgn-BE-fr|sgn-BE-nl|sgn-CH-de"
+
+>> RFC_4646::LANGTAG
+=> "^((
+([a-zA-Z]{4,8}|([a-zA-Z]{2,3}(([-][a-zA-Z]{3}){0,3})))  #primary tag
+
+([-]([a-zA-Z]{4}))?                                     #script tag
+
+([-]([a-zA-Z]{2}|[0-9]{3}))?                            #region tag
+
+([-](([a-zA-Z0-9]{5,8}|[0-9][a-zA-Z0-9]{3})([-]([a-zA-Z0-9]{5,8}|[0-9][a-zA-Z0-9]{3}))*))? #variant tags
+([-]([a-wy-zA-WY-Z0-9]((([-][a-zA-Z0-9]{2,8})+))+))*                                       #extension tags
+([-]([xX]([-][a-zA-Z0-9]{1,8})+))*)|                                                       #privateuse tags
+(([xX]([-][a-zA-Z0-9]{1,8})+))*|                                                           # standalone privateuse tags
+(en-GB-oed|i-ami|i-bnn|i-default|i-enochian|i-hak|i-klingon|i-lux||i-mingo|i-navajo|i-pwn|i-tao|i-tay|i-tsu|sgn-BE-fr|sgn-BE-nl|sgn-CH-de))$"
+
+
+(Remember captures array is zero-based)
+Group 0 -> whole tag
+
+Group 1 -> tag with primary + privateuse (not only privateuse or only irregular)
+
+Group 2 -> whole primary tag (including extended language tag)
+Group 3 -> primary tag (only 2/3 char + extended language tags)
+Group 4 -> primary tag (only all extended language tags)
+Group 5 -> primary tag (only each extended language tag)
+
+Group 6 -> script tag (with hyphen)
+Group 7 -> script tag (without hyphen)
+
+Group 8 -> region tag (with hyphen)
+Group 9 -> region tag (without hyphen)
+
+Group 10 -> all variant tags
+Group 11 -> all variant tags (without first hyphen)
+Group 12 -> first variant tag (without hyphen)
+Group 13 -> rest of variant tags (with first hyphen)
+Group 14 -> rest of variant tags (without first hyphen)
+
+Group 15 -> all extension tags
+Group 16 -> first extension tag
+Group 17 -> first extension tag (without first hyphen)
+Group 18 -> rest of extension tags (with hyphen)
+Group 19 -> rest of extension tags (with hyphen)
+
+Group 20 -> all privateuse tags that come after primary tag (with hyphen)
+Group 21 -> all privateuse tags that come after primary tag (without hyphen)
+Group 22 -> all privateuse tags that come after primary tag (without singleton)
+
+Group 23 -> all standalone privateuse tags (with first singleton)
+Group 24 -> all standalone privateuse tags (with first singleton)
+Group 25 -> all standalone privateuse tags (without first singleton)
+
+Group 26 -> all irregulars
+

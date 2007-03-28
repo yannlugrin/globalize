@@ -1,0 +1,16 @@
+mysql:
+  adapter: mysql
+  database: globalize_test
+  username: webtypes
+  password: webtypes01
+
+sqlite:
+  adapter: sqlite
+  dbfile: vendor/plugins/globalize/test/db/test.sqlite.db
+
+test:
+  adapter: mysql
+  database: globalize_test
+  username: webtypes
+  password: webtypes01
+  encoding: utf8
