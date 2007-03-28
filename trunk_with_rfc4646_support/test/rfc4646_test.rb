@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/test_helper'
 
-class LocaleTest < Test::Unit::TestCase
+class RFC4646Test < Test::Unit::TestCase
 
   include Globalize
 
@@ -47,4 +47,11 @@ class LocaleTest < Test::Unit::TestCase
     assert_equal 'x-a-b-c-12345678', rfc.privateuse
   end
 
+  def test_parsing_well_formed_tags_with_validation
+    tag = 'en-Latn-US-lojban-gaulish-a-12345678-ABCD-b-ABCDEFGH-x-a-b-c-12345678'
+    assert_nothing_thrown do
+      rfc = RFC_4646.parse(tag, true)
+      assert_not_nil rfc.lsr
+    end
+  end
 end

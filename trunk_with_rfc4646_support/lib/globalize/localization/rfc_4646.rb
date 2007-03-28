@@ -1,6 +1,6 @@
 module Globalize
   class RFC_4646  #:nodoc:
-    attr_accessor :primary, :script, :region, :variants, :extensions, :extension_match, :privateuse, :irregulars, :tag
+    attr_accessor :primary, :script, :region, :variants, :extensions, :extension_match, :privateuse, :irregulars, :tag, :lsr
 
     #ALPHA
     ALPHA = "[a-zA-Z]"
@@ -129,7 +129,9 @@ module Globalize
     RFC_4646_PATTERN = Regexp.new(LANGTAG, Regexp::IGNORECASE)
     SINGLETON_PATTERN = Regexp.new("-#{RFC_4646::SINGLETON}-")
 
-    def self.parse(tag)
+    LANGUAGE_SUBTAG_REGISTRY_FILE = 'language-subtag-registry'
+
+    def self.parse(tag, validate_against_lsr = false)
       #check for validity
       pattern_matches = tag.match(RFC_4646_PATTERN)
       raise ArgumentError, "bad format for #{tag}, not rfc-4646 compliant" if ((pattern_matches && pattern_matches.captures.compact.all? {|e| e.empty?}) || pattern_matches.nil?)
@@ -186,6 +188,11 @@ module Globalize
         singletons = rfc.extension_match.scan(SINGLETON_PATTERN).collect {|e| e.gsub('-','')}
         raise ArgumentError, "bad format for #{tag}, not rfc-4646 compliant (duplicate singletons)" unless (singletons == singletons.uniq)
         rfc.extensions = pattern_matches[16].scan(Regexp.new(RFC_4646::EXTENSION)).collect {|e| e.first}
+      end
+
+      if validate_against_lsr
+        rfc.lsr = LanguageSubtagRegistry.parse(File.join(File.dirname(__FILE__), LANGUAGE_SUBTAG_REGISTRY_FILE))
+        #TODO
       end
 
       rfc
