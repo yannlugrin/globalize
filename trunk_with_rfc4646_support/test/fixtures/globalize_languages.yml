@@ -1,61 +1,50 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 english:
   id: 1
-  iso_639_1: en
-  iso_639_2: eng
+  tag: en
+  primary_subtag: en
   english_name: English
   native_name: English
   direction: ltr
-  scope: L
-  macro_language: false
   pluralization: 'c == 1 ? 1 : 2'
 
 hebrew:
   id: 2
-  iso_639_1: he
-  iso_639_2: heb
+  tag: he
+  primary_subtag: he
   english_name: Hebrew
   native_name: עברית
   direction: rtl
-  scope: L
-  macro_language: false
   pluralization: 'c == 1 ? 1 : 2'
 
 urdu:
   id: 3
-  iso_639_1: ur
+  tag: ur
+  primary_subtag: ur
   english_name: Urdu
-  scope: L
-  macro_language: false
-
   # intentional bad syntax
   pluralization: 'c==1 ? 1'
 polish:
   id: 4
-  iso_639_1: pl
+  tag: pl
+  primary_subtag: pl
   english_name: Polish
   native_name: język polski
-  scope: L
-  macro_language: false
   pluralization: 'c==1 ? 1 : c%10>=2 && c%10<=4 && (c%100<10 || c%100>=20) ? 2 : 3'
 
 bashkir:
   id: 5
-  iso_639_1: ba
+  tag: ba
+  primary_subtag: ba
   english_name: Bashkir
-  scope: L
-  macro_language: false
-
   # intentional bad syntax
   pluralization: 'bogus syntax'
 
 twi:
   id: 6
-  iso_639_1: tw
+  tag: tw
+  primary_subtag: tw
   english_name: Twi
-  scope: L
-  macro_language: false
-
   # intentional bad syntax (too long)
   pluralization: |
     c = c = c = c = c = c = c = c = c = c = c = c = c = c = c = c =
@@ -65,11 +54,166 @@ twi:
 
 spanish:
   id: 7
-  iso_639_1: es
-  iso_639_2: spa
+  tag: es
+  primary_subtag: spa
   english_name: Spanish
   native_name: Español
   direction: ltr
-  scope: L
-  macro_language: false
+  pluralization: 'c == 1 ? 1 : 2'
+
+english_american:
+  id: 8
+  tag: en-US
+  primary_subtag: en
+  english_name: English (US)
+  native_name: English
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+
+british_american:
+  id: 9
+  tag: en-GB
+  primary_subtag: en
+  english_name: English (UK)
+  native_name: English
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+
+south_american_spanish:
+  id: 10
+  tag: es-419
+  primary_subtag: es
+  english_name: Spanish (South American)
+  native_name: Español
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+
+mexican_spanish:
+  id: 11
+  tag: es-MX
+  primary_subtag: es
+  english_name: Spanish (Mexico)
+  native_name: Español
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+
+argentinian_spanish:
+  id: 12
+  tag: es-AR
+  primary_subtag: es
+  english_name: Spanish (Argentina)
+  native_name: Español
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+chinese:
+  id: 13
+  tag: zh
+  primary_subtag: zh
+  english_name: Chinese
+  native_name: 中文
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+chinese_traditional:
+  id: 14
+  tag: zh-Hant
+  primary_subtag: zh
+  english_name: traditional Chinese (redundant)
+  native_name: 中文
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+mainland_chinese_traditional:
+  id: 15
+  tag: zh-Hant-CN
+  primary_subtag: zh
+  english_name: PRC Mainland Chinese in traditional script (redundant)
+  native_name: 中文
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+taiwan_chinese_traditional:
+  id: 16
+  tag: zh-Hant-TW
+  primary_subtag: zh
+  english_name: Taiwan Chinese in traditional script (redundant)
+  native_name: 中文
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+chinese_simplified:
+  id: 17
+  tag: zh-Hans
+  primary_subtag: zh
+  english_name: simplified Chinese (redundant)
+  native_name: 中文
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+chinese_mandarin_or_standard:
+  id: 18
+  tag: zh-guoyu
+  primary_subtag: zh
+  english_name: Mandarin or Standard Chinese (grandfathered)
+  native_name: 中文
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+chinese_mandarin:
+  id: 19
+  tag: zh-cmn
+  primary_subtag: zh
+  english_name: Mandarin Chinese (grandfathered)
+  native_name: 中文
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+chinese_mandarin_traditional:
+  id: 20
+  tag: zh-cmn-Hant
+  primary_subtag: zh
+  english_name: Mandarin Chinese (Traditional) (grandfathered)
+  native_name: 中文
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+chinese_mandarin_simplified:
+  id: 21
+  tag: zh-cmn-Hans
+  primary_subtag: zh
+  english_name: Mandarin Chinese (Simplified) (grandfathered)
+  native_name: 中文
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+cantonese:
+  id: 22
+  tag: zh-yue
+  primary_subtag: zh
+  english_name: Cantonese (grandfathered)
+  native_name: 中文
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+scouse:
+  id: 23
+  tag: en-GB-scouse
+  primary_subtag: en
+  english_name: English as used in the United Kingdom, Liverpudlian dialect)
+  native_name: English
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+zapotec:
+  id: 24
+  tag: zap
+  primary_subtag: zap
+  english_name: Zapotec
+  native_name: Diidzaj
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+slovenian_latin_italy_nadiza:
+  id: 25
+  tag: sl-Latn-IT-nedis
+  primary_subtag: sl
+  english_name: Nadiza dialect of Slovenian written using the Latin script as used in Italy
+  native_name: Slovenščina
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+azerb:
+  id: 26
+  tag: az-Arab-x-AZE-derbend
+  primary_subtag: az
+  english_name: Azerbaijani with Arabic script and private use tag
+  native_name: azərbaycan
+  direction: ltr
   pluralization: 'c == 1 ? 1 : 2'

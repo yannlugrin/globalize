@@ -12,6 +12,8 @@ module Globalize
         registry_data = f.read
         lsr.subtags = registry_data.split(/%%/).collect do |entry|
           subtag_entry = entry.strip
+          subtag = subtag_entry.scan(/Subtag: (.*?)\n/).flatten
+          subtag_entry.gsub!(/(Subtag: .*?\n)/,"Subtag: '#{subtag}'\n")
           if subtag_entry.match(/(Description: (.*?)\n){2}/)
             descriptions = subtag_entry.scan(/Description: (.*?)\n/).flatten
             subtag_entry.gsub!(/(Description: .*?\n)+/,"Description:\n  - #{descriptions.join("\n  - ")}\n")

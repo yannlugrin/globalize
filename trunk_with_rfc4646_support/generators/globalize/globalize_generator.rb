@@ -7,34 +7,30 @@ class GlobalizeGenerator < MigrationGenerator
 
   def initialize(runtime_args, runtime_options = {})
     arg = runtime_args.shift
-    @internal,@tiny = false,false
-    case arg.downcase
-      when 'tiny'
-        @tiny = true
-      when 'internal'
-        @attributes_for_migrations = generate_translated_model_migrations(runtime_args.pop)
-        raise %q(No models found using internal storage mechanism or all required columns exist in db.) and return if @attributes_for_migrations.empty?
-        @internal = true
-        @migration_file_name = "globalize_add_translated_fields_for_#{@attributes_for_migrations.keys.collect {|key| key.split('/').first.underscore}.join('_')}"
-        @migration_class_name = "GlobalizeAddTranslatedFieldsFor#{@attributes_for_migrations.keys.collect {|key| key.split('/').first}.join}"
-      else
-        @tiny = false
-    end if arg
+    @internal = false
+    @internal = (arg && arg.downcase == 'internal')
+
+    if @internal
+      @attributes_for_migrations = generate_translated_model_migrations(runtime_args.pop)
+      raise %q(No models found using internal storage mechanism or all required columns exist in db.) and return if @attributes_for_migrations.empty?
+      @internal = true
+      @migration_file_name = "globalize_add_translated_fields_for_#{@attributes_for_migrations.keys.collect {|key| key.split('/').first.underscore}.join('_')}"
+      @migration_class_name = "GlobalizeAddTranslatedFieldsFor#{@attributes_for_migrations.keys.collect {|key| key.split('/').first}.join}"
+    end
 
     super([ "globalize_migration" ] + runtime_args, runtime_options)
   end
 
   def banner
     %q(
-    Usage: script/generate globalize [tiny|internal] [lang|lang1,lang2...]
-    No arguments generates a migration for the globalize tables with all the data files (major languages only).
-    Specify "tiny" to generate a compact version of the data files (major languages only).
+    Usage: script/generate globalize [internal] [lang|lang1,lang2...]
+    No arguments generates a migration for the globalize tables with all the data files (major languages and variants only).
     Specify "internal" to generate a migration of all model attributes marked as translatable (when keep_translations_in_model is true.)
     )
   end
 
   def inflate_schema
-    deflated_name = @tiny ? 'tiny_migration.rb.gz' : 'migration.rb.gz'
+    deflated_name = 'migration.rb.gz'
     inflated_path = source_path('migration.rb')
     deflated_path = source_path(deflated_name)
 

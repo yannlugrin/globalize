@@ -8,11 +8,11 @@ module Globalize
 
       # assume it's a country code string
       if rfc.kind_of?(String)
-        find_by_code(rfc)  
+        find_by_code(rfc)
       elsif rfc.kind_of?(RFC_3066)
         rfc.country ? find_by_code(rfc.country) : nil
       else
-        raise ArgumentError, "argument must be String or RFC_3066 object"
+        raise ArgumentError, "argument must be String or RFC_3066 object (WARNING!: The use of RFC_3066 is deprecated)"
       end
     end
 

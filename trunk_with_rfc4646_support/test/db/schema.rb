@@ -80,27 +80,17 @@ ActiveRecord::Schema.define do
   add_index :globalize_translations, [ :tr_key, :language_id ], :name => 'tr_key'
   add_index :globalize_translations, [ :table_name, :item_id, :language_id ], :name => 'table_name'
 
+
   create_table :globalize_languages, :force => true do |t|
-    t.column :iso_639_1, :string, :limit => 2
-    t.column :iso_639_2, :string, :limit => 3
-    t.column :iso_639_3, :string, :limit => 3
-    t.column :rfc_3066,  :string
+    t.column :tag, :string
+    t.column :primary_subtag, :string
     t.column :english_name, :string
-    t.column :english_name_locale, :string
-    t.column :english_name_modifier, :string
     t.column :native_name, :string
-    t.column :native_name_locale, :string
-    t.column :native_name_modifier, :string
-    t.column :macro_language, :boolean
     t.column :direction, :string
     t.column :pluralization, :string
-    t.column :scope, :string, :limit => 1
   end
 
-  add_index :globalize_languages, :iso_639_1
-  add_index :globalize_languages, :iso_639_2
-  add_index :globalize_languages, :iso_639_3
-  add_index :globalize_languages, :rfc_3066
+  add_index :globalize_languages, :tag
 
   create_table :globalize_unlocalized_classes, :force => true do |t|
     t.column :code, :string

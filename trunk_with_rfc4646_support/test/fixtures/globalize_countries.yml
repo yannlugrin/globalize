@@ -57,3 +57,45 @@ poland:
   thousands_sep: "."
   decimal_sep: ','
   currency_decimal_sep: ','
+mexico:
+  id: 8
+  code: MX
+  english_name: Mexico
+  thousands_sep: "."
+  decimal_sep: ','
+  currency_decimal_sep: ','
+argentina:
+  id: 9
+  code: AR
+  english_name: Argentina
+  thousands_sep: "."
+  decimal_sep: ','
+  currency_decimal_sep: ','
+italy:
+  id: 10
+  code: IT
+  english_name: Italy
+  thousands_sep: "."
+  decimal_sep: ','
+  currency_decimal_sep: ','
+china:
+  id: 11
+  code: CN
+  english_name: China
+  thousands_sep: "."
+  decimal_sep: ','
+  currency_decimal_sep: ','
+taiwan:
+  id: 12
+  code: TW
+  english_name: Taiwan
+  thousands_sep: "."
+  decimal_sep: ','
+  currency_decimal_sep: ','
+uk:
+  id: 13
+  code: GB
+  english_name: United Kingdom
+  thousands_sep: "."
+  decimal_sep: ','
+  currency_decimal_sep: ','

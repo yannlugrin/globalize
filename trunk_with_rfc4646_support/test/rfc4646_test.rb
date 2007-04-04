@@ -8,6 +8,29 @@ class RFC4646Test < Test::Unit::TestCase
     @test_files = ['langtagTestWellFormed.txt', 'langtagTestIllFormed.txt']
   end
 
+  def test_basic
+    rfc = RFC_4646.parse 'en'
+    assert_equal 'en', rfc.tag
+    assert_equal 'en', rfc.primary
+    assert_nil         rfc.script
+    assert_nil         rfc.region
+    assert_nil         rfc.variants
+    assert_nil         rfc.extensions
+    assert_nil         rfc.extension_match
+    assert_nil         rfc.privateuse
+    assert_nil         rfc.irregulars
+
+    rfc = RFC_4646.parse 'en-US'
+    assert_equal 'en-US', rfc.tag
+    assert_equal 'en',    rfc.primary
+    assert_nil            rfc.script
+    assert_equal 'US',    rfc.region
+    assert_nil            rfc.variants
+    assert_nil            rfc.extensions
+    assert_nil            rfc.privateuse
+    assert_nil            rfc.irregulars
+  end
+
   def test_well_formed_valid_rfc4646
     File.open(File.join(File.dirname(__FILE__), 'rfc4646', @test_files[0]), 'r') do |f|
       f.readlines.each do |test_string|
@@ -54,4 +77,5 @@ class RFC4646Test < Test::Unit::TestCase
       assert_not_nil rfc.lsr
     end
   end
+
 end

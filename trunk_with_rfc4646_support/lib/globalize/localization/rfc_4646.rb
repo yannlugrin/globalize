@@ -208,5 +208,10 @@ module Globalize
       end
     end
 
+    #For compatibility with RFC_3066 class
+    def language
+      self.tag
+    end
+
   end
 end

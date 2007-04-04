@@ -1,6 +1,6 @@
 mysql:
   adapter: mysql
-  database: globalize_test
+  database: globalize_rfc4646_test
   username: webtypes
   password: webtypes01
 
@@ -10,7 +10,7 @@ sqlite:
 
 test:
   adapter: mysql
-  database: globalize_test
+  database: globalize_rfc4646_test
   username: webtypes
   password: webtypes01
   encoding: utf8

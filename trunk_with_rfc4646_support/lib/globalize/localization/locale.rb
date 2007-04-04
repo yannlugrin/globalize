@@ -10,14 +10,13 @@ module Globalize
   optional, but you'll need to define it to get a lot of the localization features.
 =end
   class Locale
-    attr_reader :language, :country, :code
+    attr_reader :language, :country, :code, :rfc
     attr_accessor :date_format, :currency_format, :currency_code,
       :thousands_sep, :decimal_sep, :currency_decimal_sep,
-      :number_grouping_scheme
+      :number_grouping_scheme, :language_fallbacks
 
     @@cache = {}
     @@translator_class = DbViewTranslator
-    @@translator = {}
     @@active = nil
     @@base_language = nil
     @@base_language_code = nil
@@ -30,13 +29,21 @@ module Globalize
     # RFC 3066 format (see: http://www.faqs.org/rfcs/rfc3066.html). It can
     # also take a Locale object. Set it to the +nil+ object, to deactivate
     # the locale.
-    def self.set(locale)
-      if locale.kind_of? Locale
-        @@active = locale
-      elsif locale.nil?
+    def self.set(locale_or_language_tag, country_code = nil, fallbacks = nil)
+      if locale_or_language_tag.kind_of? Locale
+        @@active = locale_or_language_tag
+      elsif locale_or_language_tag.nil?
         @@active = nil
       else
-        @@active = ( @@cache[locale] ||= Locale.new(locale) )
+        $stderr.puts "Locale.set(locale) is deprecated! Use Locale.set(language_tag, country_code)." if country_code.blank?
+
+        locale_tag = country_code.blank? ? locale_or_language_tag : "#{locale_or_language_tag}_#{country_code}"
+
+        unless country_code.blank?
+          @@active = ( @@cache[locale_tag] ||= Locale.new(locale_or_language_tag, country_code) )
+        else
+          @@active = ( @@cache[locale_tag] ||= Locale.new(locale_or_language_tag) )
+        end
       end
     end
 
@@ -57,11 +64,15 @@ module Globalize
     # or a language object.
     #
     # May be set with a language code in environment.rb, without accessing the db.
-    def self.set_base_language(lang)
-      if lang.kind_of? Language
-        @@base_language = lang
+    #Note: The language tag is now parsed as an rfc_4646 tag.
+    #i.e. If you just mean englih, use 'en'.
+    #Don't use 'en-US' (with country code) unless you want the
+    #North Americant reginal variant of English.
+    def self.set_base_language(language_tag)
+      if language_tag.kind_of? Language
+        @@base_language = language_tag
       else
-        @@base_language_code = RFC_3066.parse lang
+        @@base_language_code = RFC_4646.parse language_tag
       end
     end
 
@@ -94,35 +105,83 @@ module Globalize
     end
 
     # Allows you to switch the current locale while within the block.
-    # The previously current locale is reset after the block is finished.
+    # The previously current locale is restored after the block is finished.
     #
     # e.g
-    #     Locale.set('en-US')
-    #     Locale.switch_locale('es-ES') do
+    #     Locale.set('en','US')
+    #     Locale.switch_locale('es','ES') do
     #       product.name = 'esquis'
     #     end
     #
     #     product.name
     #     > skis
-    def self.switch_locale(code)
+    def self.switch_locale(language_tag, country_code = nil, fallbacks = nil)
       current_locale = Locale.active
-      Locale.set(code)
+      Locale.set(language_tag, country_code = nil, fallbacks = nil)
       result = yield
-      Locale.set(current_locale.code)
+      Locale.set(current_locale)
+      result
+    end
+
+
+    # Allows you to switch the current locale's language while within the block.
+    # The current locale's country is maintained
+    # The previously current language is restored after the block is finished.
+    #
+    # e.g
+    #     Locale.set('es','ES')
+    #     Locale.switch_locale('ca') do
+    #       product.name = 'mitjons'
+    #       Locale.country => Spain
+    #     end
+    #
+    #     product.name
+    #     > calcetines
+    #       Locale.country => Spain
+    def self.switch_language(language_tag, fallbacks = nil)
+      current_locale = Locale.active
+      Locale.set(language_tag, current_locale.country, fallbacks = nil)
+      result = yield
+      Locale.set(current_locale)
+      result
+    end
+
+    # Allows you to switch the current locale's country while within the block.
+    # The current locale's language is maintained
+    # The previously current country is restored after the block is finished.
+    #
+    # e.g
+    #     Locale.set('en','US')
+    #     Locale.switch_locale('CA') do
+    #       Locale.country => Canada
+    #     end
+    #
+    #     Locale.country => United States of America
+    def self.switch_country(country_code)
+      current_locale = Locale.active
+      Locale.set(current_locale.language, country_code)
+      result = yield
+      Locale.set(current_locale)
       result
     end
 
     # Creates a new locale object by looking up an RFC 3066 code in the database.
-    def initialize(code)
-      if code.nil?
-        return
+    # TODO: Implement fallbacks
+    def initialize(language_tag, country_code = nil, fallbacks = nil)
+      return nil unless language_tag
+
+      unless country_code.blank?
+        @rfc = RFC_4646.parse(language_tag)
+        @code = @rfc.tag
+        @country = Country.pick(country_code)
+      else
+        @rfc = RFC_3066.parse(language_tag)
+        @code = @rfc.locale
+        @country = Country.pick(@rfc)
+        $stderr.puts "Locale.new(locale) is deprecated! Use Locale.new(language_tag, country_code)." unless caller.any? {|stack_entry| stack_entry =~ /`set'/}
       end
 
-      rfc = RFC_3066.parse(code)
-      @code = rfc.locale
-
-      @language = Language.pick(rfc)
-      @country = Country.pick(rfc)
+      @language = Language.pick(@rfc)
 
       setup_fields
     end
