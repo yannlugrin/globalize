@@ -57,3 +57,15 @@ end
 def assert_includes(object, collection, msg= nil)
   assert(collection.include?(object), msg)
 end
+
+class SimpleCallLogger
+  def initialize(o)
+    @obj = o
+  end
+  def method_missing(methodname, *args)
+    puts "called: #{methodname}(#{args})"
+    a = @obj.send(methodname, *args)
+    puts "\t-> returned: #{a}"
+    return a
+  end
+end

@@ -29,30 +29,94 @@ module Globalize
     end
 
     def self.pick(rfc)
-      rfc = RFC_4646.parse(rfc) if rfc.kind_of? String
-      lang = find_by_tag(rfc.language)
+      tag = nil
+
+      if rfc.kind_of? String
+        tag = rfc
+        rfc = RFC_4646.parse(tag)
+      else
+        tag = rfc.language
+      end
+
+      lang = find_by_tag(tag)
       return lang if lang
 
-      if rfc.tag.include? '-'
-        raise <<-'EOM'
+      if rfc.respond_to?(:rfc) && rfc.tag.include?('-')
+        raise ArgumenError, <<-'EOM'
         Language.pick now only accepts a valid rfc_4646 tag.
         If you supplied a tag with this format {language_code}_{country_code}
         e.g es-ES
         it was taken to be the Spanish regional variant of the Spanish language
         and for this reason may not have been found in the database.
         Drop the country code and just use 'es' if you meant to select the spanish language .
-        If you really did mean to specify es-ES as a valid rfc_4646 tag then this tag
+        If you really did mean to specify #{tag} as a valid rfc_4646 tag then this tag
         is NOT available in the database.
         You can add it via:
         EOM
       else
-        raise "Tag not available in the database. You can add it via:"
+        raise ArgumentError, "Tag '#{tag}' not available in the database. You can add it via:"
       end
 
       lang
     end
 
+=begin
+  Create a new Language.
+  Syntax:
+    Language.add('en-AU','en','English (Australia)', 'Ozzie', 'ltr', 'c == 1 ? 1 : 2')
+    or
+    locale_en = Locale.active
+    Language.add('en-AU',locale_en.language) #The locale's language is used as a template for the new Language
+    or
+    Language.add('en-AU',locale_en, 'English (Australia)', 'Ozzie')
+    #The supplied locale's language is used as a template but english_name and native_name can be overriden
+=end
+    def self.add(tag, primary_subtag_or_template, english_name=nil, native_name=nil, direction=nil, pluralization=nil)
+      options = {:tag => tag}
+      case primary_subtag_or_template
+        when Locale
+          template_options = primary_subtag_or_template.language.attributes
+          template_options.merge!({:english_name => english_name}) if english_name
+          template_options.merge!({:native_name => native_name}) if native_name
+          options.reverse_merge!(template_options)
+        when Language
+          template_options = primary_subtag_or_template.attributes
+          template_options.merge!({:english_name => english_name}) if english_name
+          template_options.merge!({:native_name => native_name}) if native_name
+          options.reverse_merge!(template_options)
+        else
+        options.merge(:primary_subtag => primary_subtag_or_template,
+                      :english_name => english_name,
+                      :native_name => native_name,
+                      :direction => direction,
+                      :pluralization => pluralization)
+      end
+      self.create!(options)
+    end
+
     def code; tag; end
+
+    def method_missing(method_id, *args, &block)
+      err_msg = ":#{method_id.id2name}() is deprecated! It is no longer an attribute of Globalize::Language."
+
+      begin
+        super(method_id, *args, &block)
+      rescue NoMethodError
+        case method_id
+          when :iso_639_1, :iso_639_2, :iso_639_3, :rfc_3066
+            $stderr.puts err_msg << " Use 'tag'."
+            tag
+          when :english_name_locale, :english_name_modifier, :native_name_locale, :native_name_modifier, :macro_language , :scope
+            $stderr.puts err_msg << " It has no equivalent."
+            nil
+          else
+            raise NoMethodError.new(
+            "undefined method `#{method}' for " +
+            "#{self.inspect}:#{self.class.name}"
+            )
+        end
+      end
+    end
 
     def xxx_code=(new_code)
       if new_code =~ /-/

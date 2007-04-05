@@ -5,15 +5,19 @@ module Globalize
     def self.reloadable?; false end
 
     def self.pick(rfc)
-
+      tag = nil
       # assume it's a country code string
       if rfc.kind_of?(String)
-        find_by_code(rfc)
+        tag = rfc
+        country = find_by_code(tag)
       elsif rfc.kind_of?(RFC_3066)
-        rfc.country ? find_by_code(rfc.country) : nil
+        tag = rfc.country
+        country = rfc.country ? find_by_code(tag) : nil
       else
         raise ArgumentError, "argument must be String or RFC_3066 object (WARNING!: The use of RFC_3066 is deprecated)"
       end
+
+      country ? country : raise(ArgumentError, "Tag ('#{tag}') not available in the database. You can add it via:")
     end
 
     def number_grouping_scheme

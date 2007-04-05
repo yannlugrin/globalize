@@ -99,3 +99,10 @@ uk:
   thousands_sep: "."
   decimal_sep: ','
   currency_decimal_sep: ','
+australia:
+  id: 14
+  code: AU
+  english_name: Australia
+  thousands_sep: "."
+  decimal_sep: ','
+  currency_decimal_sep: ','

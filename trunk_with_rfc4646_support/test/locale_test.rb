@@ -52,8 +52,15 @@ class LocaleTest < Test::Unit::TestCase
   end
 
   def test_set_simple_current_locale
-    loc = Locale.set('en','US')
 
+    loc = nil
+
+    assert_nothing_thrown do
+      loc = Locale.set('en','US')
+    end
+
+    assert                  Locale.active?
+    assert_equal loc,       Locale.active
     assert_equal 'en',      loc.language.code
     assert_equal 'English', loc.language.english_name
     assert_equal 'US',      loc.country.code
@@ -62,8 +69,12 @@ class LocaleTest < Test::Unit::TestCase
     assert_equal 'en',      loc.rfc.primary
     assert_nil              loc.rfc.region
 
-    loc = Locale.new('es','ES')
+    assert_nothing_thrown do
+      loc = Locale.set('es','ES')
+    end
 
+    assert                  Locale.active?
+    assert_equal loc,       Locale.active
     assert_equal 'es',      loc.language.code
     assert_equal 'Spanish', loc.language.english_name
     assert_equal 'ES',      loc.country.code
@@ -73,8 +84,74 @@ class LocaleTest < Test::Unit::TestCase
     assert_nil              loc.rfc.region
   end
 
-  def test_set_current_locale_with_language_variants
-    loc = Locale.set('en-US','US')
+
+  def test_set_current_locale_with_invalid_tag
+    assert_raises(ArgumentError) do
+      std_err_msg = "Locale.set(locale) is deprecated! Use Locale.set(language_tag, country_code).\n"
+
+      Locale.set(nil)
+
+      assert_stderr_equal std_err_msg do
+        Locale.set('')
+      end
+
+      assert_stderr_equal std_err_msg do
+        Locale.set('en') #invalid rfc_3066/valid rfc_4646 language tag
+      end
+
+      assert_stderr_equal std_err_msg do
+        Locale.set('i') #invalid rfc_3066/rfc_4646
+      end
+
+      assert_stderr_equal std_err_msg do
+        Locale.set('zap-Ping') #invalid rfc_3066 / valid rfc_4646 language tag (Ping not registered)
+      end
+
+      assert_stderr_equal std_err_msg do
+        Locale.set('i-navajo') #invalid rfc_3066 / valid rfc_4646 language tag (grandfathered)
+      end
+
+      assert_stderr_equal std_err_msg do
+        Locale.set('zap') #invalid rfc_3066 / valid rfc_4646 language tag
+      end
+
+      assert_stderr_equal std_err_msg do
+        Locale.set('en-GB-oed') #invalid rfc_3066 / valid rfc_4646 grandfathered language tag
+      end
+
+      assert_stderr_empty do
+        Locale.set(nil)
+        Locale.set(nil,nil)
+        Locale.set(nil,'US')
+        Locale.set('e','US')
+        Locale.set('languages','US')
+        Locale.set('i-aim','US')
+        Locale.set('en-US-Latn','US')
+      end
+    end
+  end
+
+  def test_set_current_locale_with_non_existant_tags
+    assert_raises(ArgumentError) do
+      std_err_msg = "Locale.set(locale) is deprecated! Use Locale.set(language_tag, country_code).\n"
+
+      assert_stderr_equal std_err_msg do
+        Locale.set('no-DE') #non existant valid 'no' language tag
+      end
+
+      assert_stderr_equal std_err_msg do
+        Locale.set('en-BA') #non existant valid 'BA' country tag
+      end
+
+      assert_stderr_empty do
+        Locale.set('no','DE') #non existant valid 'no' language tag
+        Locale.set('en','BA') #non existant valid 'BA' country tag
+      end
+    end
+  end
+
+  def test_new_locale_with_language_variants
+    loc = Locale.new('en-US','US')
 
     assert_equal 'en-US',        loc.language.code
     assert_equal 'en',           loc.language.primary_subtag
@@ -263,4 +340,359 @@ class LocaleTest < Test::Unit::TestCase
 
   end
 
+  def test_set_locale_with_fallbacks
+
+    assert_nothing_thrown do
+      loc_es_AR = Locale.new('es','AR')
+      loc_es_MX = Locale.new('es','MX')
+
+      loc_es = Locale.set('es','ES', [['es','AR'],['es','MX']])
+
+      assert                  Locale.active?
+      assert_equal loc_es,    Locale.active
+      assert_equal 'es',      loc_es.language.code
+      assert_equal 'ES',      loc_es.country.code
+      assert_equal loc_es_AR, loc_es.fallbacks.first
+      assert_equal loc_es_MX, loc_es.fallbacks.last
+    end
+
+    assert_raises ArgumentError do
+      loc_es = Locale.set('en-US', [['en-GB'],['en-AU']])
+    end
+
+    assert_nothing_thrown do
+      std_err_msg = "Locale.set(locale) is deprecated! Use Locale.set(language_tag, country_code).\n"
+      flbck_err_msg = "Fallbacks can only be defined using the Locale.set(language_tag, country_code) syntax.\n"
+      loc_en = nil
+
+      assert_stderr_equal std_err_msg do
+        loc_en = Locale.set('en-US', nil, [['en-GB'],['en-AU']])
+        assert                  Locale.active?
+        assert_equal loc_en,    Locale.active
+        assert_equal 'en',      loc_en.language.code
+        assert_equal 'US',      loc_en.country.code
+      end
+
+      assert_stderr_equal flbck_err_msg do
+        assert_nil loc_en.fallbacks
+      end
+    end
+  end
+
+  def test_switch_locale
+    Locale.clear_cache
+
+    loc_es_AR = Locale.new('es','AR')
+    loc_es_MX = Locale.new('es','MX')
+    loc_es_US = Locale.new('es','US')
+    loc_es = Locale.set('es','ES', [['es','AR'],['es','MX']])
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+
+    Locale.switch_locale('es','AR') do
+      assert Locale.active?
+      assert_equal loc_es_AR, Locale.active
+      assert_equal 'es', Locale.language.code
+      assert_equal 'AR', Locale.country.code
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+
+    Locale.switch_locale('es','MX') do
+      assert Locale.active?
+      assert_equal loc_es_MX, Locale.active
+      assert_equal 'es', Locale.language.code
+      assert_equal 'MX', Locale.country.code
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+
+    std_err_msg = "Locale.set(locale) is deprecated! Use Locale.set(language_tag, country_code).\n"
+    assert_stderr_equal std_err_msg do
+      Locale.switch_locale('es-US') do
+        assert Locale.active?
+        assert_equal loc_es_US, Locale.active
+        assert_equal 'es', Locale.language.code
+        assert_equal 'US', Locale.country.code
+      end
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+
+    assert_nothing_thrown do
+      Locale.switch_locale(nil,'US') do
+        assert Locale.active?
+        assert             Locale.active
+        assert_equal 'es', Locale.language.code
+        assert_equal 'US', Locale.country.code
+      end
+    end
+
+    assert_raises ArgumentError do
+      Locale.switch_locale('e','US') {}
+    end
+
+    assert_stderr_equal std_err_msg do
+      assert_raises ArgumentError do
+        #Note: Since we have to remain compatible with Locale.set(code)
+        Locale.switch_locale('es',nil) {}
+      end
+    end
+
+    assert_stderr_equal std_err_msg do
+      assert_raises ArgumentError do
+        Locale.switch_locale('e-US') {}
+      end
+    end
+
+    assert_raises ArgumentError do
+      Locale.switch_locale(nil) {}
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
+
+    Locale.switch_locale('es','MX') do
+      assert Locale.active?
+      assert_equal loc_es_MX, Locale.active
+      assert_equal 'es', Locale.language.code
+      assert_equal 'MX', Locale.country.code
+      assert_nil Locale.active.fallbacks
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
+
+    Locale.clear_cache #As we've already defined the 'es_MX' locale
+
+    Locale.switch_locale('es','MX', [['es','ES'],['es','AR']]) do
+      assert Locale.active?
+      assert_equal loc_es_MX, Locale.active
+      assert_equal 'es', Locale.language.code
+      assert_equal 'MX', Locale.country.code
+      assert_equal [loc_es, loc_es_AR], Locale.active.fallbacks
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
+  end
+
+  def test_switch_language
+    Locale.clear_cache
+
+    loc_es_AR = Locale.new('es','AR')
+    loc_es_MX = Locale.new('es','MX')
+    loc_es_US = Locale.new('es','US')
+    loc_es = Locale.set('es','ES', [['es','AR'],['es','MX']])
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+
+    Locale.switch_language('en') do
+      assert Locale.active?
+      assert_equal 'en', Locale.language.code
+      assert_equal 'ES', Locale.country.code
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+
+    Locale.switch_language('pl') do
+      assert Locale.active?
+      assert_equal 'pl', Locale.language.code
+      assert_equal 'ES', Locale.country.code
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+
+    Locale.switch_language('es-419') do
+      assert Locale.active?
+      assert_equal 'es-419', Locale.language.code
+      assert_equal 'ES', Locale.country.code
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+
+    assert_nothing_thrown do
+      Locale.switch_language(nil) {}
+    end
+
+    assert_raises ArgumentError do
+      Locale.switch_language('e') {}
+    end
+
+    assert_raises ArgumentError do
+      Locale.switch_language('e-US') {}
+    end
+
+    assert_raises ArgumentError do
+      Locale.switch_language('') {}
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
+
+    Locale.switch_language('en') do
+      assert Locale.active?
+      assert_equal 'en', Locale.language.code
+      assert_equal 'ES', Locale.country.code
+      assert_nil Locale.active.fallbacks
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
+
+    Locale.clear_cache #As we've already defined the 'es_MX' locale
+
+    Locale.switch_language('en',[['es','ES'],['es','AR']]) do
+      assert Locale.active?
+      assert_equal 'en', Locale.language.code
+      assert_equal 'ES', Locale.country.code
+      assert_equal [loc_es, loc_es_AR], Locale.active.fallbacks
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
+  end
+
+  def test_switch_country
+    Locale.clear_cache
+
+    loc_es_AR = Locale.new('es','AR')
+    loc_es_MX = Locale.new('es','MX')
+    loc_es_US = Locale.new('es','US')
+    loc_es = Locale.set('es','ES', [['es','AR'],['es','MX']])
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+
+    Locale.switch_country('US') do
+      assert Locale.active?
+      assert_equal 'es', Locale.language.code
+      assert_equal 'US', Locale.country.code
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+
+    Locale.switch_country('MX') do
+      assert Locale.active?
+      assert_equal 'es', Locale.language.code
+      assert_equal 'MX', Locale.country.code
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+
+    Locale.switch_country('GB') do
+      assert Locale.active?
+      assert_equal 'es', Locale.language.code
+      assert_equal 'GB', Locale.country.code
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+
+    assert_raises ArgumentError do
+      Locale.switch_country(nil) {}
+    end
+
+    assert_raises ArgumentError do
+      Locale.switch_country('U') {}
+    end
+
+    assert_raises ArgumentError do
+      Locale.switch_country('USA') {}
+    end
+
+    assert_raises ArgumentError do
+      Locale.switch_country('en-US') {}
+    end
+
+    assert_raises ArgumentError do
+      Locale.switch_country('') {}
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
+
+    Locale.clear_cache
+    Locale.switch_country('MX') do
+      assert Locale.active?
+      assert_equal 'es', Locale.language.code
+      assert_equal 'MX', Locale.country.code
+      assert_equal loc_es.fallbacks, Locale.active.fallbacks
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
+
+    Locale.clear_cache
+    Locale.switch_country('AR',[['es','ES'],['es','AR']]) do
+      assert Locale.active?
+      assert_equal 'es', Locale.language.code
+      assert_equal 'AR', Locale.country.code
+      assert_equal [loc_es, loc_es_AR], Locale.active.fallbacks
+    end
+
+    assert Locale.active?
+    assert_equal loc_es, Locale.active
+    assert_equal 'es', Locale.language.code
+    assert_equal 'ES', Locale.country.code
+    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
+  end
 end
