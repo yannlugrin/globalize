@@ -58,6 +58,21 @@ def assert_includes(object, collection, msg= nil)
   assert(collection.include?(object), msg)
 end
 
+def assert_raised_message_equals(expected, reraise = true, msg = nil, &block)
+  result = false
+  begin
+    block.call
+  rescue Exception => e
+    result = true if e.message == expected
+  ensure
+    unless result
+      flunk "Expected exception message: #{expected}\n but was \n #{e.message}\n\n #{msg}"
+    else
+      raise e.class, e.message if reraise
+    end
+  end
+end
+
 class SimpleCallLogger
   def initialize(o)
     @obj = o

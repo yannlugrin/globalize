@@ -23,8 +23,9 @@ module Globalize
     @@base_language_code = nil
     @@translator = @@translator_class.instance
 
-    # Creates a new locale object by looking up an RFC 3066 code in the database.
-    # TODO: Implement fallbacks
+=begin
+ Creates a new locale object by looking up an RFC 3066 code in the database.
+=end
     def initialize(language_tag, country_code = nil, fallbacks = nil)
       return nil unless language_tag
 
@@ -116,7 +117,7 @@ module Globalize
     #
     # May be set with a language code in environment.rb, without accessing the db.
     #Note: The language tag is now parsed as an rfc_4646 tag.
-    #i.e. If you just mean englih, use 'en'.
+    #i.e. If you just mean english, use 'en'.
     #Don't use 'en-US' (with country code) unless you want the
     #North Americant reginal variant of English.
     def self.set_base_language(language_tag)

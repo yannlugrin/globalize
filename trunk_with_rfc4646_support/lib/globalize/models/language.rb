@@ -28,27 +28,33 @@ module Globalize
       end
     end
 
-    def self.pick(rfc)
+    def self.pick(rfc_or_language_tag)
       tag = nil
 
-      if rfc.kind_of? String
-        tag = rfc
-        rfc = RFC_4646.parse(tag)
-      else
-        tag = rfc.language
+      case rfc_or_language_tag
+        when String
+          tag = rfc_or_language_tag
+          rfc_or_language_tag = RFC_4646.parse(tag)
+        when RFC_4646
+          tag = rfc_or_language_tag.tag
+        when RFC_3066
+          tag = rfc_or_language_tag.language
+          $stderr.puts "Supplying an RFC_3066 instance to Language.pick(rfc_or_tag) is deprecated! Use  a valid rfc_4646 language tag or an instance of RFC_4646)."
       end
 
       lang = find_by_tag(tag)
       return lang if lang
 
-      if rfc.respond_to?(:rfc) && rfc.tag.include?('-')
-        raise ArgumenError, <<-'EOM'
-        Language.pick now only accepts a valid rfc_4646 tag.
+      #as we don't know wether the string argument was meant to be a valid
+      #rfc_4646 or rfc_3066 tag we throw an exception and let them decide.
+      if rfc_or_language_tag.kind_of?(RFC_4646) && rfc_or_language_tag.tag.include?('-')
+        raise ArgumentError, <<-EOM
+        Language.pick now only accepts a valid rfc_4646 language tag.
         If you supplied a tag with this format {language_code}_{country_code}
-        e.g es-ES
-        it was taken to be the Spanish regional variant of the Spanish language
+        e.g en-US
+        it was taken to be the American regional variant of the English language
         and for this reason may not have been found in the database.
-        Drop the country code and just use 'es' if you meant to select the spanish language .
+        Drop the country code and just use 'en' if you meant to just select the english language.
         If you really did mean to specify #{tag} as a valid rfc_4646 tag then this tag
         is NOT available in the database.
         You can add it via:
@@ -111,7 +117,7 @@ module Globalize
             nil
           else
             raise NoMethodError.new(
-            "undefined method `#{method}' for " +
+            "undefined method `#{method_id.id2name}' for " +
             "#{self.inspect}:#{self.class.name}"
             )
         end

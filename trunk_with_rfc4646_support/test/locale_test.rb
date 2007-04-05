@@ -55,7 +55,7 @@ class LocaleTest < Test::Unit::TestCase
 
     loc = nil
 
-    assert_nothing_thrown do
+    assert_nothing_raised do
       loc = Locale.set('en','US')
     end
 
@@ -69,7 +69,7 @@ class LocaleTest < Test::Unit::TestCase
     assert_equal 'en',      loc.rfc.primary
     assert_nil              loc.rfc.region
 
-    assert_nothing_thrown do
+    assert_nothing_raised do
       loc = Locale.set('es','ES')
     end
 
@@ -342,7 +342,7 @@ class LocaleTest < Test::Unit::TestCase
 
   def test_set_locale_with_fallbacks
 
-    assert_nothing_thrown do
+    assert_nothing_raised do
       loc_es_AR = Locale.new('es','AR')
       loc_es_MX = Locale.new('es','MX')
 
@@ -360,7 +360,7 @@ class LocaleTest < Test::Unit::TestCase
       loc_es = Locale.set('en-US', [['en-GB'],['en-AU']])
     end
 
-    assert_nothing_thrown do
+    assert_nothing_raised do
       std_err_msg = "Locale.set(locale) is deprecated! Use Locale.set(language_tag, country_code).\n"
       flbck_err_msg = "Fallbacks can only be defined using the Locale.set(language_tag, country_code) syntax.\n"
       loc_en = nil
@@ -431,7 +431,7 @@ class LocaleTest < Test::Unit::TestCase
     assert_equal 'es', Locale.language.code
     assert_equal 'ES', Locale.country.code
 
-    assert_nothing_thrown do
+    assert_nothing_raised do
       Locale.switch_locale(nil,'US') do
         assert Locale.active?
         assert             Locale.active
@@ -544,7 +544,7 @@ class LocaleTest < Test::Unit::TestCase
     assert_equal 'es', Locale.language.code
     assert_equal 'ES', Locale.country.code
 
-    assert_nothing_thrown do
+    assert_nothing_raised do
       Locale.switch_language(nil) {}
     end
 
@@ -694,5 +694,30 @@ class LocaleTest < Test::Unit::TestCase
     assert_equal 'es', Locale.language.code
     assert_equal 'ES', Locale.country.code
     assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
+  end
+
+  def test_base_language
+    Locale.clear_cache
+
+    loc_en_US = Locale.new('en','US')
+    loc_es_AR = Locale.new('es','AR')
+    loc_es_MX = Locale.new('es','MX')
+    loc_es_US = Locale.new('es','US')
+    loc_es = Locale.set('es','ES', [['es','AR'],['es','MX']])
+
+    assert_raises NoBaseLanguageError do
+      Locale.base_language
+    end
+
+    assert_nothing_raised do
+      Locale.set_base_language('es')
+      assert_equal loc_es.language, Locale.base_language
+    end
+
+    assert_nothing_raised do
+      Locale.set_base_language(loc_en_US.language)
+      assert_equal loc_en_US.language, Locale.base_language
+    end
+
   end
 end

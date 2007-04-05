@@ -55,7 +55,7 @@ twi:
 spanish:
   id: 7
   tag: es
-  primary_subtag: spa
+  primary_subtag: es
   english_name: Spanish
   native_name: Español
   direction: ltr
