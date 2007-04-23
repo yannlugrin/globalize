@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/test_helper'
 class ValidationTest < Test::Unit::TestCase
   include Globalize
 
-  fixtures :globalize_languages, :globalize_countries, 
+  fixtures :globalize_languages, :globalize_countries,
     :globalize_translations, :globalize_products
 
   class Product < ActiveRecord::Base
@@ -14,7 +14,7 @@ class ValidationTest < Test::Unit::TestCase
   end
 
   def setup
-    Globalize::Locale.set("he-IL")
+    Globalize::Locale.set('he','IL')
   end
 
   def test_max_validation
@@ -24,6 +24,6 @@ class ValidationTest < Test::Unit::TestCase
 
     prod = Product.find(3)
     assert !prod.valid?
-    assert_equal "Name is too short (minimum is 5 characters)", prod.errors.full_messages.first 
+    assert_equal "Name is too short (minimum is 5 characters)", prod.errors.full_messages.first
   end
 end

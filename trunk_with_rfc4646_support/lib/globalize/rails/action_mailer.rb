@@ -5,7 +5,7 @@ module ActionMailer # :nodoc:
   # for different locales. For example, for English it will select the template:
   #   signup_notification.en-US.text.html.rhtml
   #
-  # It will look for the currently active locale code (en-US) first, 
+  # It will look for the currently active locale code (en-US) first,
   # then the language code (en).
   #
   # If neither of those are found, it will use the regular name:
@@ -24,7 +24,7 @@ module ActionMailer # :nodoc:
     def create!(method_name, *parameters) #:nodoc:
       initialize_defaults(method_name)
       send(method_name, *parameters)
-      
+
       # If an explicit, textual body has not been set, we check assumptions.
       unless String === @body
         # First, we look to see if there are any likely templates that match,
@@ -39,7 +39,7 @@ module ActionMailer # :nodoc:
             @parts = sort_parts(@parts, @implicit_parts_order)
           end
         end
-        
+
         # Then, if there were such templates, we check to see if we ought to
         # also render a "normal" template (without the content type). If a
         # normal template exists (or if there were no implicit parts) we render
@@ -66,29 +66,32 @@ module ActionMailer # :nodoc:
 
     private
       def append_localized_parts
+        valid_mime_types = %w(application audio example image message model multipart text video)
         codes = locale_codes
         codes.each do |code|
           if code
             templates = Dir.glob("#{template_path}/#{@template}.#{code}.*")
           else
+            #debugger
             templates = Dir.glob("#{template_path}/#{@template}.*")
           end
           templates.each do |path|
             sections = File.basename(path).split(".")[0..-2] || []
 
+            #Globalize::Locale.possible_code?
             # skip if this is some other language
-            next if !code && Globalize::RFC_3066.valid?(sections[1])
+            next if !code && ((sections.size >= 3) && (!valid_mime_types.include?(sections[1])) || (sections.size == 2))
 
             # skip either template name and locale, or just template name
             type_sections = code ? sections[2..-1] : sections[1..-1]
             type = type_sections.join("/")
-            
+
             next if type.empty?
             @parts << Part.new(:content_type => type,
               :disposition => "inline", :charset => charset,
               :body => render_message(sections.join('.'), @body))
           end
-          
+
 
           # if we found templates at this stage, no need to continue to defaults
           break if !templates.empty?
@@ -96,17 +99,18 @@ module ActionMailer # :nodoc:
       end
 
       def render_localized_normal_template
-        template_exists = @parts.empty?
+        #template_exists = @parts.empty?
+        template_exists = false
         codes = locale_codes
         codes.each do |code|
           localized_name = @template
           if !template_exists
-            if code 
+            if code
               localized_name = [ @template, code ].join(".")
-              template_exists ||= 
+              template_exists ||=
                 Dir.glob("#{template_path}/#{localized_name}.*").any? { |i| i.split(".").length == 3 }
             else
-              template_exists ||= 
+              template_exists ||=
                 Dir.glob("#{template_path}/#{@template}.*").any? { |i| i.split(".").length == 2 }
             end
           end
@@ -117,8 +121,8 @@ module ActionMailer # :nodoc:
 
       def locale_codes
         loc = Globalize::Locale.active
-        lang = Globalize::Locale.language
-        codes = [ loc, lang ].compact.map {|o| o.code }.uniq
+        codes = Globalize::Locale.active.possible_codes(true) if loc
+        codes ||= []
         codes << nil # look for default path, with no localization
       end
   end

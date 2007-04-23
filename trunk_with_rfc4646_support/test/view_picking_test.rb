@@ -8,7 +8,7 @@ class ViewPickingTest < Test::Unit::TestCase
   end
 
   def setup
-    Locale.set("en-US")
+    Locale.set('en','US')
     @base_path = File.dirname(__FILE__) + '/views'
   end
 
@@ -16,7 +16,7 @@ class ViewPickingTest < Test::Unit::TestCase
     tc = TestController.new([@base_path])
     assert_match /English/, tc.render("test")
     assert_no_match /Hebrew/, tc.render("test")
-    Locale.set("he-IL")
+    Locale.set('he','IL')
     assert_match /Hebrew/, tc.render("test")
     assert_no_match /English/, tc.render("test")
   end
@@ -31,7 +31,7 @@ class ViewPickingTest < Test::Unit::TestCase
     tc = TestController.new([@base_path])
     assert_match /English/, tc.render("test")
     assert_no_match /Hebrew/, tc.render("test")
-    Locale.set("he-IL")
+    Locale.set('he','IL')
     assert_match /Hebrew/, tc.render("test")
     assert_no_match /English/, tc.render("test")
   end
@@ -40,6 +40,13 @@ class ViewPickingTest < Test::Unit::TestCase
     Locale.set(nil)
     tc = TestController.new([@base_path])
     assert_match /English/, tc.render_file("#{@base_path}/test.rhtml", false)
+  end
+
+  def test_fallbacks
+    tc = TestController.new([@base_path])
+    Locale.set('de','US', [['he','IL']])
+    assert_match /Hebrew/, tc.render("test")
+    assert_no_match /English/, tc.render("test")
   end
 
 end

@@ -5,7 +5,7 @@ class DateHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::DateHelper
 
   def setup
-    Globalize::Locale.set 'en'
+    Globalize::Locale.set('en','US')
   end
 
   def test_distance_in_words
@@ -55,7 +55,7 @@ class DateHelperTest < Test::Unit::TestCase
 
   def test_distance_in_words_he
     from = Time.mktime(2004, 3, 6, 21, 41, 18)
-    Globalize::Locale.set 'he'
+    Globalize::Locale.set('he','IL')
 
     assert_equal "5 דקות", distance_of_time_in_words(from, Time.mktime(2004, 3, 6, 21, 46, 25))
     assert_equal "כשעה", distance_of_time_in_words(from, Time.mktime(2004, 3, 6, 22, 47, 25))
@@ -142,7 +142,7 @@ class DateHelperTest < Test::Unit::TestCase
   end
 
   def test_select_month_he
-    Globalize::Locale.set 'he'
+    Globalize::Locale.set('he','IL')
     expected = %(<select id="date_month" name="date[month]">\n)
     expected << %(<option value="1">ינואר</option>\n<option value="2">פברואר</option>\n<option value="3">מרץ</option>\n<option value="4">אפריל</option>\n<option value="5">מאי</option>\n<option value="6">יוני</option>\n<option value="7">יולי</option>\n<option value="8" selected="selected">אוגוסט</option>\n<option value="9">ספטמבר</option>\n<option value="10">אוקטובר</option>\n<option value="11">נובמבר</option>\n<option value="12">דצמבר</option>\n)
     expected << "</select>\n"

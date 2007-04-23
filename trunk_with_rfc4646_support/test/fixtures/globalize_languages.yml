@@ -61,7 +61,7 @@ spanish:
   direction: ltr
   pluralization: 'c == 1 ? 1 : 2'
 
-english_american:
+american_english:
   id: 8
   tag: en-US
   primary_subtag: en
@@ -70,7 +70,7 @@ english_american:
   direction: ltr
   pluralization: 'c == 1 ? 1 : 2'
 
-british_american:
+british_english:
   id: 9
   tag: en-GB
   primary_subtag: en
@@ -215,5 +215,31 @@ azerb:
   primary_subtag: az
   english_name: Azerbaijani with Arabic script and private use tag
   native_name: azərbaycan
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+german:
+  id: 27
+  tag: de
+  primary_subtag: de
+  english_name: German
+  native_name: Deutsch
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+
+australian_english:
+  id: 28
+  tag: en-AU
+  primary_subtag: en
+  english_name: English (Australia)
+  native_name: English
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+
+new_zealand_english:
+  id: 29
+  tag: en-NZ
+  primary_subtag: en
+  english_name: English (New Zealand)
+  native_name: English
   direction: ltr
   pluralization: 'c == 1 ? 1 : 2'

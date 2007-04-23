@@ -6,19 +6,19 @@ class ViewTranslationTest < Test::Unit::TestCase
   fixtures :globalize_languages, :globalize_countries, :globalize_translations
 
   def setup
-    Globalize::Locale.set("en-US")
-    Globalize::Locale.set_base_language("en-US")
+    Globalize::Locale.set("en","US")
+    Globalize::Locale.set_base_language("en")
   end
 
   def test_translate
     assert_equal "This is the default", "This is the default".t
-    Locale.set("he-IL")
+    Locale.set("he","IL")
     assert_equal "This is the default", "This is the default".t
     assert_equal "ועכשיו בעברית", "And now in Hebrew".t
   end
 
   def test_plural
-    Locale.set("pl-PL")
+    Locale.set("pl","PL")
     assert_equal "1 plik", "%d file" / 1
     assert_equal "2 pliki", "%d file" / 2
     assert_equal "3 pliki", "%d file" / 3
@@ -38,7 +38,7 @@ class ViewTranslationTest < Test::Unit::TestCase
   end
 
   def test_aliases
-    Locale.set("he-IL")
+    Locale.set("he","IL")
     assert_equal "ועכשיו בעברית", "And now in Hebrew".translate
     assert_equal "ועכשיו בעברית", _("And now in Hebrew")
   end
@@ -48,7 +48,7 @@ class ViewTranslationTest < Test::Unit::TestCase
     Locale.set_translation("a dark and stormy night", "quite a dark and stormy night")
     assert_equal "quite a dark and stormy night", "a dark and stormy night".t
 
-    Locale.set("he-IL")
+    Locale.set("he","IL")
     assert_equal "a dark and stormy night", "a dark and stormy night".t
     Locale.set_translation("a dark and stormy night", "ליל קודר וגועש")
     assert_equal "ליל קודר וגועש", "a dark and stormy night".t
@@ -56,9 +56,9 @@ class ViewTranslationTest < Test::Unit::TestCase
 
     Locale.set_translation("a dark and stormy night", polish, "How do you say this in Polish?")
 
-    Locale.set("en-US")
+    Locale.set("en","US")
     assert_equal "quite a dark and stormy night", "a dark and stormy night".t
-    Locale.set("pl-PL")
+    Locale.set("pl","PL")
     assert_equal "How do you say this in Polish?", "a dark and stormy night".t
   end
 
@@ -68,18 +68,18 @@ class ViewTranslationTest < Test::Unit::TestCase
     assert_equal "quite a dark and stormy night", "%d dark and stormy nights".t
     assert_equal "5 dark and stormy nights", "%d dark and stormy nights" / 5
 
-    Locale.set("he-IL")
+    Locale.set("he","IL")
     Locale.set_translation("%d dark and stormy nights",
       [ "ליל קודר וגועש", "%d לילות קודרים וגועשים" ])
     assert_equal "ליל קודר וגועש", "%d dark and stormy nights".t
     assert_equal "7 לילות קודרים וגועשים", "%d dark and stormy nights" / 7
 
-    Locale.set("en-US")
+    Locale.set("en","US")
     assert_equal "quite a dark and stormy night", "%d dark and stormy nights".t
   end
 
   def test_missed_report
-    Locale.set("he-IL")
+    Locale.set("he","IL")
     assert_nil ViewTranslation.find(:first,
       :conditions => %q{language_id = 2 AND tr_key = 'not in database'})
     assert_equal "not in database", "not in database".t
@@ -91,34 +91,26 @@ class ViewTranslationTest < Test::Unit::TestCase
 
   # for when language doesn't have a translation
   def test_default_number_substitution
-    Locale.set("pl-PL")
+    Locale.set("pl","PL")
     assert_equal "There are 0 translations for this",
       "There are %d translations for this" / 0
   end
 
   # for when language only has one pluralization form for translation
   def test_default_number_substitution2
-    Locale.set("he-IL")
+    Locale.set("he","IL")
     assert_equal "יש לי 5 קבצים", "I have %d files" / 5
   end
 
   def test_symbol
-    Locale.set("he-IL")
+    Locale.set("he","IL")
     assert_equal "ועכשיו בעברית", :And_now_in_Hebrew.t
     assert_equal "this is the default", :bogus_translation.t("this is the default")
   end
 
   def test_syntax_error
-    Locale.set("ur")
+    Locale.set('ur','US')
     assert_raise(SyntaxError) { "I have %d bogus numbers" / 5 }
-  end
-
-  def test_illegal_code
-    assert_raise(SecurityError) { Locale.set("ba") }
-  end
-
-  def test_overflow_code
-    assert_raise(SecurityError) { Locale.set("tw") }
   end
 
   def test_string_substitute
@@ -142,7 +134,7 @@ class ViewTranslationTest < Test::Unit::TestCase
   end
 
   def test_string_substitute_he
-    Locale.set("he-IL")
+    Locale.set("he","IL")
     assert_equal "ברוכים הבאים, יהושע", "welcome, %s" / "יהושע"
   end
 
@@ -152,7 +144,7 @@ class ViewTranslationTest < Test::Unit::TestCase
   end
 
   def test_cache
-    Locale.set("he-IL")
+    Locale.set("he","IL")
     tr = Locale.translator
     tr.cache_reset
     assert_equal 0, tr.cache_size

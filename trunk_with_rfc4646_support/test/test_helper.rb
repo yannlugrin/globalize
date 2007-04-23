@@ -27,6 +27,13 @@ def assert_stderr_equal(string, msg = nil, &block)
   end
 end
 
+def assert_stderr_includes(string, msg = nil, &block)
+  assert_stderr do |std_err_output|
+    block.call
+    assert std_err_output.include?(string), msg
+  end
+end
+
 def assert_stderr_empty(msg = nil, &block)
   assert_stderr do |std_err_output|
     block.call

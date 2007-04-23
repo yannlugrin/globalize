@@ -23,7 +23,7 @@ ActiveRecord::Base.logger = Logger.new(plugin_path + "/test/log/test.log")
 ActiveRecord::Base.establish_connection(config['test'])
 
 mig_file = plugin_path + "/test/db/migrate/001_globalize_migration.rb"
-gzipped_file = plugin_path + "/generators/globalize/templates/tiny_migration.rb.gz"
+gzipped_file = plugin_path + "/generators/globalize/templates/migration.rb.gz"
 inflate_schema(gzipped_file, mig_file)
 
 ActiveRecord::Migrator.migrate(plugin_path + "/test/db/migrate/", nil)

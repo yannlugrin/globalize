@@ -5,7 +5,7 @@ class CurrencyTest < Test::Unit::TestCase
   fixtures :globalize_languages, :globalize_countries, :globalize_translations
 
   def setup
-    Locale.set("en-US")
+    Locale.set('en','US')
   end
 
   def test_creation
@@ -46,7 +46,7 @@ class CurrencyTest < Test::Unit::TestCase
     assert m2 == m3
     assert_equal -1, m1 <=> m2
     assert_equal 0, m2 <=> m3
-    
+
     mn = Currency.new(nil)
     mn2 = Currency.new(nil)
     assert_equal mn, mn2
@@ -92,14 +92,14 @@ class CurrencyTest < Test::Unit::TestCase
 
   def test_parse2
     m1 = Currency.parse("$134.5483726")
-    assert_equal 13454, m1.cents  
+    assert_equal 13454, m1.cents
   end
 
   def test_parse2
     m1 = Currency.parse('54')
-    assert_equal 5400, m1.cents  
+    assert_equal 5400, m1.cents
   end
-  
+
   def test_format
     m1 = Currency.new(1234567)
     assert_equal "12,345.67", m1.amount
@@ -108,12 +108,12 @@ class CurrencyTest < Test::Unit::TestCase
     assert_nil mn.amount
     assert_equal "call for price", mn.format
 
-    Locale.set("he-IL")
+    Locale.set('he','IL')
     assert_equal "12,345.67 ₪", m1.format
     assert_equal "12,345.67 ILS", m1.format(:code => true)
     assert_equal "12,345.67 USD", m1.format(:code => true, :country => Country.pick("US"))
 
-    Locale.set("de-CH")
+    Locale.set('de','CH')
     assert_equal "SFr. 12'345.67", m1.format
     assert_equal "12'345.67 CHF", m1.format(:code => true)
     assert_equal "12'345.67 USD", m1.format(:code => true, :country => Country.pick("US"))

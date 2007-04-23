@@ -2,45 +2,47 @@
 module ActionView # :nodoc: all
   class Base
     alias_method :globalize_old_render_file, :render_file
-    
+
     # Name of file extensions which are handled internally in rails. Other types
     # like liquid has to register through register_handler.
     @@re_extension = /\.(rjs|rhtml|rxml)$/
-    
+
     @@globalize_path_cache = {}
 
     def render_file(template_path, use_full_path = true, local_assigns = {})
       @first_render ||= template_path
-      
+
       if Globalize::Locale.active?
         localized_path = locate_globalize_path(template_path, use_full_path)
         # don't use_full_path -- we've already expanded the path
         globalize_old_render_file(localized_path, false, local_assigns)
-      else 
+      else
         globalize_old_render_file(template_path, use_full_path, local_assigns)
       end
     end
-    
+
     private
-    
+
       # Override because the original version is too minimalist
       def path_and_extension(template_path) #:nodoc:
         template_path_without_extension = template_path.sub(@@re_extension, '')
         [ template_path_without_extension, $1 ]
       end
-      
-      def locate_globalize_path(template_path, use_full_path)
-      
-        active_locale = Globalize::Locale.active
-        locale_code = active_locale.code
 
-        cache_key = "#{locale_code}:#{template_path}"
-        cached = @@globalize_path_cache[cache_key]
-        return cached if cached
+      def locate_globalize_path(template_path, use_full_path)
+
+        locale_codes = Globalize::Locale.active.possible_codes(true)
+
+        cache_key = nil
+        locale_codes.each do |code|
+          cache_key = "#{code}:#{template_path}"
+          cached = @@globalize_path_cache[cache_key]
+          return cached if cached
+        end
 
         if use_full_path
           template_path_without_extension, template_extension = path_and_extension(template_path)
-          
+
           if template_extension
             template_file_name = full_template_path(template_path_without_extension, template_extension)
           else
@@ -55,25 +57,17 @@ module ActionView # :nodoc: all
         pn = Pathname.new(template_file_name)
         dir, filename = pn.dirname, pn.basename('.' + template_extension)
 
-        # first try "en-US" style
-        localized_path = dir + 
-          (filename.to_s + '.' + locale_code + '.' + template_extension)
+        localized_path = nil
+        locale_codes.each do |code|
+          cache_key = "#{code}:#{template_path}"
 
-        catch :found do
-          throw :found if localized_path.exist?
-
-          # then try "en" style
-          if active_language = Globalize::Locale.active.language 
-            localized_path = dir + 
-              (filename.to_s + '.' + active_language.code + 
-              '.' + template_extension)
-            throw :found if localized_path.exist?
-          end
-
-          # otherwise use default
-          localized_path = template_file_name
+          localized_path = dir +
+            (filename.to_s + '.' + code + '.' + template_extension)
+          localized_path = nil unless localized_path.exist?
+          break if localized_path && localized_path.exist?
         end
 
+        return template_file_name unless localized_path
         @@globalize_path_cache[cache_key] = localized_path.to_s
       end
 

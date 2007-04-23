@@ -69,6 +69,23 @@ module Globalize
       end
     end
 
+    def possible_codes(incl_fallbacks = false)
+      codes = [self.to_s, self.language.code, self.language.primary_subtag, self.country.code]
+      codes += self.fallbacks.collect {|f| f.possible_codes(false)} if incl_fallbacks && self.fallbacks
+      codes.compact.flatten.uniq
+    end
+
+    def to_s
+      "#{@language.code}_#{@country.code}"
+    end
+
+    def self.possible_code?(code)
+      lang, country = code.split('_')
+      return false if country && (country.size < 2 || country.size > 8)
+      return RFC_4646.parse(lang) rescue false
+    end
+
+
     # Is there an active locale?
     def self.active?; !@@active.nil? end
 
@@ -86,15 +103,15 @@ module Globalize
         case country_code
           when nil, ''
             $stderr.puts "Locale.set(locale) is deprecated! Use Locale.set(language_tag, country_code)."
-            $stdout.puts caller.inspect unless $stderr.kind_of?(StringIO)
+            #$stdout.puts caller.inspect unless $stderr.kind_of?(StringIO)
             locale_tag = locale_or_language_tag
-            @@active = ( @@cache[locale_tag] ||= Locale.new(locale_or_language_tag, nil, fallbacks) )
+            @@active = ( @@cache[cache_key(locale_tag, fallbacks)] ||= Locale.new(locale_or_language_tag, nil, fallbacks) )
           when Country
             locale_tag = "#{locale_or_language_tag}_#{country_code.code}"
-            @@active = ( @@cache[locale_tag] ||= Locale.new(locale_or_language_tag, country_code.code, fallbacks) )
+            @@active = ( @@cache[cache_key(locale_tag, fallbacks)] ||= Locale.new(locale_or_language_tag, country_code.code, fallbacks) )
           else
             locale_tag = "#{locale_or_language_tag}_#{country_code}"
-            @@active = ( @@cache[locale_tag] ||= Locale.new(locale_or_language_tag, country_code, fallbacks) )
+            @@active = ( @@cache[cache_key(locale_tag, fallbacks)] ||= Locale.new(locale_or_language_tag, country_code, fallbacks) )
         end
       end
     end
@@ -106,6 +123,11 @@ module Globalize
 
     # Returns the active locale.
     def self.active; @@active end
+
+    def self.cache_key(key, fallbacks)
+      key << fallbacks.flatten.join('_') if fallbacks && !fallbacks.empty?
+      key
+    end
 
     # Sets the base language. The base language is the language that has
     # complete coverage in the database. For instance, if you have a +Category+

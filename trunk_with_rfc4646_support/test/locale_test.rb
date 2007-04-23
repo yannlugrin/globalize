@@ -10,13 +10,13 @@ class LocaleTest < Test::Unit::TestCase
 
   def test_valid_locale_using_rfc_3066
     loc = nil
-    assert_stderr_equal "Locale.new(locale) is deprecated! Use Locale.new(language_tag, country_code).\n" do
+    assert_stderr_includes "Locale.new(locale) is deprecated! Use Locale.new(language_tag, country_code).\n" do
       loc = Locale.new('en-US')
     end
     assert_equal 'en', loc.language.code
     assert_equal 'US', loc.country.code
 
-    assert_stderr_equal "Locale.set(locale) is deprecated! Use Locale.set(language_tag, country_code).\n" do
+    assert_stderr_includes "Locale.set(locale) is deprecated! Use Locale.set(language_tag, country_code).\n" do
       loc = Locale.set('en-US')
     end
     assert_equal 'en', loc.language.code
@@ -49,6 +49,24 @@ class LocaleTest < Test::Unit::TestCase
     assert_equal 'es',      loc.rfc.tag
     assert_equal 'es',      loc.rfc.primary
     assert_nil              loc.rfc.region
+  end
+
+  def test_set_nil_locale
+
+    assert_nothing_raised do
+      Locale.set(nil)
+    end
+    assert !Locale.active?
+
+    assert_nothing_raised do
+      Locale.set(nil,nil)
+    end
+    assert !Locale.active?
+
+    assert_nothing_raised do
+      Locale.set(nil,'US')
+    end
+    assert !Locale.active?
   end
 
   def test_set_simple_current_locale
@@ -89,12 +107,11 @@ class LocaleTest < Test::Unit::TestCase
     assert_raises(ArgumentError) do
       std_err_msg = "Locale.set(locale) is deprecated! Use Locale.set(language_tag, country_code).\n"
 
-      Locale.set(nil)
-
       assert_stderr_equal std_err_msg do
         Locale.set('')
       end
 
+      #TODO: Do we allow language only locales?
       assert_stderr_equal std_err_msg do
         Locale.set('en') #invalid rfc_3066/valid rfc_4646 language tag
       end
@@ -120,9 +137,6 @@ class LocaleTest < Test::Unit::TestCase
       end
 
       assert_stderr_empty do
-        Locale.set(nil)
-        Locale.set(nil,nil)
-        Locale.set(nil,'US')
         Locale.set('e','US')
         Locale.set('languages','US')
         Locale.set('i-aim','US')
@@ -365,7 +379,7 @@ class LocaleTest < Test::Unit::TestCase
       flbck_err_msg = "Fallbacks can only be defined using the Locale.set(language_tag, country_code) syntax.\n"
       loc_en = nil
 
-      assert_stderr_equal std_err_msg do
+      assert_stderr_includes std_err_msg do
         loc_en = Locale.set('en-US', nil, [['en-GB'],['en-AU']])
         assert                  Locale.active?
         assert_equal loc_en,    Locale.active
@@ -417,7 +431,7 @@ class LocaleTest < Test::Unit::TestCase
     assert_equal 'ES', Locale.country.code
 
     std_err_msg = "Locale.set(locale) is deprecated! Use Locale.set(language_tag, country_code).\n"
-    assert_stderr_equal std_err_msg do
+    assert_stderr_includes std_err_msg do
       Locale.switch_locale('es-US') do
         assert Locale.active?
         assert_equal loc_es_US, Locale.active
@@ -719,5 +733,17 @@ class LocaleTest < Test::Unit::TestCase
       assert_equal loc_en_US.language, Locale.base_language
     end
 
+  end
+
+  def test_possible_codes
+    loc = Locale.set('es','ES', [['es','AR'],['es','MX']])
+    assert_equal ["es_ES", "es", "ES"], loc.possible_codes(false)
+    assert_equal ["es_ES", "es", "ES", "es_AR", "AR", "es_MX", "MX"], loc.possible_codes(true)
+
+    possible_codes = ["en-GB_GB", "en-GB","en","GB"]
+    possible_fallbacks = ["en-US_GB","en-US","en-AU_GB","en-AU","en-NZ_GB","en-NZ"]
+    loc = Locale.set('en-GB','GB', [['en-US','GB'], ['en-AU','GB'],['en-NZ','GB']])
+    assert_equal possible_codes, loc.possible_codes(false)
+    assert_equal possible_codes + possible_fallbacks, loc.possible_codes(true)
   end
 end

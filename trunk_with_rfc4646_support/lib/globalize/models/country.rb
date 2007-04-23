@@ -12,7 +12,7 @@ module Globalize
         country = find_by_code(tag)
       elsif rfc.kind_of?(RFC_3066)
         tag = rfc.country
-        country = rfc.country ? find_by_code(tag) : nil
+        country = tag ? find_by_code(tag) : nil
       else
         raise ArgumentError, "argument must be String or RFC_3066 object (WARNING!: The use of RFC_3066 is deprecated)"
       end
