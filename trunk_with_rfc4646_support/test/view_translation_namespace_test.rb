@@ -103,4 +103,37 @@ class ViewTranslationNamespaceTest < Test::Unit::TestCase
     assert_equal "No lo tocas.", "Play this %d times.".tn(:music,0)
   end
 
+  def test_set_translation_with_namespace_and_fallbacks
+    Locale.clear_cache
+    Locale.set('en','US')
+    assert_equal 'book', 'book'.t
+
+    Locale.set_translation('book', 'tome')
+    assert_equal 'tome', 'book'.t
+    assert_equal 'book', 'book' >> 'verbs'
+
+    Locale.set_translation_with_namespace('book', 'verbs', 'reserve')
+    assert_equal 'reserve', 'book' >> 'verbs'
+
+    Locale.set('es','ES')
+    assert_equal 'book', 'book'.t
+    Locale.set_translation('book', 'libro')
+    assert_equal 'libro', 'book'.t
+
+    Locale.set_translation_with_namespace('book', 'verbs', 'reservar')
+    assert_equal 'reservar', 'book' >> 'verbs'
+
+    Locale.set('es-MX','MX')
+    assert_equal 'libro', 'book'.t
+    assert_equal 'reservar', 'book' >> 'verbs'
+
+    Locale.set('de','CH',[['es','ES'],['en','US']])
+    assert_equal 'libro', 'book'.t
+    assert_equal 'reservar', 'book' >> 'verbs'
+
+    Locale.set('de','CH',[['en','US'], ['es','ES']])
+    assert_equal 'tome', 'book'.t
+    assert_equal 'reserve', 'book' >> 'verbs'
+  end
+
 end
