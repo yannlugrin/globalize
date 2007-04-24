@@ -8,7 +8,19 @@ module Globalize # :nodoc:
 
     attr_reader :cache_size, :cache_total_hits, :cache_total_queries
 
-    def fetch(key, language, default = nil, arg = nil, namespace = nil) # :nodoc:
+    def fetch(key, locale_or_language, default = nil, arg = nil, namespace = nil) # :nodoc:
+
+      fallbacks = nil
+      primary_subtag = nil
+
+      case locale_or_language
+        when Locale
+          fallbacks = locale_or_language.fallbacks
+          primary_subtag = locale_or_language.language.primary_subtag
+          language = locale_or_language.language
+        else
+          language = locale_or_language
+      end
 
       # use argument as pluralization number, if number
       num = arg.kind_of?(Numeric) ? arg : nil
@@ -16,7 +28,8 @@ module Globalize # :nodoc:
       # if there's no translation, use default or original key
       real_default = default || key
 
-      result = fetch_from_cache(key, language, real_default, num, namespace)
+      result = fetch_from_cache(key, language, real_default, num,
+                                namespace, primary_subtag, fallbacks)
 
       if num
         return result.sub('%d', num.to_s)
@@ -127,11 +140,12 @@ module Globalize # :nodoc:
         @max_cache_size = 8192
       end
 
-      def fetch_from_cache(key, language, real_default, num, namespace = nil)
+      def fetch_from_cache(key, language, real_default, num,
+                           namespace = nil, primary_subtag = nil, fallbacks = nil)
         return real_default if language.nil?
 
         zero_form   = num == 0
-        plural_idx  = language.plural_index(num)        # language-defined plural form
+        plural_idx  = language.plural_index(num) # language-defined plural form
         zplural_idx = zero_form ? 0 : plural_idx # takes zero-form into account
 
         cached = cache_fetch(key, language, zplural_idx, namespace)
@@ -142,6 +156,21 @@ module Globalize # :nodoc:
 
           # set to plural_form if no zero-form exists
           result ||= fetch_view_translation(key, language, plural_idx, namespace) if zero_form
+
+          unless result
+            languages = []
+            languages = fallbacks.collect {|f| f.language } if fallbacks
+            languages += [Language.pick(primary_subtag)] if primary_subtag && language.code != primary_subtag
+            languages = languages.flatten.uniq.compact
+
+            unless languages.empty?
+              languages.each do |lang|
+                language = lang
+                result = fetch_from_cache(key, language, real_default, num, namespace)
+                break if result && result != real_default
+              end
+            end
+          end
 
           cache_add(key, language, zplural_idx, result, namespace)
         end

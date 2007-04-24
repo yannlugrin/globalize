@@ -35,7 +35,7 @@ module ActionView
           when 1440..2879      then '%d days' / 1
           when 2880..43199     then 'about %d days' / (distance_in_minutes.to_f / 1440.0).round
           when 43200..86399    then 'about %d months' / 1
-          when 86400..525959   then 'about %d months' / (distance_in_minutes.to_f / 432.0).round
+          when 86400..525959   then 'about %d months' / (distance_in_minutes.to_f / 43200.0).round
           when 525960..1051919 then 'about %d years' / 1
           else                      'over %d years' / (distance_in_minutes.to_f / 525960.0).round
         end

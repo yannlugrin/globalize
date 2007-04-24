@@ -226,4 +226,52 @@ class ViewTranslationTest < Test::Unit::TestCase
     # phew!
   end
 
+  def test_set_translation_with_fallbacks
+    assert_equal "english", "english".t
+    Locale.set_translation("english", "english translated")
+    assert_equal "english translated", "english".t
+
+    Locale.set('es-AR','AR')
+    assert_equal "english", "english".t
+    Locale.set_translation("english", "ingles traducido al castellano de argentina")
+    assert_equal "ingles traducido al castellano de argentina", "english".t
+
+    Locale.set('es','ES')
+    Locale.set_translation("english", "ingles traducido al castellano de españa")
+
+    Locale.set('es-419','ES')
+    Locale.set_translation("english", "ingles traducido al castellano generico de sur america")
+
+    Locale.set("en","US")
+    assert_equal "english translated", "english".t
+
+    #test primary subtag fallback with no fallbacks
+    Locale.set("es-MX","MX")
+    assert_equal "ingles traducido al castellano de españa", "english".t
+
+    #test with matching fallbacks
+    Locale.set("es-MX","MX", [['es','ES'],['es-AR','AR'],['es-419','MX']])
+    assert_equal "ingles traducido al castellano de españa", "english".t
+
+    Locale.set("es-MX","MX", [['es-AR','AR'],['es','ES'],['es-419','MX']])
+    assert_equal "ingles traducido al castellano de argentina", "english".t
+
+    Locale.set("es-MX","MX", [['es-419','MX'],['es-AR','AR'],['es','ES']])
+    assert_equal "ingles traducido al castellano generico de sur america", "english".t
+
+    Locale.set("es-MX","MX", [['en','ES'],['es-AR','AR'],['es','ES']])
+    assert_equal "english translated", "english".t
+
+    Locale.set("es-MX","MX", [['de','CH'],['es-AR','AR'],['es','ES']])
+    assert_equal "ingles traducido al castellano de argentina", "english".t
+
+    #test primary subtag fallback with no matching fallbacks
+    Locale.set("es-MX","MX", [['de','CH'],['zh','CN']])
+    assert_equal "ingles traducido al castellano de españa", "english".t
+
+    #test no matching fallbacks
+    Locale.set("de","CH", [['he','IL'],['zh','CN']])
+    assert_equal "english", "english".t
+  end
+
 end

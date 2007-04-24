@@ -178,6 +178,11 @@ module Globalize
       active? ? active.country : nil
     end
 
+    # Returns the currently active fallbacks or +nil+.
+    def self.fallbacks
+      active? ? active.fallbacks : nil
+    end
+
     # Allows you to switch the current locale while within the block.
     # The previously current locale is restored after the block is finished.
     #
@@ -301,7 +306,9 @@ module Globalize
     def self.translate(key, default = nil, arg = nil, namespace = nil) # :nodoc:
       key = key.to_s.gsub('_', ' ') if key.kind_of? Symbol
 
-      translator.fetch(key, self.language, default, arg, namespace)
+      # locale_or_language = self.language unless self.fallbacks
+      # locale_or_language ||= self if (self.fallbacks && !self.fallbacks.empty?)
+      translator.fetch(key, self.active, default, arg, namespace)
     end
 
     # Returns the translator object -- mostly for testing and adjusting the cache.
