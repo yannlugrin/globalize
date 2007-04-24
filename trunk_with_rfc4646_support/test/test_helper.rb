@@ -8,7 +8,9 @@ plugin_path = RAILS_ROOT + "/vendor/plugins/globalize"
 config_location = RAILS_ROOT + "/config/database.yml"
 
 config = YAML::load(ERB.new(IO.read(config_location)).result)
-ActiveRecord::Base.logger = Logger.new(plugin_path + "/test/log/test.log")
+log_file = plugin_path + "/test/log/test.log"
+FileUtils.touch(log_file) unless File.exist?(log_file)
+ActiveRecord::Base.logger = Logger.new(log_file)
 ActiveRecord::Base.establish_connection(config['test'])
 
 schema_file = plugin_path + "/test/db/schema.rb"

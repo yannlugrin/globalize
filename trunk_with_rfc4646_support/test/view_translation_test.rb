@@ -274,4 +274,98 @@ class ViewTranslationTest < Test::Unit::TestCase
     assert_equal "english", "english".t
   end
 
+  def test_zero_form_with_fallbacks
+    Locale.set_translation("%d items in your cart",
+      [ "One item in your cart", "%d items in your cart" ], "Your cart is empty")
+    assert_equal "8 items in your cart", "%d items in your cart" / 8
+    assert_equal "One item in your cart", "%d items in your cart" / 1
+    assert_equal "Your cart is empty", "%d items in your cart" / 0
+
+    Locale.set("es","ES")
+    Locale.set_translation("%d items in your cart",
+      [ "Un artículo en tu carrito", "%d articulos en tu carrito" ], "Tu carrito está vacio")
+    assert_equal "8 articulos en tu carrito", "%d items in your cart" / 8
+    assert_equal "Un artículo en tu carrito", "%d items in your cart" / 1
+    assert_equal "Tu carrito está vacio", "%d items in your cart" / 0
+
+    Locale.set("de","CH")
+    assert_equal "8 items in your cart", "%d items in your cart" / 8
+    assert_equal "1 items in your cart", "%d items in your cart" / 1
+    assert_equal "0 items in your cart", "%d items in your cart" / 0
+
+    Locale.set("de","CH", [['es','ES'],['zh','CN']])
+    assert_equal "8 articulos en tu carrito", "%d items in your cart" / 8
+    assert_equal "Un artículo en tu carrito", "%d items in your cart" / 1
+    assert_equal "Tu carrito está vacio", "%d items in your cart" / 0
+
+    Locale.set("es-MX","MX", [['es','ES'],['zh','CN']])
+    assert_equal "8 articulos en tu carrito", "%d items in your cart" / 8
+    assert_equal "Un artículo en tu carrito", "%d items in your cart" / 1
+    assert_equal "Tu carrito está vacio", "%d items in your cart" / 0
+  end
+
+  def test_zero_form_default_with_fallbacks
+    Locale.set_translation("%d items in your cart",
+      [ "One item in your cart", "%d items in your cart" ])
+    assert_equal "8 items in your cart", "%d items in your cart" / 8
+    assert_equal "One item in your cart", "%d items in your cart" / 1
+    assert_equal "0 items in your cart", "%d items in your cart" / 0
+
+    Locale.set("es","ES")
+    Locale.set_translation("%d items in your cart",
+      [ "Un artículo en tu carrito", "%d articulos en tu carrito" ])
+    assert_equal "8 articulos en tu carrito", "%d items in your cart" / 8
+    assert_equal "Un artículo en tu carrito", "%d items in your cart" / 1
+    assert_equal "0 articulos en tu carrito", "%d items in your cart" / 0
+
+    Locale.set("de","CH")
+    assert_equal "8 items in your cart", "%d items in your cart" / 8
+    assert_equal "1 items in your cart", "%d items in your cart" / 1
+    assert_equal "0 items in your cart", "%d items in your cart" / 0
+
+    Locale.set("de","CH", [['es','ES'],['zh','CN']])
+    assert_equal "8 articulos en tu carrito", "%d items in your cart" / 8
+    assert_equal "Un artículo en tu carrito", "%d items in your cart" / 1
+    assert_equal "0 articulos en tu carrito", "%d items in your cart" / 0
+
+    Locale.set("es-MX","MX", [['es','ES'],['zh','CN']])
+    assert_equal "8 articulos en tu carrito", "%d items in your cart" / 8
+    assert_equal "Un artículo en tu carrito", "%d items in your cart" / 1
+    assert_equal "0 articulos en tu carrito", "%d items in your cart" / 0
+  end
+
+  def test_string_substitute_with_fallbacks
+    Globalize::Locale.set("en-US","US")
+    Locale.set_translation("Bye, %s", 'See ya, %s')
+    assert_equal "See ya, Josh", "Bye, %s" / "Josh"
+
+    Globalize::Locale.set("en-GB","GB")
+    Locale.set_translation("Bye, %s", 'Cheerio, %s')
+    assert_equal "Cheerio, Josh", "Bye, %s" / "Josh"
+
+    Globalize::Locale.set("es","ES")
+    Locale.set_translation("Bye, %s", 'Adios, %s')
+    assert_equal "Adios, Josh", "Bye, %s" / "Josh"
+
+    Globalize::Locale.set("en","US")
+    assert_equal "Bye, Josh", "Bye, %s" / "Josh"
+
+    Locale.set_translation("Bye, %s", 'Good bye, %s')
+    assert_equal "Good bye, Josh", "Bye, %s" / "Josh"
+
+    Globalize::Locale.set("en-AU","AU")
+    assert_equal "Good bye, Josh", "Bye, %s" / "Josh"
+
+    Globalize::Locale.set("en-AU","AU",[['en-NZ','NZ'],['en-GB','GB'],['en-US','US']])
+    assert_equal "Cheerio, Josh", "Bye, %s" / "Josh"
+
+    Globalize::Locale.set("es-MX","MX",[['en-GB','GB'],['en-US','US']])
+    assert_equal "Cheerio, Josh", "Bye, %s" / "Josh"
+
+    Globalize::Locale.set("es-MX","MX",[['en-US','US'],['en-GB','GB']])
+    assert_equal "See ya, Josh", "Bye, %s" / "Josh"
+
+    Globalize::Locale.set("es-MX","MX")
+    assert_equal "Adios, Josh", "Bye, %s" / "Josh"
+  end
 end

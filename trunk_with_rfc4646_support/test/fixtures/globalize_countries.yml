@@ -106,3 +106,10 @@ australia:
   thousands_sep: "."
   decimal_sep: ','
   currency_decimal_sep: ','
+new_zealand:
+  id: 15
+  code: NZ
+  english_name: New Zealand
+  thousands_sep: "."
+  decimal_sep: ','
+  currency_decimal_sep: ','
