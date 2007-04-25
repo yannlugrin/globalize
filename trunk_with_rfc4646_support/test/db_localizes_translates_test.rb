@@ -513,10 +513,10 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     prod = Product.create!(:code => 'test-fallback',
                            :name => 'english name fallbacks',
                            :description => 'english desc fallbacks')
-    #assert_equal 'english name fallbacks', prod.name
-    #assert_equal 'english desc fallbacks', prod.description
-    #assert_equal 'english name fallbacks', prod.name_before_type_cast
-    #assert_equal 'english desc fallbacks', prod.description_before_type_cast
+    assert_equal 'english name fallbacks', prod.name
+    assert_equal 'english desc fallbacks', prod.description
+    assert_equal 'english name fallbacks', prod.name_before_type_cast
+    assert_equal 'english desc fallbacks', prod.description_before_type_cast
 
     Globalize::Locale.set('es','ES')
     assert_equal 'english name fallbacks', prod.name
@@ -535,6 +535,18 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     Globalize::Locale.set('es-MX','MX')
     assert_equal 'spanish name fallbacks', prod.name
     assert_equal 'spanish name fallbacks', prod.name_before_type_cast
+    assert_nil prod.description
+    assert_nil prod.description_before_type_cast
+
+    Globalize::Locale.set('es-MX','MX', [['es','ES'],['en','US']])
+    assert_equal 'spanish name fallbacks', prod.name
+    assert_equal 'spanish name fallbacks', prod.name_before_type_cast
+    assert_nil prod.description
+    assert_nil prod.description_before_type_cast
+
+    Globalize::Locale.set('es-MX','MX', [['en','US'],['es','ES']])
+    assert_equal 'english name fallbacks', prod.name
+    assert_equal 'english name fallbacks', prod.name_before_type_cast
     assert_nil prod.description
     assert_nil prod.description_before_type_cast
   end
