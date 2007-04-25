@@ -412,15 +412,14 @@ module Globalize # :nodoc:
 
             #Is field translated?
             #Returns true if translated
-            #Warning! Depends on Locale.switch_locale
-            def translated?(facet, locale_code = nil)
+            def translated?(facet, language_code = nil)
               localized_method = "\#{facet}_\#{Locale.language.code}"
 
-              Locale.switch_locale(locale_code) do
+              Locale.switch_language(language_code) do
                 localized_method = "\#{facet}_\#{Locale.language.code}"
-              end if locale_code
+              end if language_code
 
-              value = send(localized_method.to_sym) if respond_to?(localized_method.to_sym)
+              value = read_attribute(localized_method.to_sym) if respond_to?(localized_method.to_sym)
               return !value.nil?
             end
 
@@ -429,19 +428,45 @@ module Globalize # :nodoc:
 
           facets.each do |facet|
             bidi = (!(options[facet] && !options[facet][:bidi_embed])).to_s
+            fallback = (options[facet] && options[facet].key?(:fallback)) ?
+                         options[facet][:fallback] :
+                         options[:fallback]
+            base_as_default = (options[facet] && options[facet].key?(:base_as_default)) ?
+                         options[facet][:base_as_default] :
+                         options[:base_as_default]
             class_eval %{
 
               #Handle facet-specific options (.e.g a bidirectional setting)
               @@facet_options[:#{facet}] ||= {}
               @@facet_options[:#{facet}][:bidi] = #{bidi}
+              @@facet_options[:#{facet}][:fallback] = #{fallback}
+              @@facet_options[:#{facet}][:base_as_default] = #{base_as_default}
 
               #Accessor that proxies to the right accessor for the current locale
               def #{facet}
                 value = nil
                 unless Locale.base?
                   localized_method = "#{facet}_\#{Locale.language.code}"
-                  value = send(localized_method.to_sym) if respond_to?(localized_method.to_sym)
-                  value = value ? value : read_attribute(:#{facet}) if #{options[:base_as_default]}
+                  raise "Attribute: \#{localized_method} is undefined!" unless respond_to?(localized_method.to_sym)
+                  value = read_attribute(localized_method.to_sym)
+                  #debugger if 'description' == '#{facet}'
+                  unless value
+                    if @@facet_options[:#{facet}][:fallback]
+                      #If fallbacks are active then go through each fallback locale
+                      #and look for a translation
+                      Locale.active.possible_languages.each do |fallback|
+                        unless Locale.base_language.code == fallback.code
+                          localized_method = "#{facet}_\#{fallback.code}"
+                          value = read_attribute(localized_method.to_sym)
+                          break if value
+                        else
+                          value = read_attribute(:#{facet})
+                          break if value
+                        end
+                      end
+                    end
+                  end
+                  value = (value ? value : read_attribute(:#{facet})) if @@facet_options[:#{facet}][:base_as_default]
                 else
                   value = read_attribute(:#{facet})
                 end
@@ -452,9 +477,26 @@ module Globalize # :nodoc:
               def #{facet}_before_type_cast
                 unless Locale.base?
                   localized_method = "#{facet}_\#{Locale.language.code}_before_type_cast"
+                  raise "Method: \#{localized_method} is undefined!" unless respond_to?(localized_method.to_sym)
                   value = send(localized_method.to_sym) if respond_to?(localized_method.to_sym)
-                  value = value ? value : read_attribute_before_type_cast('#{facet}') if #{options[:base_as_default]}
-                  return value
+
+                  unless value
+                    if @@facet_options[:#{facet}][:fallback]
+                      #If fallbacks are active then go through each fallback locale
+                      #and look for a translation
+                      Locale.active.possible_languages.each do |fallback|
+                        unless Locale.base_language.code == fallback.code
+                          localized_method = "#{facet}_\#{fallback.code}_before_type_cast"
+                          value = send(localized_method.to_sym)
+                          break if value
+                        else
+                          value = read_attribute_before_type_cast('#{facet}')
+                          break if value
+                        end
+                      end
+                    end
+                  end
+                  value = value ? value : read_attribute_before_type_cast('#{facet}') if @@facet_options[:#{facet}][:base_as_default]
                 else
                   value = read_attribute_before_type_cast('#{facet}')
                 end

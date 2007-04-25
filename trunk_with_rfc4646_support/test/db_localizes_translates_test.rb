@@ -14,7 +14,9 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     has_and_belongs_to_many :categories, :join_table => "globalize_categories_products"
     belongs_to :manufacturer, :foreign_key => 'manufacturer_id'
 
-    translates :name, :description, :specs
+    translates :name, :description, :specs,
+               :name => {:fallback => true},
+               :description => {:fallback => false, :base_as_default => false}
   end
 
   class Category < ActiveRecord::Base
@@ -42,8 +44,8 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
   end
 
   def setup
-    Globalize::Locale.set_base_language("en-US")
-    Globalize::Locale.set("en-US")
+    Globalize::Locale.set_base_language('en')
+    Globalize::Locale.set('en','US')
   end
 
   def test_access_base_locale_column
@@ -52,7 +54,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     simp.save!
     assert_equal simp.name, simp._name
 
-    Globalize::Locale.set 'es-ES'
+    Globalize::Locale.set 'es','ES'
     simp.name = 'Primer'
     simp.save!
     assert_equal "First", simp._name
@@ -64,81 +66,76 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     assert_equal "Primer", simp.name
     assert_equal "Second", simp._name
 
-    Globalize::Locale.set 'en-US'
+    Globalize::Locale.set 'en','US'
     assert_equal simp.name, simp._name
   end
 
   def test_find_by_override
-    Globalize::Locale.set("en-US")
+    Globalize::Locale.set('en','US')
     first_product  = Product.find_by_name('first')
     fourth_product = Product.find_by_name('eff')
     second_product = Product.find_by_description('This is a description of the second product')
     assert_equal second_product, Product.find_by_specs('these are the specs for the second product')
 
 
-    Globalize::Locale.set("es-ES")
+    Globalize::Locale.set('es','ES')
     assert_equal first_product, Product.find_by_name('primer')
     assert_equal fourth_product, Product.find_by_name('effes')
     assert_equal second_product, Product.find_by_description('Esta es una descripcion del segundo producto')
     assert_equal second_product, Product.find_by_specs('estas son las especificaciones del segundo producto')
 
-    Globalize::Locale.set("he-IL")
+    Globalize::Locale.set('he','IL')
     assert_equal fourth_product, Product.find_by_name('סארט')
   end
 
   def test_base_as_default_false
-    prod = Product.create!(:code => 'test-base', :name => 'english test')
-    assert_equal 'english test', prod.name
+    prod = Product.create!(:code => 'test-base', :description => 'english test')
+    assert_equal 'english test', prod.description
 
-    Globalize::Locale.set("es-ES")
-    assert_nil prod.name
-    assert_nil prod.name_before_type_cast
+    Globalize::Locale.set('es','ES')
+    assert_nil prod.description
+    assert_nil prod.description_before_type_cast
 
-    prod.name = "spanish test"
+    prod.description = "spanish test"
     prod.save!
 
-    assert_equal 'spanish test', prod.name
-    assert_equal 'spanish test', prod.name_before_type_cast
+    assert_equal 'spanish test', prod.description
+    assert_equal 'spanish test', prod.description_before_type_cast
 
     # delete spanish version and test if it reverts to english base
-    prod.name = nil
+    prod.description = nil
     prod.save!
 
-    assert_nil prod.name
-    assert_nil prod.name_before_type_cast
+    assert_nil prod.description
+    assert_nil prod.description_before_type_cast
 
     assert !prod.translated?(:name)
-    assert prod.name_is_base?
+    assert prod.description_is_base?
 
     prod.save!
-    assert_nil prod.name
+    assert_nil prod.description
 
     #test access of base column
-    assert_equal 'english test', prod._name
-    assert_equal 'english test', prod._name_before_type_cast
+    assert_equal 'english test', prod._description
+    assert_equal 'english test', prod._description_before_type_cast
 
     # change base and see if spanish gets updated
-    Globalize::Locale.set("en-US")
-    prod.name = "english test two"
+    Globalize::Locale.set('en','US')
+    prod.description = "english test two"
     prod.save!
-    assert_equal "english test two", prod.name
-    assert_equal "english test two", prod.name_before_type_cast
-    Globalize::Locale.set("es-ES")
-    assert_nil prod.name
-    assert_nil prod.name_before_type_cast
+    assert_equal "english test two", prod.description
+    assert_equal "english test two", prod.description_before_type_cast
+    Globalize::Locale.set('es','ES')
+    assert_nil prod.description
+    assert_nil prod.description_before_type_cast
   end
 
   def test_base_as_default_true
 
-    Product.class_eval %{
-      self.keep_translations_in_model = true
-      translates :name, :description, :specs, :base_as_default => true
-    }
-
     prod = Product.create!(:code => 'test-base', :name => 'english test')
     assert_equal 'english test', prod.name
     assert_equal 'english test', prod.name_before_type_cast
-    Globalize::Locale.set("es-ES")
+    Globalize::Locale.set('es','ES')
     assert_equal 'english test', prod.name
     assert_equal 'english test', prod.name_before_type_cast
     prod.name = "spanish test"
@@ -159,26 +156,21 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     assert_equal 'english test', prod._name_before_type_cast
 
     # change base and see if spanish gets updated
-    Globalize::Locale.set("en-US")
+    Globalize::Locale.set('en','US')
     prod.name = "english test two"
     prod.save!
     assert_equal "english test two", prod.name
     assert_equal "english test two", prod.name_before_type_cast
-    Globalize::Locale.set("es-ES")
+    Globalize::Locale.set('es','ES')
     assert_equal "english test two", prod.name
     assert_equal "english test two", prod.name_before_type_cast
-
-    Product.class_eval %{
-      self.keep_translations_in_model = true
-      translates :name, :description, :specs, :base_as_default => false
-    }
   end
 
   def test_find_by_on_unlocalized_class
     seymour = UnlocalizedClass.find_by_name('Seymour')
     assert_equal 'Seymour', seymour.name
 
-    Globalize::Locale.set 'es-ES'
+    Globalize::Locale.set 'es','ES'
     wellington = UnlocalizedClass.find_by_code('cat1')
     assert_equal 'Wellington', wellington.name
   end
@@ -188,7 +180,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     assert_equal "first", simp.name
     assert_equal "This is a description of the first simple", simp.description
 
-    Globalize::Locale.set 'es-ES'
+    Globalize::Locale.set 'es','ES'
     assert_equal "primer", simp.name
     assert_equal "Esta es una descripcion del primer simple", simp.description
   end
@@ -198,7 +190,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     simp.name = '1st'
     simp.save!
 
-    Globalize::Locale.set 'es-ES'
+    Globalize::Locale.set 'es','ES'
     simp.name = '1º'
     simp.save!
   end
@@ -208,7 +200,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     simp.name = '1st'
     simp.save!
 
-    Globalize::Locale.set 'es-ES'
+    Globalize::Locale.set 'es','ES'
     simp = Simple.new
     simp.name = '1º'
     simp.save!
@@ -273,7 +265,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
   end
 
   def test_base
-    Globalize::Locale.set("es-ES")
+    Globalize::Locale.set('es','ES')
     prod = Product.find(1)
     assert_equal "first-product", prod.code
     assert_equal "estas son las especificaciones del primer producto",
@@ -283,7 +275,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
   end
 
   def test_habtm_translation
-    Globalize::Locale.set("es-ES")
+    Globalize::Locale.set('es','ES')
     cat = Category.find(1)
     prods = cat.products
     assert_equal 1, prods.length
@@ -297,7 +289,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
 
   # test has_many translation
   def test_has_many_translation
-    Globalize::Locale.set("es-ES")
+    Globalize::Locale.set('es','ES')
     mfr = Manufacturer.find(1)
     assert_equal 5, mfr.products.length
     prod = mfr.products.find(1)
@@ -309,7 +301,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
   end
 
   def test_belongs_to_translation
-    Globalize::Locale.set("es-ES")
+    Globalize::Locale.set('es','ES')
     prod = Product.find(1)
     mfr = prod.manufacturer
     assert_equal "first-mfr", mfr.code
@@ -342,14 +334,14 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
   end
 
   def test_include
-    Globalize::Locale.set("es-ES")
+    Globalize::Locale.set('es','ES')
     prods = Product.find(:all, :include => :manufacturer)
     assert_equal 5, prods.size
     assert_equal "first-mfr", prods.first.manufacturer.code
     assert_equal "Reverendo", prods.first.manufacturer.name
     assert_equal "Reverendo", prods.last.manufacturer.name
 
-    Globalize::Locale.set("en-US")
+    Globalize::Locale.set('en','US')
     prods = Product.find(:all, :include => :manufacturer)
     assert_equal 5, prods.size
     assert_equal "first-mfr", prods.first.manufacturer.code
@@ -365,7 +357,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
   end
 
   def test_order_es
-    Globalize::Locale.set("es-ES")
+    Globalize::Locale.set('es','ES')
     prods = Product.find(:all, :order => Product.localized_facet(:name)).select {|rec| rec.name}
     assert_equal 3, prods[0].id
     assert_equal 4, prods[1].id
@@ -376,8 +368,8 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     prod = Product.create!(:code => 'test-base', :name => 'english test')
     prod.reload
     assert_equal 'english test', prod.name
-    Globalize::Locale.set("es-ES")
-    assert_nil prod.name
+    Globalize::Locale.set('es','ES')
+    assert_equal 'english test', prod.name
     prod.name = "spanish test"
     prod.save!
     prod.reload
@@ -385,22 +377,22 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
 
     # delete spanish version and test if it reverts to english base
     prod.name = nil
-    assert_nil prod.name
+    assert_equal 'english test', prod.name
     prod.save!
     prod.reload
-    assert_nil prod.name
+    assert_equal 'english test', prod.name
     assert_equal 'english test', prod._name
 
     # change base and see if spanish gets updated
-    Globalize::Locale.set("en-US")
+    Globalize::Locale.set('en','US')
     prod.reload
     prod.name = "english test two"
     prod.save!
     prod.reload
     assert_equal "english test two", prod.name
-    Globalize::Locale.set("es-ES")
+    Globalize::Locale.set('es','ES')
     prod.reload
-    assert_nil prod.name
+    assert_equal "english test two", prod.name
   end
 
   def test_native_name
@@ -426,11 +418,11 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     assert_equal 'english description', prod.description
     assert_equal 'english specs', prod.specs
 
-    Globalize::Locale.set("es-ES")
+    Globalize::Locale.set('es','ES')
 
-    assert_nil prod.name
+    assert_equal 'english name', prod.name
     assert_nil prod.description
-    assert_nil prod.specs
+    assert_equal 'english specs', prod.specs
 
     assert_equal 'english name', prod._name
     assert_equal 'english description', prod._description
@@ -455,14 +447,14 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     assert  prod.translated?(:description)
     assert  prod.translated?(:specs)
 
-    Globalize::Locale.set("en-US")
+    Globalize::Locale.set('en','US')
     assert_equal 'english name',                 prod.name
     assert_equal 'english description',          prod.description
     assert_equal 'english specs',                prod.specs
 
-    assert  prod.translated?(:name, 'es-ES')
-    assert  prod.translated?(:description, 'es-ES')
-    assert  prod.translated?(:specs, 'es-ES')
+    assert  prod.translated?(:name, 'es')
+    assert  prod.translated?(:description, 'es')
+    assert  prod.translated?(:specs, 'es')
   end
 
   def test_returned_base
@@ -474,7 +466,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
       }
     }
 
-    Globalize::Locale.set("he-IL")
+    Globalize::Locale.set('he','IL')
     prod = Product.find(1)
     assert_equal "first-product", prod.code
     assert_equal "these are the specs for the first product", prod.specs
@@ -485,6 +477,14 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
 
     assert_equal 'ltr', prod.specs.direction
     assert_equal 'rtl', prod.description.direction
+
+
+    Product.class_eval %{
+      self.keep_translations_in_model = true
+      translates :name, :description, :specs,
+           :name => {:fallback => true},
+           :description => {:fallback => false, :base_as_default => false}
+    }
   end
 
   def test_bidi_embed
@@ -496,9 +496,46 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
       }
     }
 
-    Globalize::Locale.set("he-IL")
+    Globalize::Locale.set('he','IL')
     prod = Product.find(2)
     assert_equal "\xe2\x80\xaaThis is a description of the second product\xe2\x80\xac",
       prod.description
+
+    Product.class_eval %{
+      self.keep_translations_in_model = true
+      translates :name, :description, :specs,
+           :name => {:fallback => true},
+           :description => {:fallback => false, :base_as_default => false}
+    }
+  end
+
+  def test_fallbacks
+    prod = Product.create!(:code => 'test-fallback',
+                           :name => 'english name fallbacks',
+                           :description => 'english desc fallbacks')
+    #assert_equal 'english name fallbacks', prod.name
+    #assert_equal 'english desc fallbacks', prod.description
+    #assert_equal 'english name fallbacks', prod.name_before_type_cast
+    #assert_equal 'english desc fallbacks', prod.description_before_type_cast
+
+    Globalize::Locale.set('es','ES')
+    assert_equal 'english name fallbacks', prod.name
+    assert_equal 'english name fallbacks', prod.name_before_type_cast
+    assert_nil prod.description
+    assert_nil prod.description_before_type_cast
+
+    prod.name = "spanish name fallbacks"
+    prod.save!
+    assert_equal 'spanish name fallbacks', prod.name
+    assert_equal 'spanish name fallbacks', prod.name_before_type_cast
+
+    assert_nil prod.description
+    assert_nil prod.description_before_type_cast
+
+    Globalize::Locale.set('es-MX','MX')
+    assert_equal 'spanish name fallbacks', prod.name
+    assert_equal 'spanish name fallbacks', prod.name_before_type_cast
+    assert_nil prod.description
+    assert_nil prod.description_before_type_cast
   end
 end
