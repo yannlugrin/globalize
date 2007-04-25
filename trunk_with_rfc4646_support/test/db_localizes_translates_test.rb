@@ -44,7 +44,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
   end
 
   def setup
-    Globalize::Locale.set_base_language('en')
+    Globalize::Locale.set_base_language(Language.pick('en'))
     Globalize::Locale.set('en','US')
   end
 
@@ -550,4 +550,48 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     assert_nil prod.description
     assert_nil prod.description_before_type_cast
   end
+
+  def test_fallbacks_for_base_locale
+
+    Globalize::Locale.set_base_language(Language.pick('es-MX'))
+
+    Globalize::Locale.set('he','IL')
+    prod = Product.create!(:code => 'test-fallback 2',
+                           :name => 'hebrew name fallbacks 2',
+                           :description => 'hebrew desc fallbacks 2')
+    assert_equal 'hebrew name fallbacks 2', prod.name
+    assert_equal 'hebrew desc fallbacks 2', prod.description
+    assert_equal 'hebrew name fallbacks 2', prod.name_before_type_cast
+    assert_equal 'hebrew desc fallbacks 2', prod.description_before_type_cast
+
+    Globalize::Locale.set('es-MX','MX')
+    assert_nil prod.name
+    assert_nil prod.name_before_type_cast
+    assert_nil prod.description
+    assert_nil prod.description_before_type_cast
+
+    Globalize::Locale.set('es','ES')
+    prod.name = 'spanish name fallbacks 2'
+    prod.description = 'spanish desc fallbacks 2'
+    prod.save!
+    assert_equal 'spanish name fallbacks 2', prod.name
+    assert_equal 'spanish desc fallbacks 2', prod.description
+    assert_equal 'spanish name fallbacks 2', prod.name_before_type_cast
+    assert_equal 'spanish desc fallbacks 2', prod.description_before_type_cast
+
+    Globalize::Locale.set('es-MX','MX')
+    assert_equal 'spanish name fallbacks 2', prod.name
+    assert_equal 'spanish name fallbacks 2', prod.name_before_type_cast
+    assert_nil prod.description
+    assert_nil prod.description_before_type_cast
+
+    Globalize::Locale.set('es-MX','ES', [['he','IL']])
+    assert_equal 'hebrew name fallbacks 2', prod.name
+    assert_equal 'hebrew name fallbacks 2', prod.name_before_type_cast
+    assert_nil prod.description
+    assert_nil prod.description_before_type_cast
+
+    Globalize::Locale.set_base_language(Language.pick('en'))
+  end
+
 end

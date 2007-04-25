@@ -469,6 +469,20 @@ module Globalize # :nodoc:
                   value = (value ? value : read_attribute(:#{facet})) if @@facet_options[:#{facet}][:base_as_default]
                 else
                   value = read_attribute(:#{facet})
+                  #If the base locale value is nil and fallback is active...
+                  unless value
+                    if @@facet_options[:#{facet}][:fallback]
+                      #If fallbacks are active then go through each fallback locale
+                      #and look for a translation
+                      Locale.active.possible_languages.each do |fallback|
+                        unless Locale.base_language.code == fallback.code
+                          localized_method = "#{facet}_\#{fallback.code}"
+                          value = read_attribute(localized_method.to_sym)
+                          break if value
+                        end
+                      end
+                    end
+                  end
                 end
                 value.nil? ? nil : add_bidi(value, :#{facet})
               end
@@ -499,6 +513,20 @@ module Globalize # :nodoc:
                   value = value ? value : read_attribute_before_type_cast('#{facet}') if @@facet_options[:#{facet}][:base_as_default]
                 else
                   value = read_attribute_before_type_cast('#{facet}')
+                  #If the base locale value is nil and fallback is active...
+                  unless value
+                    if @@facet_options[:#{facet}][:fallback]
+                      #If fallbacks are active then go through each fallback locale
+                      #and look for a translation
+                      Locale.active.possible_languages.each do |fallback|
+                        unless Locale.base_language.code == fallback.code
+                          localized_method = "#{facet}_\#{fallback.code}_before_type_cast"
+                          value = send(localized_method.to_sym)
+                          break if value
+                        end
+                      end
+                    end
+                  end
                 end
                 value.nil? ? nil : add_bidi(value, :#{facet})
               end
