@@ -321,7 +321,7 @@ module Globalize # :nodoc:
         # parse out options hash
         options = facets.pop if facets.last.kind_of? Hash
         options ||= {}
-        options.reverse_merge!({:base_as_default => false})
+        options.reverse_merge!({:base_as_default => true, :fallback => false})
 
         keep_translations_internally = true
         if self.keep_translations_in_model.nil?
@@ -569,10 +569,19 @@ module Globalize # :nodoc:
           HERE
 
           facets.each do |facet|
-            bidi = (!(options[facet] && !options[facet][:bidi_embed])).to_s
+            bidi     = !(options[facet] && !options[facet][:bidi_embed])
+            fallback = (options[facet] && options[facet].key?(:fallback)) ?
+                         options[facet][:fallback] :
+                         options[:fallback]
+            base_as_default = (options[facet] && options[facet].key?(:base_as_default)) ?
+                         options[facet][:base_as_default] :
+                         options[:base_as_default]
+
             class_eval <<-HERE
               @@facet_options[:#{facet}] ||= {}
               @@facet_options[:#{facet}][:bidi] = #{bidi}
+              @@facet_options[:#{facet}][:fallback] = #{fallback}
+              @@facet_options[:#{facet}][:base_as_default] = #{base_as_default}
 
               def #{facet}
                 if not_original_language
@@ -580,8 +589,38 @@ module Globalize # :nodoc:
                 end
                 load_other_translations if
                   !fully_loaded? && !self.class.preload_facets.include?(:#{facet})
-                result = read_attribute(:#{facet})
+                value = read_attribute(:#{facet})
+                translation = read_attribute(:#{facet}_not_base)
+                result = nil
+
+                if !Locale.base? && translation.nil?
+                  if @@facet_options[:#{facet}][:fallback]
+                    #If fallbacks are active then go through each fallback locale
+                    #and look for a translation
+                    Locale.active.possible_languages.each do |fallback|
+                      #If the fallback locale is not the base locale, then search
+                      #for a translation (db trip)
+                      unless Locale.base_language.code == fallback.code
+                        tr = find_translation_for('#{facet}', fallback)
+                        result = tr.text and break if tr && tr.text
+                      else
+                        #Return the base locale value if not nil
+                        result = value and break if value
+                      end
+                    end
+                  end
+
+                  unless result
+                    #No translation or fallback translations
+                    #set result to base if base_as_default
+                    result = @@facet_options[:#{facet}][:base_as_default] ? value : nil
+                  end
+                else
+                  result = value
+                end
+
                 return nil if result.nil?
+
                 result.direction = #{facet}_is_base? ?
                   (Locale.base_language ? Locale.base_language.direction : nil) :
                   (@original_language ? @original_language.direction : nil)
@@ -653,6 +692,14 @@ module Globalize # :nodoc:
           end
         end
         self.fully_loaded = true
+      end
+
+      def find_translation_for(facet, language)
+        ModelTranslation.find(:first,
+          :conditions => {:table_name => self.class.table_name,
+                          :item_id => self.id,
+                          :language_id => language.id,
+                          :facet => facet})
       end
 
       def destroy

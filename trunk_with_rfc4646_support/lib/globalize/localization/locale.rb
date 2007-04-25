@@ -69,9 +69,20 @@ module Globalize
       end
     end
 
+    #possible locale (i.e. language and country) codes for active locale(with/out fallbacks)
+    #used e.g. to define action_mailer/view picking extensions
     def possible_codes(incl_fallbacks = false)
       codes = [self.to_s, self.language.code, self.language.primary_subtag, self.country.code]
       codes += self.fallbacks.collect {|f| f.possible_codes(false)} if incl_fallbacks && self.fallbacks
+      codes.compact.flatten.uniq
+    end
+
+    #possible language codes for active locale(with/out fallbacks)
+    #used e.g. to define view/model translation locale fallback possibilities
+    def possible_languages(incl_fallbacks = true)
+      codes = []
+      codes = self.fallbacks.collect {|f| f.language} if incl_fallbacks && self.fallbacks
+      codes += [Language.pick(self.language.primary_subtag)]
       codes.compact.flatten.uniq
     end
 

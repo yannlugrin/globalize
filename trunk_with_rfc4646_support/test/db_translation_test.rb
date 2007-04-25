@@ -35,12 +35,14 @@ class TranslationTest < Test::Unit::TestCase
   class Simple < ActiveRecord::Base
     set_table_name "globalize_simples"
 
-    translates :name, :description
+    translates :name, :description,
+               :name => {:fallback => true},
+               :description => {:fallback => false, :base_as_default => false}
   end
 
   def setup
-    Globalize::Locale.set_base_language("en-US")
-    Globalize::Locale.set("en-US")
+    Globalize::Locale.set_base_language('en')
+    Globalize::Locale.set('en','US')
   end
 
   def test_simple
@@ -48,7 +50,7 @@ class TranslationTest < Test::Unit::TestCase
     assert_equal "first", simp.name
     assert_equal "This is a description of the first simple", simp.description
 
-    Globalize::Locale.set 'he-IL'
+    Globalize::Locale.set('he','IL')
     simp = Simple.find(1)
     assert_equal "זהו השם הראשון", simp.name
     assert_equal "זהו התיאור הראשון", simp.description
@@ -59,7 +61,7 @@ class TranslationTest < Test::Unit::TestCase
     simp.name = '1st'
     simp.save!
 
-    Globalize::Locale.set 'he-IL'
+    Globalize::Locale.set 'he','IL'
     simp = Simple.find(1)
     simp.name = 'ה-1'
     simp.save!
@@ -70,7 +72,7 @@ class TranslationTest < Test::Unit::TestCase
     simp.name = '1st'
     simp.save!
 
-    Globalize::Locale.set 'he-IL'
+    Globalize::Locale.set 'he','IL'
     simp = Simple.new
     simp.name = 'ה-1'
     simp.save!
@@ -148,7 +150,7 @@ class TranslationTest < Test::Unit::TestCase
   end
 
   def test_base
-    Globalize::Locale.set("he-IL")
+    Globalize::Locale.set('he','IL')
     prod = Product.find(1)
     assert_equal "first-product", prod.code
     assert_equal "these are the specs for the first product",
@@ -158,7 +160,7 @@ class TranslationTest < Test::Unit::TestCase
   end
 
   def test_habtm_translation
-    Globalize::Locale.set("he-IL")
+    Globalize::Locale.set('he','IL')
     cat = Category.find(1)
     prods = cat.products
     assert_equal 1, prods.length
@@ -172,7 +174,7 @@ class TranslationTest < Test::Unit::TestCase
 
   # test has_many translation
   def test_has_many_translation
-    Globalize::Locale.set("he-IL")
+    Globalize::Locale.set('he','IL')
     mfr = Manufacturer.find(1)
     assert_equal 5, mfr.products.length
     prod = mfr.products.find(1)
@@ -184,7 +186,7 @@ class TranslationTest < Test::Unit::TestCase
   end
 
   def test_belongs_to_translation
-    Globalize::Locale.set("he-IL")
+    Globalize::Locale.set('he','IL')
     prod = Product.find(1)
     mfr = prod.manufacturer
     assert_equal "first-mfr", mfr.code
@@ -217,13 +219,13 @@ class TranslationTest < Test::Unit::TestCase
   end
 
   def test_include_translated
-    Globalize::Locale.set("he-IL")
+    Globalize::Locale.set('he','IL')
     prods = Product.find(:all, :include_translated => :manufacturer)
     assert_equal 5, prods.size
     assert_equal "רברנד", prods.first.manufacturer_name
     assert_equal "רברנד", prods.last.manufacturer_name
 
-    Globalize::Locale.set("en-US")
+    Globalize::Locale.set('en','US')
     prods = Product.find(:all, :include_translated => :manufacturer)
     assert_equal 5, prods.size
     assert_equal "Reverend", prods.first.manufacturer_name
@@ -245,7 +247,7 @@ class TranslationTest < Test::Unit::TestCase
   end
 
   def test_order_he
-    Globalize::Locale.set("he-IL")
+    Globalize::Locale.set('he','IL')
     prods = Product.find(:all, :order => "name").select {|rec| rec.name}
     assert_equal 4, prods[1].id
     assert_equal 5, prods[2].id
@@ -256,7 +258,7 @@ class TranslationTest < Test::Unit::TestCase
     prod = Product.create!(:code => 'test-base', :name => 'english test')
     prod.reload
     assert_equal 'english test', prod.name
-    Globalize::Locale.set("he-IL")
+    Globalize::Locale.set('he','IL')
     prod = Product.find_by_code('test-base')
     assert_equal 'english test', prod.name
     prod.name = "hebrew test"
@@ -272,13 +274,13 @@ class TranslationTest < Test::Unit::TestCase
     assert_equal 'english test', prod.name
 
     # change base and see if hebrew gets updated
-    Globalize::Locale.set("en-US")
+    Globalize::Locale.set('en','US')
     prod.reload
     prod.name = "english test two"
     prod.save!
     prod.reload
     assert_equal "english test two", prod.name
-    Globalize::Locale.set("he-IL")
+    Globalize::Locale.set('he','IL')
     prod.reload
     assert_equal "english test two", prod.name
   end
@@ -286,14 +288,14 @@ class TranslationTest < Test::Unit::TestCase
   def test_wrong_language
     prod = Product.find(1)
 
-    Globalize::Locale.set("he-IL")
+    Globalize::Locale.set('he','IL')
     assert_raise(Globalize::WrongLanguageError) { prod.description }
     assert_raise(Globalize::WrongLanguageError) { prod.description = "זהו תיאור המוצר השני" }
     assert_raise(Globalize::WrongLanguageError) { prod.save! }
     prod = Product.find(1)
     assert_equal "זהו תיאור המוצר הראשון", prod.description
 
-    Globalize::Locale.set("en-US")
+    Globalize::Locale.set('en','US')
     assert_raise(Globalize::WrongLanguageError) { prod.description }
     assert_raise(Globalize::WrongLanguageError) { prod.save! }
   end
@@ -323,24 +325,6 @@ class TranslationTest < Test::Unit::TestCase
     assert_nil tr
   end
 
-# Function is removed, Globalite work fine without.
-#  def test_fix_conditions
-#    assert_equal 'globalize_products.name="test"',
-#      Product.class_eval { fix_conditions('name="test"') }
-#    assert_equal '(globalize_products.name="test" OR globalize_products.name = "test2")',
-#      Product.class_eval { fix_conditions('(name="test" OR name = "test2")') }
-#    assert_equal 'globalize_products.name = globalize_translations.name',
-#      Product.class_eval { fix_conditions('globalize_products.name = globalize_translations.name') }
-#    assert_equal ' globalize_products.name = globalize_translations.name',
-#      Product.class_eval { fix_conditions(' name = globalize_translations.name') }
-#    assert_equal ' globalize_products."name" = globalize_translations.name',
-#      Product.class_eval { fix_conditions(' "name" = globalize_translations.name') }
-#    assert_equal ' globalize_products.\'name\' = globalize_translations.name',
-#      Product.class_eval { fix_conditions(' \'name\' = globalize_translations.name') }
-#    assert_equal ' globalize_products.`name` = globalize_translations.name',
-#      Product.class_eval { fix_conditions(' `name` = globalize_translations.name') }
-#  end
-
   def test_native_name
     heb = Globalize::Language.pick('he')
     assert_equal 'Hebrew', heb.english_name
@@ -351,7 +335,7 @@ class TranslationTest < Test::Unit::TestCase
   end
 
   def test_returned_base
-    Globalize::Locale.set("he-IL")
+    Globalize::Locale.set('he','IL')
     prod = Product.find(1)
     assert_equal "first-product", prod.code
     assert_equal "these are the specs for the first product",
@@ -367,11 +351,96 @@ class TranslationTest < Test::Unit::TestCase
   end
 
   def test_bidi_embed
-    Globalize::Locale.set("he-IL")
+    Globalize::Locale.set('he','IL')
     prod = Product.find(2)
     assert_equal "\xe2\x80\xaaThis is a description of the second product\xe2\x80\xac",
       prod.description
   end
 
-  # association building/creating?
+=begin
+    External db translations:
+      - With fallbacks, we have multiple locale possibilities to look up translations.
+      - i.e.
+      - Currently, the active locale is used to determine translations and these
+      - are coalesced into the query returned by find (or dynamically after a call)
+      - to read an attribute).
+      - If there's no translation, then nil is returned.
+      - Different strategies to implement fallbacks for external storage mechanism
+      - can be:
+      -
+      - On-demand, per attribute:
+      -   If an attribute returns nil, for each locale in fallback list, reload
+      -   that attribute (similar to load_other_translations) until a non-nil result
+      -   otherwise return nil (or base value).
+      -   Upside: Avoids syncing issues, extra db trips should be very fast (except assocications?).
+      -   Downside: An extra db roundtrip for each locale in fallback list
+      -    (at least one extra trip, even if no fallbacks are defined, as we check
+      -    for a translation in the primary subtag locale).
+      -   Make fallback operation user-definable? e.g. translate :name, :fallback => true
+      -
+      - Preload all locale possibilities:
+      -   For each globalize facet maintain a hash which is loaded either via
+      -   find_every()/load_other_translations() and contains all possible
+      -   results for current locale and list of fallback locales. Then when
+      -   and globalize facet is read, go through the list until you find a non-nil
+      -   result.
+      -   Upside: Practically, no performance penalty with current system (except when resyncing).
+      -   Downside: if result changes for model in one of the fallback locales
+      -    then hash will contain stale data. Problem trying to keep this synced.
+=end
+
+  def test_fallbacks
+
+    Globalize::Locale.set('en','US')
+    simp = Simple.new
+    simp.name = 'A simple model'
+    simp.description = 'A simple model\'s description'
+    simp.save!
+
+    Globalize::Locale.set('es','ES')
+    simp.reload
+    simp.name = 'Un modelo simple'
+    simp.description = 'La descripción de un modelo simple'
+    simp.save!
+
+    Globalize::Locale.set('en','US')
+    simp.reload
+    assert_equal 'A simple model', simp.name
+    assert_equal 'A simple model\'s description', simp.description
+
+    Globalize::Locale.set('es','ES')
+    simp.reload
+    assert_equal 'Un modelo simple', simp.name
+    assert_equal 'La descripción de un modelo simple', simp.description
+
+    Globalize::Locale.set('es-MX','MX')
+    simp.reload
+    assert_equal 'Un modelo simple', simp.name
+    assert_nil simp.description
+
+    Globalize::Locale.set('es-MX','MX',[['en','US'],['es','ES']])
+    simp.reload
+    assert_equal 'A simple model', simp.name
+    assert_nil simp.description
+
+    Globalize::Locale.set('es-MX','MX',[['es','ES'], ['en','US']])
+    simp.reload
+    assert_equal 'Un modelo simple', simp.name
+    assert_nil simp.description
+
+    Globalize::Locale.set('de','CH',[['es','ES'], ['en','US']])
+    simp.reload
+    assert_equal 'Un modelo simple', simp.name
+    assert_nil simp.description
+
+    Globalize::Locale.set('de','CH',[['en','US'],['es','ES']])
+    simp.reload
+    assert_equal 'A simple model', simp.name
+    assert_nil simp.description
+
+    Globalize::Locale.set('de','CH')
+    simp.reload
+    assert_equal 'A simple model', simp.name
+    assert_nil simp.description
+  end
 end
