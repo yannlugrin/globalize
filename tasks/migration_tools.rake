@@ -36,7 +36,9 @@ def find_models
   models = []
   FileList["#{RAILS_ROOT}/app/models/**/*.rb"].sort.each do |fn|
     model_class = load_model_class(fn)
-    models << [model_class,fn] if model_class && model_class.base_class.superclass == ActiveRecord::Base
+    models << [model_class,fn] if model_class &&
+              model_class.respond_to?(:base_class) &&
+              model_class.base_class.superclass == ActiveRecord::Base
   end
   models
 end
