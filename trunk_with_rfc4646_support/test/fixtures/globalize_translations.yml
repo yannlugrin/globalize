@@ -411,3 +411,27 @@ view_es_tr_namespace_7:
   pluralization_index: 1
   tr_key: "draw %d times"
   text: "draw once"
+
+view_he_tr_validation_3:
+  id: 67
+  type: ViewTranslation
+  language_id: 2
+  tr_key: "is too long (maximum is %d characters)"
+  pluralization_index: 1
+  text: "ארוך מדי (המקסימום הוא תו אחד)"
+
+view_he_tr_validation_4:
+  id: 68
+  type: ViewTranslation
+  language_id: 2
+  tr_key: "is too long (maximum is %d characters)"
+  pluralization_index: 2
+  text: "ארוך מדי (המקסימום הוא %d תווים)"
+
+view_he_tr_validation_5:
+  id: 69
+  type: ViewTranslation
+  language_id: 2
+  tr_key: "Specs"
+  pluralization_index: 1
+  text: "המפרט"

@@ -84,7 +84,7 @@ class CurrencyTest < Test::Unit::TestCase
     m1 = Currency.parse("$134.54")
     assert_equal 13454, m1.cents
     m2 = Currency.parse(134.587)
-    assert_equal 13458, m2.cents
+    assert_equal 13459, m2.cents
     assert_equal Currency.na, Currency.parse(nil)
     assert_raise(ArgumentError) { Currency.parse("") }
     assert_raise(ArgumentError) { Currency.parse("abc.de") }
@@ -136,6 +136,14 @@ class CurrencyTest < Test::Unit::TestCase
   def test_amount_unlocalized
     assert_equal "12,345.67", Currency.new(1234567).amount
     assert_equal "12345.67", Currency.new(1234567).amount(:unlocalized)
+  end
+
+  def test_parse_correct_cents_value
+    m1 = Currency.parse('6.5')
+    assert_equal 650, m1.cents
+
+    m1 = Currency.parse(9.95)
+    assert_equal 995, m1.cents
   end
 
 end

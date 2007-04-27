@@ -2,7 +2,7 @@ module Globalize
 
 =begin rdoc
   This is what you use for representing money in your ActiveRecord models.
-  It stores values as integers internally and in the database, to safeguard 
+  It stores values as integers internally and in the database, to safeguard
   precision and rounding.
 
   More importantly for globalization freaks, it prints out the amount correctly
@@ -11,7 +11,7 @@ module Globalize
   Example:
 
     class Product < ActiveRecord::Base
-      composed_of :price, :class_name => "Globalize::Currency", 
+      composed_of :price, :class_name => "Globalize::Currency",
         :mapping => [ %w(price cents) ]
     end
 
@@ -21,7 +21,7 @@ module Globalize
     include Comparable
 
     attr_reader :cents
-    
+
     class CurrencyError < StandardError# :nodoc:
     end
 
@@ -62,7 +62,7 @@ module Globalize
         na? ? 1 : cents <=> other
       else
         raise "can only compare with money or integer"
-      end      
+      end
     end
 
     def +(other_money)
@@ -97,18 +97,18 @@ module Globalize
 
     # Returns the formatted version of the amount in local currency.
     # If <tt>:code => true</tt> is specified, format using international
-    # 3-letter currency code. If <tt>:country</tt> is specified as well, 
+    # 3-letter currency code. If <tt>:country</tt> is specified as well,
     # use that country's currency code for formatting.
     def format(options = {})
       return :no_price_available.t("call for price") if na?
 
       force_cents = options[:force_cents]
 			if options[:code]
-        currency_code = options[:country] ? 
-          options[:country].currency_code : 
+        currency_code = options[:country] ?
+          options[:country].currency_code :
           ( Locale.active? ? Locale.active.currency_code : nil )
-        currency_code ? 
-					self.amount(false, force_cents) + " " + currency_code : 
+        currency_code ?
+					self.amount(false, force_cents) + " " + currency_code :
 					self.amount(false, force_cents)
       else
         if Locale.active?
@@ -122,18 +122,18 @@ module Globalize
 
     # Returns the formatted version of the amount, but without the currency symbol.
     # If +unlocalized+ is true, do not format the number according to the current locale,
-    # so <tt>Currency.new(1234567) -> 12345.67</tt>. This is useful for sending the 
+    # so <tt>Currency.new(1234567) -> 12345.67</tt>. This is useful for sending the
     # amount to payment gateways.
     def amount(unlocalized = false, force_cents = false)
       return nil if na?
       decimal_sep = unlocalized ?
         '.' :
-        (Locale.active? ? 
+        (Locale.active? ?
           (Locale.active.currency_decimal_sep || Locale.active.decimal_sep || '.') :
           '.')
       dollar_str = unlocalized ? dollar_part.to_s : dollar_part.localize
       result = dollar_str
-      result << decimal_sep + sprintf("%02d", cent_part) unless 
+      result << decimal_sep + sprintf("%02d", cent_part) unless
         self.class.no_cents && !force_cents
       return result
     end
@@ -150,9 +150,10 @@ module Globalize
         raise ArgumentError, "Not an amount (#{num})" if num.delete("^0-9").empty?
         _dollars, _cents = num.delete("^0-9.").split('.', 2)
         _cents = _cents ? _cents[0,2] : 0
+        _cents += "0" if _cents.is_a?(String) && _cents.length == 1
         Currency.new(_dollars.to_i * 100 + _cents.to_i)
       when num.is_a?(Numeric)
-        Currency.new(num * 100)
+        Currency.new((num * 100.0).round)
       when num.is_a?(NilClass)
         Currency.na
       else
