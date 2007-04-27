@@ -39,7 +39,7 @@ module Globalize #:nodoc:
 
         Note: This defaults to the base locale if unspecified
 =end
-    def self.define(supported_locales = [], base_locale = 'en-US', active_locales = [], default_locale = nil)
+    def self.define(supported_locales = [], base_locale = 'en_US', active_locales = [], default_locale = nil)
       return @@instance if (defined?(@@instance) && @@instance)
       @@instance = new(supported_locales, base_locale, active_locales, default_locale)
     end
@@ -47,7 +47,10 @@ module Globalize #:nodoc:
     private_class_method  :new
 
     def self.instance
-      return @@instance if defined? @@instance
+      if defined? @@instance
+        @@instance.send(:setup) unless @@instance.supported_locales_map
+        return @@instance
+      end
     end
 
     def self.clear
@@ -65,7 +68,6 @@ module Globalize #:nodoc:
       @active_locales = active_locales unless active_locales.empty?
 
       raise "No supported Globalize locales defined. Please specify at least one!" if @supported_locales.empty?
-      setup
     end
 
     class << self
@@ -166,6 +168,7 @@ module Globalize #:nodoc:
       def non_base?(locale)
         case locale
           when String
+            locale = locale.split('_').first
             non_base_locale_codes.include?(locale) || non_base_language_codes.include?(locale)
           when Globalize::Locale
             non_base_locales.any? {|l| l.code == locale.code}
@@ -278,7 +281,7 @@ module Globalize #:nodoc:
     protected
 
       def setup
-        @base_locale_object = Globalize::Locale.new(@base_locale)
+        @base_locale_object = Globalize::Locale.new(*locale_array_for(@base_locale))
         raise "Globalize base language undefined!" unless @base_locale_object.language
 
         Globalize::Locale.clear_cache
@@ -287,7 +290,7 @@ module Globalize #:nodoc:
 
         @supported_locales.unshift(@base_locale) unless @supported_locales.include? @base_locale
         @supported_locales_map = Hash[*@supported_locales.collect do |locale_code|
-          locale = Globalize::Locale.new(locale_code)
+          locale = Globalize::Locale.new(*locale_array_for(locale_code))
           raise "Language for code: #{locale_code} doesn't exist! Check globalize tables." unless locale.language
           [locale_code, locale] if locale
         end.flatten]
@@ -299,8 +302,17 @@ module Globalize #:nodoc:
         end.flatten]
 
         raise "Globalize default locale not one of supported locales" unless @active_locales.include?(@default_locale)
-        @default_locale_object = Globalize::Locale.new(@default_locale)
+        @default_locale_object = Globalize::Locale.new(*locale_array_for(@default_locale))
         raise "Globalize default language undefined!" unless @default_locale_object.language
+      end
+
+      def locale_array_for(locale)
+        case locale
+          when String
+            locale.split('_')
+          when Array
+            locale
+        end
       end
   end
 

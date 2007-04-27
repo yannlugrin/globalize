@@ -243,3 +243,21 @@ new_zealand_english:
   native_name: English
   direction: ltr
   pluralization: 'c == 1 ? 1 : 2'
+
+french:
+  id: 30
+  tag: fr
+  primary_subtag: fr
+  english_name: French
+  native_name: Française
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'
+
+french_switzerland:
+  id: 31
+  tag: fr-CH
+  primary_subtag: fr
+  english_name: French (Switzerland)
+  native_name: Française
+  direction: ltr
+  pluralization: 'c == 1 ? 1 : 2'

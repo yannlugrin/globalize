@@ -95,6 +95,8 @@ RespondToController.prepend_view_path(File.dirname(__FILE__) + "/views")
 
 class MimeControllerTest < Test::Unit::TestCase
   include Globalize
+  fixtures :globalize_languages, :globalize_countries
+
   def setup
     Locale.set(nil)
     @request    = ActionController::TestRequest.new
@@ -117,7 +119,7 @@ class MimeControllerTest < Test::Unit::TestCase
   end
 
   def test_fr_html
-    Locale.set('fr')
+    Locale.set('fr','FR')
     test_html
   end
 
@@ -134,7 +136,7 @@ class MimeControllerTest < Test::Unit::TestCase
   end
 
   def test_fr_all
-    Locale.set('fr')
+    Locale.set('fr','FR')
     test_all
   end
 
@@ -169,7 +171,7 @@ class MimeControllerTest < Test::Unit::TestCase
   end
 
   def test_fr_js_or_anything
-    Locale.set('fr')
+    Locale.set('fr','FR')
     test_js_or_anything
   end
 
@@ -187,8 +189,9 @@ class MimeControllerTest < Test::Unit::TestCase
     assert_equal "<p>Hello world!</p>\n", @response.body
   end
 
-  def test_fr_using_defaults
-    Locale.set('fr')
+  def test_fr_using_defaults(locale = nil)
+    Locale.set('fr','FR') unless locale
+    Locale.set(*locale) if locale
     @request.env["HTTP_ACCEPT"] = "*/*"
     get :using_defaults
     assert_equal 'Bonjour le monde !', @response.body
@@ -203,12 +206,11 @@ class MimeControllerTest < Test::Unit::TestCase
   end
 
   def test_fr_CH_fallback_to_fr_using_defaults
-    Locale.set('fr-CH')
-    test_fr_using_defaults
+    test_fr_using_defaults ['fr-CH','CH']
   end
 
   def test_de_fallback_to_default
-    Locale.set('de')
+    Locale.set('de','CH')
     test_using_defaults
   end
 
@@ -227,7 +229,7 @@ class MimeControllerTest < Test::Unit::TestCase
   end
 
   def test_fr_using_defaults_with_type_list
-    Locale.set('fr')
+    Locale.set('fr','FR')
 
     @request.env["HTTP_ACCEPT"] = "*/*"
     get :using_defaults_with_type_list
@@ -253,7 +255,7 @@ class MimeControllerTest < Test::Unit::TestCase
   end
 
   def test_fr_with_content_type
-    Locale.set('fr')
+    Locale.set('fr','FR')
     test_with_content_type
   end
 
@@ -268,7 +270,7 @@ class MimeControllerTest < Test::Unit::TestCase
   end
 
   def test_fr_synonyms
-    Locale.set('fr')
+    Locale.set('fr','FR')
     test_synonyms
   end
 
@@ -283,7 +285,7 @@ class MimeControllerTest < Test::Unit::TestCase
   end
 
   def test_fr_custom_types
-    Locale.set('fr')
+    Locale.set('fr','FR')
     test_custom_types
   end
 
@@ -294,7 +296,7 @@ class MimeControllerTest < Test::Unit::TestCase
   end
 
   def test_fr_xhtml_alias
-    Locale.set('fr')
+    Locale.set('fr','FR')
     test_custom_types
   end
 
@@ -305,7 +307,7 @@ class MimeControllerTest < Test::Unit::TestCase
   end
 
   def test_fr_firefox_simulation
-    Locale.set('fr')
+    Locale.set('fr','FR')
     test_firefox_simulation
   end
 
@@ -324,7 +326,7 @@ class MimeControllerTest < Test::Unit::TestCase
   end
 
   def test_fr_handle_any
-    Locale.set('fr')
+    Locale.set('fr','FR')
     test_handle_any
   end
 
@@ -339,7 +341,7 @@ class MimeControllerTest < Test::Unit::TestCase
   end
 
   def test_fr_all_types_with_layout
-    Locale.set('fr')
+    Locale.set('fr','FR')
     test_all_types_with_layout
   end
 
@@ -352,7 +354,7 @@ class MimeControllerTest < Test::Unit::TestCase
   end
 
   def test_fr_xhr
-    Locale.set('fr')
+    Locale.set('fr','FR')
     test_xhr
   end
 end

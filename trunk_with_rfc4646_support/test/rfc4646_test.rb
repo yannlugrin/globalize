@@ -16,7 +16,7 @@ class RFC4646Test < Test::Unit::TestCase
     assert_nil         rfc.region
     assert_nil         rfc.variants
     assert_nil         rfc.extensions
-    assert_nil         rfc.extension_match
+    assert             rfc.extension_match.empty?
     assert_nil         rfc.privateuse
     assert_nil         rfc.irregulars
 

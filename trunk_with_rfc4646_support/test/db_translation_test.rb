@@ -443,4 +443,40 @@ class TranslationTest < Test::Unit::TestCase
     assert_equal 'A simple model', simp.name
     assert_nil simp.description
   end
+
+  def test_fallbacks_for_base_locale
+
+    Globalize::Locale.set_base_language(Language.pick('es-MX'))
+
+    Globalize::Locale.set('he','IL')
+    simp = Simple.create!(:name => 'hebrew name fallbacks 2',
+                          :description => 'hebrew desc fallbacks 2')
+    assert_equal 'hebrew name fallbacks 2', simp.name
+    assert_equal 'hebrew desc fallbacks 2', simp.description
+
+    Globalize::Locale.set('es-MX','MX')
+    simp.reload
+    assert_nil simp.name
+    assert_nil simp.description
+
+    Globalize::Locale.set('es','ES')
+    simp.reload
+    simp.name = 'spanish name fallbacks 2'
+    simp.description = 'spanish desc fallbacks 2'
+    simp.save!
+    assert_equal 'spanish name fallbacks 2', simp.name
+    assert_equal 'spanish desc fallbacks 2', simp.description
+
+    Globalize::Locale.set('es-MX','MX')
+    simp.reload
+    assert_equal 'spanish name fallbacks 2', simp.name
+    assert_nil simp.description
+
+    Globalize::Locale.set('es-MX','ES', [['he','IL']])
+    simp.reload
+    assert_equal 'hebrew name fallbacks 2', simp.name
+    assert_nil simp.description
+
+    Globalize::Locale.set_base_language(Language.pick('en'))
+  end
 end

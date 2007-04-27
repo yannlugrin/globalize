@@ -101,6 +101,7 @@ module ActionMailer # :nodoc:
       def render_localized_normal_template
         #template_exists = @parts.empty?
         template_exists = false
+        path_to_template = template_path[0..1] == './' ? template_path[2..-1] : template_path
         codes = locale_codes
         codes.each do |code|
           localized_name = @template
@@ -108,10 +109,10 @@ module ActionMailer # :nodoc:
             if code
               localized_name = [ @template, code ].join(".")
               template_exists ||=
-                Dir.glob("#{template_path}/#{localized_name}.*").any? { |i| i.split(".").length == 3 }
+                Dir.glob("#{path_to_template}/#{localized_name}.*").any? { |i| i.split(".").length == 3 }
             else
               template_exists ||=
-                Dir.glob("#{template_path}/#{@template}.*").any? { |i| i.split(".").length == 2 }
+                Dir.glob("#{path_to_template}/#{@template}.*").any? { |i| i.split(".").length == 2 }
             end
           end
           @body = render_message(localized_name, @body) if template_exists

@@ -4,13 +4,13 @@ ActiveRecord::Schema.define do
     t.column :name, :string
     t.column :name_es, :string
     t.column :name_he, :string
-    t.column 'name_es-MX', :string
-    t.column 'name_es-AR', :string
+    t.column 'name_es_MX', :string
+    t.column 'name_es_AR', :string
     t.column :description, :string
     t.column :description_es, :string
     t.column :description_he, :string
-    t.column 'description_es-MX', :string
-    t.column 'description_es-AR', :string
+    t.column 'description_es_MX', :string
+    t.column 'description_es_AR', :string
   end
 
   create_table :globalize_products, :force => true do |t|
@@ -19,18 +19,18 @@ ActiveRecord::Schema.define do
     t.column :name, :string
     t.column :name_es, :string
     t.column :name_he, :string
-    t.column 'name_es-MX', :string
-    t.column 'name_es-AR', :string
+    t.column 'name_es_MX', :string
+    t.column 'name_es_AR', :string
     t.column :description, :string
     t.column :description_es, :string
     t.column :description_he, :string
-    t.column 'description_es-MX', :string
-    t.column 'description_es-AR', :string
+    t.column 'description_es_MX', :string
+    t.column 'description_es_AR', :string
     t.column :specs, :string
     t.column :specs_es, :string
     t.column :specs_he, :string
-    t.column 'specs_es-MX', :string
-    t.column 'specs_es-AR', :string
+    t.column 'specs_es_MX', :string
+    t.column 'specs_es_AR', :string
   end
 
   add_index :globalize_products, :code, :unique => true
@@ -41,8 +41,8 @@ ActiveRecord::Schema.define do
     t.column :name, :string
     t.column :name_es, :string
     t.column :name_he, :string
-    t.column 'name_es-MX', :string
-    t.column 'name_es-AR', :string
+    t.column 'name_es_MX', :string
+    t.column 'name_es_AR', :string
   end
 
   add_index :globalize_manufacturers, :code, :unique
@@ -52,8 +52,8 @@ ActiveRecord::Schema.define do
     t.column :name, :string
     t.column :name_es, :string
     t.column :name_he, :string
-    t.column 'name_es-MX', :string
-    t.column 'name_es-AR', :string
+    t.column 'name_es_MX', :string
+    t.column 'name_es_AR', :string
   end
 
   add_index :globalize_categories, :code, :unique

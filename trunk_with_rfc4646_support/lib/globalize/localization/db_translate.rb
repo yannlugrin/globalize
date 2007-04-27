@@ -315,7 +315,6 @@ module Globalize # :nodoc:
 
           Locale.set("es_ES")
           product.name #=> guitarra
-
 =end
       def translates(*facets)
         # parse out options hash
@@ -389,7 +388,7 @@ module Globalize # :nodoc:
               # Note: <i>Used when Globalize::DbTranslate.keep_translations_in_model is true</i>
               def localized_facet(facet)
                 unless Locale.base?
-                  "\#{facet}_\#{Locale.language.code}"
+                  "\#{facet}_\#{Locale.language.dbcode}"
                 else
                   facet.to_s
                 end
@@ -413,10 +412,10 @@ module Globalize # :nodoc:
             #Is field translated?
             #Returns true if translated
             def translated?(facet, language_code = nil)
-              localized_method = "\#{facet}_\#{Locale.language.code}"
+              localized_method = "\#{facet}_\#{Locale.language.dbcode}"
 
               Locale.switch_language(language_code) do
-                localized_method = "\#{facet}_\#{Locale.language.code}"
+                localized_method = "\#{facet}_\#{Locale.language.dbcode}"
               end if language_code
 
               value = read_attribute(localized_method.to_sym) if respond_to?(localized_method.to_sym)
@@ -446,7 +445,7 @@ module Globalize # :nodoc:
               def #{facet}
                 value = nil
                 unless Locale.base?
-                  localized_method = "#{facet}_\#{Locale.language.code}"
+                  localized_method = "#{facet}_\#{Locale.language.dbcode}"
                   raise "Attribute: \#{localized_method} is undefined!" unless respond_to?(localized_method.to_sym)
                   value = read_attribute(localized_method.to_sym)
                   #debugger if 'description' == '#{facet}'
@@ -456,7 +455,7 @@ module Globalize # :nodoc:
                       #and look for a translation
                       Locale.active.possible_languages.each do |fallback|
                         unless Locale.base_language.code == fallback.code
-                          localized_method = "#{facet}_\#{fallback.code}"
+                          localized_method = "#{facet}_\#{fallback.dbcode}"
                           value = read_attribute(localized_method.to_sym)
                           break if value
                         else
@@ -476,7 +475,7 @@ module Globalize # :nodoc:
                       #and look for a translation
                       Locale.active.possible_languages.each do |fallback|
                         unless Locale.base_language.code == fallback.code
-                          localized_method = "#{facet}_\#{fallback.code}"
+                          localized_method = "#{facet}_\#{fallback.dbcode}"
                           value = read_attribute(localized_method.to_sym)
                           break if value
                         end
@@ -490,7 +489,7 @@ module Globalize # :nodoc:
               #Accessor before typecasting that proxies to the right accessor for the current locale
               def #{facet}_before_type_cast
                 unless Locale.base?
-                  localized_method = "#{facet}_\#{Locale.language.code}_before_type_cast"
+                  localized_method = "#{facet}_\#{Locale.language.dbcode}_before_type_cast"
                   raise "Method: \#{localized_method} is undefined!" unless respond_to?(localized_method.to_sym)
                   value = send(localized_method.to_sym) if respond_to?(localized_method.to_sym)
 
@@ -500,7 +499,7 @@ module Globalize # :nodoc:
                       #and look for a translation
                       Locale.active.possible_languages.each do |fallback|
                         unless Locale.base_language.code == fallback.code
-                          localized_method = "#{facet}_\#{fallback.code}_before_type_cast"
+                          localized_method = "#{facet}_\#{fallback.dbcode}_before_type_cast"
                           value = send(localized_method.to_sym)
                           break if value
                         else
@@ -520,7 +519,7 @@ module Globalize # :nodoc:
                       #and look for a translation
                       Locale.active.possible_languages.each do |fallback|
                         unless Locale.base_language.code == fallback.code
-                          localized_method = "#{facet}_\#{fallback.code}_before_type_cast"
+                          localized_method = "#{facet}_\#{fallback.dbcode}_before_type_cast"
                           value = send(localized_method.to_sym)
                           break if value
                         end
@@ -534,7 +533,7 @@ module Globalize # :nodoc:
               #Write to appropriate localized attribute
               def #{facet}=(value)
                 unless Locale.base?
-                  localized_method = "#{facet}_\#{Locale.language.code}"
+                  localized_method = "#{facet}_\#{Locale.language.dbcode}"
                   write_attribute(localized_method.to_sym, value) if respond_to?(localized_method.to_sym)
                 else
                   write_attribute(:#{facet}, value)
@@ -544,7 +543,7 @@ module Globalize # :nodoc:
               #Is field translated?
               #Returns true if untranslated
               def #{facet}_is_base?
-                localized_method = "#{facet}_\#{Locale.language.code}"
+                localized_method = "#{facet}_\#{Locale.language.dbcode}"
                 value = send(localized_method.to_sym) if respond_to?(localized_method.to_sym)
                 return value.nil?
               end
@@ -687,6 +686,21 @@ module Globalize # :nodoc:
                   end
                 else
                   result = value
+
+                  if result.nil? && translation.nil? && @@facet_options[:#{facet}][:fallback]
+                    #Is base with nil value
+                    #If fallbacks are active then go through each fallback locale
+                    #and look for a translation
+                    Locale.active.possible_languages.each do |fallback|
+                      #If the fallback locale is not the base locale, then search
+                      #for a translation (db trip)
+                      unless Locale.base_language.code == fallback.code
+                        tr = find_translation_for('#{facet}', fallback)
+                        result = tr.text and break if tr && tr.text
+                      end
+                    end
+                  end
+
                 end
 
                 return nil if result.nil?
@@ -779,6 +793,9 @@ module Globalize # :nodoc:
       end
 
       def reload
+        #Clear out the not_base attributes which may be lingering from before
+        #the reload
+        self.send(:attributes).keys.grep(/not_base/).each {|attr| self.instance_variable_get(:@attributes).delete attr}
         globalize_old_reload
         set_original_language
       end
@@ -833,6 +850,7 @@ module Globalize # :nodoc:
           self.class.globalize_facets.each do |facet|
             next unless has_attribute?(facet)
             text = read_attribute(facet)
+            write_attribute("#{facet}_not_base", text)
             language_id = Locale.active.language.id
             tr = ModelTranslation.find(:first, :conditions =>
               [ "table_name = ? AND item_id = ? AND facet = ? AND language_id = ?",
@@ -898,7 +916,7 @@ module Globalize # :nodoc:
           options[:conditions] = sanitize_sql(options[:conditions]) if options[:conditions]
 
           # there will at least be an +id+ field here
-          select_clause = untranslated_fields.map {|f| "#{table_name}.#{f}" }.join(", ")
+          select_clause = untranslated_fields.map {|f| "#{table_name}.`#{f}`" }.join(", ")
 
           joins_clause = options[:joins].nil? ? "" : options[:joins].dup
           joins_args = []
@@ -906,7 +924,7 @@ module Globalize # :nodoc:
           facets = load_full ? globalize_facets : preload_facets
 
           if Locale.base?
-            select_clause <<  ', ' << facets.map {|f| "#{table_name}.#{f}" }.join(", ")
+            select_clause <<  ', ' << facets.map {|f| "#{table_name}.`#{f}`" }.join(", ")
           else
             language_id = Locale.active.language.id
             load_full = options[:translate_all]
@@ -938,14 +956,14 @@ module Globalize # :nodoc:
 
             facets.each do |facet|
               facet = facet.to_s
-              facet_table_alias = "t_#{facet}"
+              facet_table_alias = "`t_#{facet}`"
 
               # sqlite bug hack
               select_position += 1
               options[:order].sub!(/\b#{facet}\b/, select_position.to_s) if options[:order] && sqlite?
 
-              select_clause << ", COALESCE(#{facet_table_alias}.text, #{table_name}.#{facet}) AS #{facet}, "
-              select_clause << " #{facet_table_alias}.text AS #{facet}_not_base "
+              select_clause << ", COALESCE(#{facet_table_alias}.text, #{table_name}.`#{facet}`) AS `#{facet}`, "
+              select_clause << " #{facet_table_alias}.text AS `#{facet}_not_base` "
               joins_clause  << " LEFT OUTER JOIN globalize_translations AS #{facet_table_alias} " +
                 "ON #{facet_table_alias}.table_name = ? " +
                 "AND #{table_name}.#{primary_key} = #{facet_table_alias}.item_id " +
@@ -953,7 +971,7 @@ module Globalize # :nodoc:
               joins_args << table_name << facet << language_id
 
               #for translated fields inside WHERE clause substitute corresponding COALESCE string
-              where_clause.gsub!(/((((#{table_name}\.)|\W)#{facet})|^#{facet})\W/, " COALESCE(#{facet_table_alias}.text, #{table_name}.#{facet}) ")
+              where_clause.gsub!(/((((#{table_name}\.)|\W)#{facet})|^#{facet})\W/, " COALESCE(#{facet_table_alias}.text, #{table_name}.`#{facet}`) ")
             end
 
             options[:conditions] = sanitize_sql(
@@ -976,13 +994,13 @@ module Globalize # :nodoc:
             included_fk = klass.primary_key
             fk = rfxn.options[:foreign_key] || "#{assoc}_id"
             assoc_facets.each do |facet|
-              facet_table_alias = "t_#{assoc}_#{facet}"
+              facet_table_alias = "`t_#{assoc}_#{facet}`"
 
              if Locale.base?
-                select_clause << ", #{included_table}.#{facet} AS #{assoc}_#{facet} "
+                select_clause << ", #{included_table}.`#{facet}` AS `#{assoc}_#{facet}` "
               else
-                select_clause << ", COALESCE(#{facet_table_alias}.text, #{included_table}.#{facet}) " +
-                  "AS #{assoc}_#{facet} "
+                select_clause << ", COALESCE(#{facet_table_alias}.text, #{included_table}.`#{facet}`) " +
+                  "AS `#{assoc}_#{facet}` "
                 joins_clause << " LEFT OUTER JOIN globalize_translations AS #{facet_table_alias} " +
                   "ON #{facet_table_alias}.table_name = ? " +
                   "AND #{table_name}.#{fk} = #{facet_table_alias}.item_id " +

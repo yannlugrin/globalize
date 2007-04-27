@@ -40,6 +40,7 @@ module Globalize
         when RFC_3066
           tag = rfc_or_language_tag.language
           $stderr.puts "Supplying an RFC_3066 instance to Language.pick(rfc_or_tag) is deprecated! Use  a valid rfc_4646 language tag or an instance of RFC_4646)."
+          #$stdout.puts caller.inspect unless $stderr.kind_of?(StringIO)
       end
 
       lang = find_by_tag(tag)
@@ -101,6 +102,8 @@ module Globalize
     end
 
     def code; tag; end
+
+    def dbcode; tag.gsub('-','_'); end
 
     def method_missing(method_id, *args, &block)
       err_msg = ":#{method_id.id2name}() is deprecated! It is no longer an attribute of Globalize::Language."

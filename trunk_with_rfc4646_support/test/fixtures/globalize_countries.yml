@@ -113,3 +113,10 @@ new_zealand:
   thousands_sep: "."
   decimal_sep: ','
   currency_decimal_sep: ','
+france:
+  id: 16
+  code: FR
+  english_name: France
+  thousands_sep: "."
+  decimal_sep: ','
+  currency_decimal_sep: ','

@@ -13,7 +13,7 @@ class RenderControllerTest < Test::Unit::TestCase
   fixtures :globalize_languages, :globalize_countries
 
   def setup
-    Locale.set("en-US")
+    Locale.set('en','US')
     @controller = RenderController.new
     @request, @response = ActionController::TestRequest.new, ActionController::TestResponse.new
   end

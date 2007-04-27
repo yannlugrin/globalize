@@ -34,10 +34,17 @@ module Globalize
         @code = @rfc.tag
         @country = Country.pick(country_code)
       else
-        @rfc = RFC_3066.parse(language_tag)
-        @code = @rfc.locale
-        @country = Country.pick(@rfc)
-        $stderr.puts "Locale.new(locale) is deprecated! Use Locale.new(language_tag, country_code)." unless caller.any? {|stack_entry| stack_entry =~ /`set'/}
+        locale_array = language_tag.split('_')
+        if locale_array.size == 2
+          @rfc = RFC_4646.parse(locale_array.first)
+          @code = @rfc.tag
+          @country = Country.pick(locale_array.last)
+        else
+          @rfc = RFC_3066.parse(language_tag)
+          @code = @rfc.locale
+          @country = Country.pick(@rfc)
+          $stderr.puts "Locale.new(rfc3066_tag) is deprecated! Use Locale.new(language_tag, country_code) or Locale.new('{language_tag}_{country_code}')." unless caller.any? {|stack_entry| stack_entry =~ /`set'/}
+        end
       end
 
       @language = Language.pick(@rfc)
@@ -62,7 +69,7 @@ module Globalize
 
     def fallbacks
       if @language_fallbacks && @rfc.kind_of?(RFC_3066)
-        $stderr.puts "Fallbacks can only be defined using the Locale.set(language_tag, country_code) syntax."
+        $stderr.puts "Fallbacks can only be defined using the Locale.new(language_tag, country_code) or the Locale.new('{language_tag}_{country_code}') syntax."
         nil
       else
         @language_fallbacks
@@ -113,17 +120,24 @@ module Globalize
         locale_or_language_tag = locale_or_language_tag.code if locale_or_language_tag.kind_of? Language
         case country_code
           when nil, ''
-            $stderr.puts "Locale.set(locale) is deprecated! Use Locale.set(language_tag, country_code)."
-            #$stdout.puts caller.inspect unless $stderr.kind_of?(StringIO)
-            locale_tag = locale_or_language_tag
-            @@active = ( @@cache[cache_key(locale_tag, fallbacks)] ||= Locale.new(locale_or_language_tag, nil, fallbacks) )
+            locale_array = locale_or_language_tag.split('_')
+            locale_tag = nil
+            unless locale_array.size == 2
+              $stderr.puts "Locale.set(rfc3066_tag) is deprecated! Use Locale.set(language_tag, country_code) or Locale.set('{language_tag}_{country_code}')."
+              #$stdout.puts caller.inspect unless $stderr.kind_of?(StringIO)
+              locale_tag = locale_or_language_tag.dup
+            else
+              locale_or_language_tag = locale_array.first
+              country_code = locale_array.last
+              locale_tag = "#{locale_or_language_tag}_#{country_code}"
+            end
           when Country
             locale_tag = "#{locale_or_language_tag}_#{country_code.code}"
-            @@active = ( @@cache[cache_key(locale_tag, fallbacks)] ||= Locale.new(locale_or_language_tag, country_code.code, fallbacks) )
+            country_code = country_code.code
           else
             locale_tag = "#{locale_or_language_tag}_#{country_code}"
-            @@active = ( @@cache[cache_key(locale_tag, fallbacks)] ||= Locale.new(locale_or_language_tag, country_code, fallbacks) )
         end
+        @@active = ( @@cache[cache_key(locale_tag, fallbacks)] ||= Locale.new(locale_or_language_tag, country_code, fallbacks) )
       end
     end
 
@@ -136,7 +150,7 @@ module Globalize
     def self.active; @@active end
 
     def self.cache_key(key, fallbacks)
-      key << fallbacks.flatten.join('_') if fallbacks && !fallbacks.empty?
+      key << "_" << fallbacks.flatten.join('_') if fallbacks && !fallbacks.empty?
       key
     end
 
@@ -354,6 +368,10 @@ module Globalize
             @language_fallbacks = list_of_fallbacks
           else
             @language_fallbacks = list_of_fallbacks.collect do |flbck|
+              case flbck
+                when String
+                  flbck = flbck.split('_')
+              end
               locale_tag = flbck[1].blank? ? flbck.first : "#{flbck[0]}_#{flbck[1]}"
               @@cache[locale_tag] ||= Locale.new(*flbck)
             end
