@@ -10,6 +10,9 @@ module Globalize # :nodoc:
 
     def fetch(key, locale_or_language, default = nil, arg = nil, namespace = nil) # :nodoc:
 
+      raise "[Globalize::DbViewTranslator]" +
+      " Can't interpolate multiple numbers." if key.scan(/(%d)/).flatten.size > 1
+
       fallbacks = nil
       primary_subtag = nil
 
@@ -23,7 +26,9 @@ module Globalize # :nodoc:
       end
 
       # use argument as pluralization number, if number
+      #If within an array, get the first number in the array
       num = arg.kind_of?(Numeric) ? arg : nil
+      num ||= arg.kind_of?(Array) ? arg.select {|e| e.kind_of?(Numeric)}.first : nil
 
       # if there's no translation, use default or original key
       real_default = default || key
@@ -31,11 +36,26 @@ module Globalize # :nodoc:
       result = fetch_from_cache(key, language, real_default, num,
                                 namespace, primary_subtag, fallbacks)
 
-      if num
-        return result.sub('%d', num.to_s)
+      if arg
+        strings = []
+        if arg.kind_of?(Array)
+          strings = arg.select {|e| !e.kind_of?(Numeric)}
+        end
+        result.scan(/(%[s|d])/).flatten.each do |interpolation|
+          case interpolation
+            when '%s'
+              value = arg.kind_of?(Array) ? strings.shift : arg
+              result = result.sub('%s', value.to_s)
+            when '%d'
+              raise "[Globalize::DbViewTranslator]" +
+              " Can't interpolate a non-number for %d." unless num
+              result = result.sub('%d', num.to_s)
+          end
+        end
       else
-        return arg.nil? ? result : result.sub('%s', arg.to_s)
+        result
       end
+      result
     end
 
     def set(key, language, translations, zero_form = nil, namespace = nil) # :nodoc:

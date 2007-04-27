@@ -368,4 +368,50 @@ class ViewTranslationTest < Test::Unit::TestCase
     Globalize::Locale.set("es-MX","MX")
     assert_equal "Adios, Josh", "Bye, %s" / "Josh"
   end
+
+  def test_proper_multiple_argument_interpolation
+
+    toms_friends = ['Dick','Harry','Jerry']
+    toms_friend = ['Dick']
+    interpolations = toms_friends.collect {'%s'}.join(', ')
+
+    Globalize::Locale.set("en","US")
+    Locale.set_translation("Name[attribute]", 'Name')
+    Locale.set_translation("%s is too long (maximum is %d)",
+      [ "%s is too long (maximum is one)", "%s is too long (maximum is %d)"])
+    Locale.set_translation("%s, %s and %s are friends.", '%s, %s and %s are friends.')
+    Locale.set_translation("%s has %d friends, ...",
+    [ "%s has one friend, %s.", "%s has %d friends, #{interpolations}."])
+
+
+    Globalize::Locale.set("es","ES")
+    Locale.set_translation("Name[attribute]", "El campo 'Nombre'")
+    Locale.set_translation("%s is too long (maximum is %d)",
+      [ "%s es demasiado largo (el máximo es uno)", "%s es demasiado largo (el máximo es %d)"])
+    Locale.set_translation("%s, %s and %s are friends.", '%s, %s y %s son amigos.')
+    Locale.set_translation("%s has %d friends, ...",
+    [ "%s tiene un amigo, %s.", "%s tiene %d amigos, #{interpolations}."])
+
+    Globalize::Locale.set("en","US")
+    assert_equal "Name is too long (maximum is one)", "%s is too long (maximum is %d)" / ["Name[attribute]".t,1]
+    assert_equal "Name is too long (maximum is 3)", "%s is too long (maximum is %d)" / ["Name[attribute]".t,3]
+    assert_equal "Tom, Dick and Harry are friends.", "%s, %s and %s are friends." / ['Tom','Dick','Harry']
+    assert_equal "Tom has 3 friends, Dick, Harry, Jerry.", "%s has %d friends, ..." / ['Tom',toms_friends.size,*toms_friends]
+    assert_equal "Tom has one friend, Dick.", "%s has %d friends, ..." / ['Tom',toms_friend.size,*toms_friend]
+
+    Globalize::Locale.set("es","ES")
+    assert_equal "El campo 'Nombre' es demasiado largo (el máximo es uno)", "%s is too long (maximum is %d)" / ["Name[attribute]".t,1]
+    assert_equal "El campo 'Nombre' es demasiado largo (el máximo es 3)", "%s is too long (maximum is %d)" / ["Name[attribute]".t,3]
+    assert_equal "Tom, Dick y Harry son amigos.", "%s, %s and %s are friends." / ['Tom','Dick','Harry']
+    assert_equal "Tom tiene 3 amigos, Dick, Harry, Jerry.", "%s has %d friends, ..." / ['Tom',toms_friends.size,*toms_friends]
+    assert_equal "Tom tiene un amigo, Dick.", "%s has %d friends, ..." / ['Tom',toms_friend.size,*toms_friend]
+  end
+
+  def test_improper_multiple_argument_interpolation
+    Globalize::Locale.set("en","US")
+    assert_raise(RuntimeError) { "%s and %d" / [] }
+    assert_raise(RuntimeError) { "%s and %d" / ['one'] }
+    assert_raise(RuntimeError) { "%s and %d" / ['one','two'] }
+    assert_raise(RuntimeError) { "%d and %d" / [2,2] }
+  end
 end
