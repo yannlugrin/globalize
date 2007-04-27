@@ -13,8 +13,8 @@ module Globalize # :nodoc:
   module DbTranslate  # :nodoc:
 
     @@keep_translations_in_model = false
-    mattr_reader :keep_translations_in_model
-    mattr_writer :keep_translations_in_model
+    @@storage_method = nil
+    mattr_accessor :keep_translations_in_model, :storage_method
 
     def self.included(base)
       base.extend(ClassMethods)
@@ -22,7 +22,7 @@ module Globalize # :nodoc:
 
     module ClassMethods
 
-      attr_accessor :keep_translations_in_model
+      attr_accessor :keep_translations_in_model, :globalize_translation_storage_method
 
 =begin rdoc
       Specifies fields that can be translated. These are normal ActiveRecord
@@ -100,23 +100,23 @@ module Globalize # :nodoc:
       By default globalize will use the external table to store translations
       so you don't have to do anything special.
 
-      To set the other storage mechanism you have two options.
+      To set the other storage method you have two options.
 
       1. You can use an application-wide setting which will apply to all
          models by setting the following in your environment.rb:
 
-           Globalize::DbTranslate.keep_translations_in_model = true
+           Globalize::DbTranslate.storage_method = :same_table
 
       2. The following example shows how you can override this global setting
       for a particular model:
 
           class Product < ActiveRecord::Base
-            self.keep_translations_in_model = true
+            self.storage_method = :same_table
             translates :name, :description, :specs
           end
 
 
-      === The External Table Storage Mechanism
+      === The External (Single Table) Storage Mechanism
 
       The standard ActiveRecord +find+ method has been tweaked to work with
       Globalize. Use it in the exact same way you would the regular find,
@@ -167,7 +167,7 @@ module Globalize # :nodoc:
 
       === Example:
 
-       #### In your model (assuming Globalize::DbTranslate.keep_translations_in_model is true):
+       #### In your model (assuming Globalize::DbTranslate.storage_method = :same_table):
 
        class Product < ActiveRecord::Base
          translates :name, :description
@@ -323,13 +323,25 @@ module Globalize # :nodoc:
         options.reverse_merge!({:base_as_default => true, :fallback => false})
 
         keep_translations_internally = true
-        if self.keep_translations_in_model.nil?
-          keep_translations_internally = ::Globalize::DbTranslate.keep_translations_in_model
-        else
-          keep_translations_internally = self.keep_translations_in_model
-        end
+        storage_method = self.globalize_translation_storage_method || ::Globalize::DbTranslate.storage_method
 
-        keep_translations_internally ? translate_internal(facets, options) : translate_external(facets, options)
+        case storage_method
+          when :same_table, :internal
+            translate_internal(facets, options)
+          when :single_table, :external
+            translate_external(facets, options)
+          else
+            raise "[Globalize::DbTranslate]" +
+                  " Unsupported storage method: '#{storage_method}'!" +
+                  " Supported: [':same_table', ':single_table']" if storage_method
+            if self.keep_translations_in_model.nil?
+              keep_translations_internally = ::Globalize::DbTranslate.keep_translations_in_model
+            else
+              keep_translations_internally = self.keep_translations_in_model
+            end
+
+            keep_translations_internally ? translate_internal(facets, options) : translate_external(facets, options)
+        end
       end
 
 =begin rdoc
@@ -351,7 +363,7 @@ module Globalize # :nodoc:
       the first field given to <tt>translates</tt>. It will also fully load on
       a <tt>find(:first)</tt> or when <tt>:translate_all => true</tt> is given as a find option.
 
-      # Note: <i>Use when Globalize::DbTranslate.keep_translations_in_model is false</i>
+      # Note: <i>Use when Globalize::DbTranslate.storage_method is :single_table</i>
 =end
       def translates_preload(*facets)
         module_eval <<-HERE
@@ -364,7 +376,7 @@ module Globalize # :nodoc:
         #Alternative storage mechanism storing the translations in the models
         #own tables.
         #
-        #<i>i.e. Globalize::DbTranslate.keep_translations_in_model is true</i>
+        #<i>i.e. Globalize::DbTranslate.storage_method = :same_table</i>
         def translate_internal(facets, options)
           facets_string = "[" + facets.map {|facet| ":#{facet}"}.join(", ") + "]"
           class_eval %{
@@ -385,7 +397,7 @@ module Globalize # :nodoc:
               #
               #  e.g. Product.find(:all , :conditions = ["\#{Product.localized_facet(:name)} = ?", name])
               #
-              # Note: <i>Used when Globalize::DbTranslate.keep_translations_in_model is true</i>
+              # Note: <i>Used when Globalize::DbTranslate.storage_method = :same_table</i>
               def localized_facet(facet)
                 unless Locale.base?
                   "\#{facet}_\#{Locale.language.dbcode}"
@@ -592,7 +604,7 @@ module Globalize # :nodoc:
         end
 
         #Default Globalize translations storage mechanism
-        #<i>i.e. Globalize::DbTranslate.keep_translations_in_model is false</i>
+        #<i>i.e. Globalize::DbTranslate.storage_method = :single_table</i>
         def translate_external(facets, options)
           facets_string = "[" + facets.map {|facet| ":#{facet}"}.join(", ") + "]"
           class_eval <<-HERE
@@ -878,7 +890,7 @@ module Globalize # :nodoc:
       # Use this instead of +find+ if you want to bypass the translation
       # code for any reason.
       #
-      # Note: <i>Use when Globalize::DbTranslate.keep_translations_in_model is false</i>
+      # Note: <i>Use when Globalize::DbTranslate.storage_method = :single_table</i>
       def untranslated_find(*args)
         has_options = args.last.is_a?(Hash)
         options = has_options ? args.last : {}
@@ -1036,7 +1048,7 @@ module Globalize # :nodoc:
       # like find_by_user_name(user_name) or find_by_user_name_and_password(user_name, password)
       # use the appropriately localized column.
       #
-      # Note: <i>Used when Globalize::DbTranslate.keep_translations_in_model is true</i>
+      # Note: <i>Used when Globalize::DbTranslate.storage_method = :same_table</i>
       def method_missing(method_id, *arguments)
         if match = /find_(all_by|by)_([_a-zA-Z]\w*)/.match(method_id.to_s)
           finder, deprecated_finder = determine_finder(match), determine_deprecated_finder(match)

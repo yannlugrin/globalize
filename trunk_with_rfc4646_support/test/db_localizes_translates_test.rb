@@ -459,7 +459,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
 
   def test_returned_base
     Product.class_eval %{
-      self.keep_translations_in_model = true
+      self.globalize_translation_storage_method = :same_table
       translates :name, :description, :specs, {
         :base_as_default => true,
         :name => { :bidi_embed => false }, :specs => { :bidi_embed => false }
@@ -480,7 +480,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
 
 
     Product.class_eval %{
-      self.keep_translations_in_model = true
+      self.globalize_translation_storage_method = :same_table
       translates :name, :description, :specs,
            :name => {:fallback => true},
            :description => {:fallback => false, :base_as_default => false}
