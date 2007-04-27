@@ -41,7 +41,7 @@ module ActiveRecord # :nodoc:
             full_messages << msg_text / msg_num
           else
             full_messages <<
-              (@base.class.human_attribute_name(attr).t + " " + (msg_text / msg_num))
+              (("%s " + msg_text) / ["#{@base.class.human_attribute_name(attr)}[ActiveRecord::Validations]".t, msg_num])
           end
         end
       end

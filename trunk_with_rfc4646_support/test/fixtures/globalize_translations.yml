@@ -416,22 +416,46 @@ view_he_tr_validation_3:
   id: 67
   type: ViewTranslation
   language_id: 2
-  tr_key: "is too long (maximum is %d characters)"
+  tr_key: "%s is too long (maximum is %d characters)"
   pluralization_index: 1
-  text: "ארוך מדי (המקסימום הוא תו אחד)"
+  text: "%s ארוך מדי (המקסימום הוא תו אחד)"
 
 view_he_tr_validation_4:
   id: 68
   type: ViewTranslation
   language_id: 2
-  tr_key: "is too long (maximum is %d characters)"
+  tr_key: "%s is too long (maximum is %d characters)"
   pluralization_index: 2
-  text: "ארוך מדי (המקסימום הוא %d תווים)"
+  text: "%s ארוך מדי (המקסימום הוא %d תווים)"
 
 view_he_tr_validation_5:
   id: 69
   type: ViewTranslation
   language_id: 2
-  tr_key: "Specs"
+  tr_key: "Specs[ActiveRecord::Validations]"
   pluralization_index: 1
   text: "המפרט"
+
+view_he_tr_validation_6:
+  id: 70
+  type: ViewTranslation
+  language_id: 1
+  tr_key: "Name[ActiveRecord::Validations]"
+  pluralization_index: 1
+  text: "Name"
+
+view_he_tr_validation_7:
+  id: 71
+  type: ViewTranslation
+  language_id: 1
+  tr_key: "%s is too short (minimum is %d characters)"
+  pluralization_index: 1
+  text: "%s is too short (minimum is one character)"
+
+view_he_tr_validation_8:
+  id: 72
+  type: ViewTranslation
+  language_id: 1
+  tr_key: "%s is too short (minimum is %d characters)"
+  pluralization_index: 2
+  text: "%s is too short (minimum is %d characters)"
