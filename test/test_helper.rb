@@ -5,7 +5,7 @@ require 'test_help'
 
 plugin_path = RAILS_ROOT + "/vendor/plugins/globalize"
 
-config_location = plugin_path + "/test/config/database.yml"
+config_location = RAILS_ROOT + "/config/database.yml"
 
 config = YAML::load(ERB.new(IO.read(config_location)).result)
 ActiveRecord::Base.logger = Logger.new(plugin_path + "/test/log/test.log")
