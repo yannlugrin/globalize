@@ -659,30 +659,30 @@
 4268,"ViewTranslation","Thu [abbreviated weekday]","",,"",5889,"Jue",1
 4269,"ViewTranslation","Fri [abbreviated weekday]","",,"",5889,"Vie",1
 4270,"ViewTranslation","Sat [abbreviated weekday]","",,"",5889,"Sáb",1
-4271,"ViewTranslation","January [month]","",,"",5889,"Enero",1
-4272,"ViewTranslation","February [month]","",,"",5889,"Febrero",1
-4273,"ViewTranslation","March [month]","",,"",5889,"Marzo",1
-4274,"ViewTranslation","April [month]","",,"",5889,"Abril",1
-4275,"ViewTranslation","May [month]","",,"",5889,"Mayo",1
-4276,"ViewTranslation","June [month]","",,"",5889,"Junio",1
-4277,"ViewTranslation","July [month]","",,"",5889,"Julio",1
-4278,"ViewTranslation","August [month]","",,"",5889,"Agosto",1
-4279,"ViewTranslation","September [month]","",,"",5889,"Septiembre",1
-4280,"ViewTranslation","October [month]","",,"",5889,"Octubre",1
-4281,"ViewTranslation","November [month]","",,"",5889,"Noviembre",1
-4282,"ViewTranslation","December [month]","",,"",5889,"Diciembre",1
-4283,"ViewTranslation","Jan [abbreviated month]","",,"",5889,"Ene",1
-4284,"ViewTranslation","Feb [abbreviated month]","",,"",5889,"Feb",1
-4285,"ViewTranslation","Mar [abbreviated month]","",,"",5889,"Mar",1
-4286,"ViewTranslation","Apr [abbreviated month]","",,"",5889,"Abr",1
-4287,"ViewTranslation","May [abbreviated month]","",,"",5889,"May",1
-4288,"ViewTranslation","Jun [abbreviated month]","",,"",5889,"Jun",1
-4289,"ViewTranslation","Jul [abbreviated month]","",,"",5889,"Jul",1
-4290,"ViewTranslation","Aug [abbreviated month]","",,"",5889,"Ago",1
-4291,"ViewTranslation","Sep [abbreviated month]","",,"",5889,"Sep",1
-4292,"ViewTranslation","Oct [abbreviated month]","",,"",5889,"Oct",1
-4293,"ViewTranslation","Nov [abbreviated month]","",,"",5889,"Nov",1
-4294,"ViewTranslation","Dec [abbreviated month]","",,"",5889,"Dic",1
+4271,"ViewTranslation","January [month]","",,"",5889,"enero",1
+4272,"ViewTranslation","February [month]","",,"",5889,"febrero",1
+4273,"ViewTranslation","March [month]","",,"",5889,"marzo",1
+4274,"ViewTranslation","April [month]","",,"",5889,"abril",1
+4275,"ViewTranslation","May [month]","",,"",5889,"mayo",1
+4276,"ViewTranslation","June [month]","",,"",5889,"junio",1
+4277,"ViewTranslation","July [month]","",,"",5889,"julio",1
+4278,"ViewTranslation","August [month]","",,"",5889,"agosto",1
+4279,"ViewTranslation","September [month]","",,"",5889,"septiembre",1
+4280,"ViewTranslation","October [month]","",,"",5889,"sctubre",1
+4281,"ViewTranslation","November [month]","",,"",5889,"noviembre",1
+4282,"ViewTranslation","December [month]","",,"",5889,"diciembre",1
+4283,"ViewTranslation","Jan [abbreviated month]","",,"",5889,"dne",1
+4284,"ViewTranslation","Feb [abbreviated month]","",,"",5889,"deb",1
+4285,"ViewTranslation","Mar [abbreviated month]","",,"",5889,"mar",1
+4286,"ViewTranslation","Apr [abbreviated month]","",,"",5889,"abr",1
+4287,"ViewTranslation","May [abbreviated month]","",,"",5889,"may",1
+4288,"ViewTranslation","Jun [abbreviated month]","",,"",5889,"jun",1
+4289,"ViewTranslation","Jul [abbreviated month]","",,"",5889,"jul",1
+4290,"ViewTranslation","Aug [abbreviated month]","",,"",5889,"ago",1
+4291,"ViewTranslation","Sep [abbreviated month]","",,"",5889,"sep",1
+4292,"ViewTranslation","Oct [abbreviated month]","",,"",5889,"oct",1
+4293,"ViewTranslation","Nov [abbreviated month]","",,"",5889,"nov",1
+4294,"ViewTranslation","Dec [abbreviated month]","",,"",5889,"dic",1
 4295,"ViewTranslation","Sunday [weekday]","",,"",1851,"Pühapäev",1
 4296,"ViewTranslation","Monday [weekday]","",,"",1851,"Esmaspäev",1
 4297,"ViewTranslation","Tuesday [weekday]","",,"",1851,"Teisipäev",1
@@ -3419,3 +3419,41 @@
 7028,"ViewTranslation","Oct [abbreviated month]","",,"",7594,"Okt",1
 7029,"ViewTranslation","Nov [abbreviated month]","",,"",7594,"Nov",1
 7030,"ViewTranslation","Dec [abbreviated month]","",,"",7594,"Dis",1
+7031,"ViewTranslation","Sunday [weekday]","",,"",1556,"Sonntag",1
+7032,"ViewTranslation","Monday [weekday]","",,"",1556,"Montag",1
+7033,"ViewTranslation","Tuesday [weekday]","",,"",1556,"Dienstag",1
+7034,"ViewTranslation","Wednesday [weekday]","",,"",1556,"Mittwoch",1
+7035,"ViewTranslation","Thursday [weekday]","",,"",1556,"Donnerstag",1
+7036,"ViewTranslation","Friday [weekday]","",,"",1556,"Freitag",1
+7037,"ViewTranslation","Saturday [weekday]","",,"",1556,"Samstag",1
+7038,"ViewTranslation","Sun [abbreviated weekday]","",,"",1556,"So",1
+7039,"ViewTranslation","Mon [abbreviated weekday]","",,"",1556,"Mo",1
+7040,"ViewTranslation","Tue [abbreviated weekday]","",,"",1556,"Di",1
+7041,"ViewTranslation","Wed [abbreviated weekday]","",,"",1556,"Mi",1
+7042,"ViewTranslation","Thu [abbreviated weekday]","",,"",1556,"Do",1
+7043,"ViewTranslation","Fri [abbreviated weekday]","",,"",1556,"Fr",1
+7044,"ViewTranslation","Sat [abbreviated weekday]","",,"",1556,"Sa",1
+7045,"ViewTranslation","January [month]","",,"",1556,"Januar",1
+7046,"ViewTranslation","February [month]","",,"",1556,"Februar",1
+7047,"ViewTranslation","March [month]","",,"",1556,"März",1
+7048,"ViewTranslation","April [month]","",,"",1556,"April",1
+7049,"ViewTranslation","May [month]","",,"",1556,"Mai",1
+7050,"ViewTranslation","June [month]","",,"",1556,"Juni",1
+7051,"ViewTranslation","July [month]","",,"",1556,"Juli",1
+7052,"ViewTranslation","August [month]","",,"",1556,"August",1
+7053,"ViewTranslation","September [month]","",,"",1556,"September",1
+7054,"ViewTranslation","October [month]","",,"",1556,"Oktober",1
+7055,"ViewTranslation","November [month]","",,"",1556,"November",1
+7056,"ViewTranslation","December [month]","",,"",1556,"Dezember",1
+7057,"ViewTranslation","Jan [abbreviated month]","",,"",1556,"Jan",1
+7058,"ViewTranslation","Feb [abbreviated month]","",,"",1556,"Feb",1
+7059,"ViewTranslation","Mar [abbreviated month]","",,"",1556,"Mär",1
+7060,"ViewTranslation","Apr [abbreviated month]","",,"",1556,"Apr",1
+7061,"ViewTranslation","May [abbreviated month]","",,"",1556,"Mai",1
+7062,"ViewTranslation","Jun [abbreviated month]","",,"",1556,"Jun",1
+7063,"ViewTranslation","Jul [abbreviated month]","",,"",1556,"Jul",1
+7064,"ViewTranslation","Aug [abbreviated month]","",,"",1556,"Aug",1
+7065,"ViewTranslation","Sep [abbreviated month]","",,"",1556,"Sep",1
+7066,"ViewTranslation","Oct [abbreviated month]","",,"",1556,"Okt",1
+7067,"ViewTranslation","Nov [abbreviated month]","",,"",1556,"Nov",1
+7068,"ViewTranslation","Dec [abbreviated month]","",,"",1556,"Dez",1
