@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/test_helper'
+require 'benchmark'
 
 class RFC4646Test < Test::Unit::TestCase
 
@@ -14,21 +15,21 @@ class RFC4646Test < Test::Unit::TestCase
     assert_equal 'en', rfc.primary
     assert_nil         rfc.script
     assert_nil         rfc.region
-    assert_nil         rfc.variants
-    assert_nil         rfc.extensions
+    assert             rfc.variants.empty?
+    assert             rfc.extensions.empty?
     assert             rfc.extension_match.empty?
     assert_nil         rfc.privateuse
-    assert_nil         rfc.irregulars
+    assert             rfc.irregulars.empty?
 
     rfc = RFC_4646.parse 'en-US'
     assert_equal 'en-US', rfc.tag
     assert_equal 'en',    rfc.primary
     assert_nil            rfc.script
     assert_equal 'US',    rfc.region
-    assert_nil            rfc.variants
-    assert_nil            rfc.extensions
+    assert                rfc.variants.empty?
+    assert                rfc.extensions.empty?
     assert_nil            rfc.privateuse
-    assert_nil            rfc.irregulars
+    assert                rfc.irregulars.empty?
   end
 
   def test_well_formed_valid_rfc4646
@@ -71,9 +72,22 @@ class RFC4646Test < Test::Unit::TestCase
   end
 
   def test_parsing_well_formed_tags_with_validation
-    tag = 'en-Latn-US-lojban-gaulish-a-12345678-ABCD-b-ABCDEFGH-x-a-b-c-12345678'
+    tag = 'en-Latn-US'
     assert_nothing_thrown do
-      rfc = RFC_4646.parse(tag, true)
+      rfc = nil
+      puts 'Benchmarking non-strict rfc4646 validation...'
+      Benchmark.bm do |x|
+        x.report { rfc = RFC_4646.parse(tag, false) }
+      end
+
+      puts
+      Benchmark.bm do |x|
+        puts 'Benchmarking strict rfc4646 validation (first-time)...'
+        x.report { rfc = RFC_4646.parse(tag, true) }
+        puts 'Benchmarking strict rfc4646 validation (second-time)...'
+        x.report { rfc = RFC_4646.parse(tag, true) }
+      end
+
       assert_not_nil rfc.lsr
     end
   end

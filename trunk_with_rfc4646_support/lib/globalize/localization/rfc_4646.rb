@@ -1,6 +1,6 @@
 module Globalize
   class RFC_4646  #:nodoc:
-    attr_accessor :primary, :script, :region, :variants, :extensions, :extension_match, :privateuse, :irregulars, :tag, :lsr
+    attr_accessor :primary, :extlangs, :script, :region, :variants, :extensions, :extension_match, :privateuse, :irregulars, :tag, :lsr
 
     #ALPHA
     ALPHA = "[a-zA-Z]"
@@ -176,23 +176,39 @@ module Globalize
       rfc = self.new
       rfc.tag = pattern_matches[1]
       rfc.primary = pattern_matches[3]
+      rfc.extlangs = pattern_matches[5]
       rfc.script = pattern_matches[8]
       rfc.region = pattern_matches[10]
       rfc.variants = pattern_matches[12]
       rfc.variants = rfc.variants.scan(Regexp.new(RFC_4646::VARIANTSUB)).collect {|e| e.first} if rfc.variants
+      rfc.variants ||= []
       rfc.extension_match = pattern_matches[16]
       rfc.privateuse = (pattern_matches[22] && !pattern_matches[22].empty?) ? pattern_matches[22] : pattern_matches[24]
       rfc.irregulars = pattern_matches[27]
+      rfc.irregulars ||= []
 
       if rfc.extension_match && !rfc.extension_match.empty?
         singletons = rfc.extension_match.scan(SINGLETON_PATTERN).collect {|e| e.gsub('-','')}
         raise ArgumentError, "bad format for #{tag}, not rfc-4646 compliant (duplicate singletons)" unless (singletons == singletons.uniq)
         rfc.extensions = pattern_matches[16].scan(Regexp.new(RFC_4646::EXTENSION)).collect {|e| e.first}
       end
+      rfc.extensions ||= []
 
       if validate_against_lsr
         rfc.lsr = LanguageSubtagRegistry.parse(File.join(File.dirname(__FILE__), LANGUAGE_SUBTAG_REGISTRY_FILE))
-        #TODO
+        valid = true
+        valid = rfc.lsr.has_language_subtag?(rfc.primary) if valid
+        raise ArgumentError, "bad format for #{tag}, not rfc-4646 compliant (primary not registered)" unless valid
+        valid = rfc.extlangs.all? {|extlang| rfc.lsr.has_extlang_subtag?(extlang)}  if valid
+        raise ArgumentError, "bad format for #{tag}, not rfc-4646 compliant (extlang not registered)" unless valid
+        valid = rfc.lsr.has_script_subtag?(rfc.script) if valid
+        raise ArgumentError, "bad format for #{tag}, not rfc-4646 compliant (script not registered)" unless valid
+        valid = rfc.lsr.has_region_subtag?(rfc.region) if valid
+        raise ArgumentError, "bad format for #{tag}, not rfc-4646 compliant (region not registered)" unless valid
+        valid = rfc.variants.all? {|variant| rfc.lsr.has_variant_subtag?(variant)} if valid
+        raise ArgumentError, "bad format for #{tag}, not rfc-4646 compliant (variant not registered)" unless valid
+        valid = rfc.extensions.all? {|extension| rfc.lsr.has_subtag?(extension)} if valid
+        raise ArgumentError, "bad format for #{tag}, not rfc-4646 compliant (extension not registered)" unless valid
       end
 
       rfc

@@ -362,7 +362,7 @@ class LocaleTest < Test::Unit::TestCase
     assert_equal 'az',               loc.rfc.primary
     assert_equal 'Arab',             loc.rfc.script
     assert_nil                       loc.rfc.region
-    assert_nil                       loc.rfc.variants
+    assert                           loc.rfc.variants.empty?
     assert_equal 'x-AZE-derbend',    loc.rfc.privateuse
 
   end

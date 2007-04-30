@@ -1,11 +1,15 @@
 require 'yaml'
+require 'singleton'
 
 module Globalize
   class LanguageSubtagRegistry  #:nodoc:
+    include Singleton
+
     attr_accessor :entries, :subtags
 
     def self.parse(file)
-      lsr = self.new
+      return instance if instance.entries
+      lsr = instance
 
       File.open(file, 'r') do |f|
         f.readline #skip date
