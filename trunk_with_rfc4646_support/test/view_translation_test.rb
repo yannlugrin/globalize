@@ -182,13 +182,13 @@ class ViewTranslationTest < Test::Unit::TestCase
     assert_equal 1, tr.cache_count
     assert_equal 38, tr.cache_size
     assert_equal 3, tr.cache_total_hits
-    assert_equal 5, tr.cache_total_queries
+    assert_equal 4, tr.cache_total_queries
 
     assert_equal "יש לי 5 קבצים", "I have %d files" / 5
     assert_equal 1, tr.cache_count
     assert_equal 38, tr.cache_size
     assert_equal 4, tr.cache_total_hits
-    assert_equal 6, tr.cache_total_queries
+    assert_equal 5, tr.cache_total_queries
 
     tr.max_cache_size = 100000 / 1024 # in bytes
 
@@ -197,27 +197,27 @@ class ViewTranslationTest < Test::Unit::TestCase
     assert_equal 2, tr.cache_count
     assert_equal 80, tr.cache_size
     assert_equal 4, tr.cache_total_hits
-    assert_equal 7, tr.cache_total_queries
+    assert_equal 6, tr.cache_total_queries
 
     tr.max_cache_size = 8192  # set it back to default
     assert_equal "ועכשיו בעברית", :And_now_in_Hebrew.t
     assert_equal 2, tr.cache_count
     assert_equal 80, tr.cache_size
     assert_equal 5, tr.cache_total_hits
-    assert_equal 8, tr.cache_total_queries
+    assert_equal 7, tr.cache_total_queries
 
     # test for invalidation on set_translation
     Locale.set_translation(:And_now_in_Hebrew, "override")
     assert_equal 1, tr.cache_count
     assert_equal 21, tr.cache_size
     assert_equal 5, tr.cache_total_hits
-    assert_equal 8, tr.cache_total_queries
+    assert_equal 7, tr.cache_total_queries
 
     assert_equal "override", :And_now_in_Hebrew.t
     assert_equal 2, tr.cache_count
     assert_equal 46, tr.cache_size
     assert_equal 5, tr.cache_total_hits
-    assert_equal 9, tr.cache_total_queries
+    assert_equal 8, tr.cache_total_queries
 
     # set it back to what it was for other tests
     Locale.set_translation(:And_now_in_Hebrew, "ועכשיו בעברית")

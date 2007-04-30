@@ -118,13 +118,13 @@ module Globalize # :nodoc:
       end
 
       def cache_fetch(key, language, idx, namespace = nil)
-        @cache_total_queries += 1
         cache_key = cache_key(key, language, idx, namespace)
         @cache_total_hits += 1 if @cache.has_key?(cache_key)
         @cache[cache_key]
       end
 
       def cache_contains?(key, language, idx, namespace = nil)
+        @cache_total_queries += 1
         @cache.has_key?(cache_key(key, language, idx, namespace))
       end
 
@@ -172,6 +172,7 @@ module Globalize # :nodoc:
         plural_idx  = language.plural_index(num) # language-defined plural form
         zplural_idx = zero_form ? 0 : plural_idx # takes zero-form into account
 
+
         if cache_contains?(key, language, zplural_idx, namespace)
           result = cache_fetch(key, language, zplural_idx, namespace)
         else
@@ -195,7 +196,7 @@ module Globalize # :nodoc:
             end
           end
 
-          cache_add(key, language, zplural_idx, result, namespace)
+          cache_add(key, language, zplural_idx, result, namespace) if result
         end
         result ||= real_default
       end
