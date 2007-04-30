@@ -8,7 +8,7 @@ module Globalize
     attr_accessor :entries, :subtags
 
     def self.parse(file)
-      return instance if instance.entries
+      return instance if instance && instance.entries
       lsr = instance
 
       File.open(file, 'r') do |f|

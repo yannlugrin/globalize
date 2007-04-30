@@ -199,15 +199,15 @@ module Globalize
         valid = true
         valid = rfc.lsr.has_language_subtag?(rfc.primary) if valid
         raise ArgumentError, "bad format for #{tag}, not rfc-4646 compliant (primary not registered)" unless valid
-        valid = rfc.extlangs.all? {|extlang| rfc.lsr.has_extlang_subtag?(extlang)}  if valid
+        valid = rfc.extlangs.all? {|extlang| rfc.lsr.has_extlang_subtag?(extlang)}  if valid && !rfc.extlangs.empty?
         raise ArgumentError, "bad format for #{tag}, not rfc-4646 compliant (extlang not registered)" unless valid
-        valid = rfc.lsr.has_script_subtag?(rfc.script) if valid
+        valid = rfc.lsr.has_script_subtag?(rfc.script) if valid && rfc.script
         raise ArgumentError, "bad format for #{tag}, not rfc-4646 compliant (script not registered)" unless valid
-        valid = rfc.lsr.has_region_subtag?(rfc.region) if valid
+        valid = rfc.lsr.has_region_subtag?(rfc.region) if valid && rfc.region
         raise ArgumentError, "bad format for #{tag}, not rfc-4646 compliant (region not registered)" unless valid
-        valid = rfc.variants.all? {|variant| rfc.lsr.has_variant_subtag?(variant)} if valid
+        valid = rfc.variants.all? {|variant| rfc.lsr.has_variant_subtag?(variant)} if valid && !rfc.variants.empty?
         raise ArgumentError, "bad format for #{tag}, not rfc-4646 compliant (variant not registered)" unless valid
-        valid = rfc.extensions.all? {|extension| rfc.lsr.has_subtag?(extension)} if valid
+        valid = rfc.extensions.all? {|extension| rfc.lsr.has_subtag?(extension)} if valid && !rfc.extensions.empty?
         raise ArgumentError, "bad format for #{tag}, not rfc-4646 compliant (extension not registered)" unless valid
       end
 

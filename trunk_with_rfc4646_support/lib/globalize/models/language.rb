@@ -58,10 +58,10 @@ module Globalize
         Drop the country code and just use 'en' if you meant to just select the english language.
         If you really did mean to specify #{tag} as a valid rfc_4646 tag then this tag
         is NOT available in the database.
-        You can add it via:
+        You can add it via: 'Globalize::Language.add()'
         EOM
       else
-        raise ArgumentError, "Tag '#{tag}' not available in the database. You can add it via:"
+        raise ArgumentError, "Tag '#{tag}' not available in the database. You can add it via: 'Globalize::Language.add()'"
       end
 
       lang
@@ -76,20 +76,29 @@ module Globalize
     Language.add('en-AU',locale_en.language) #The locale's language is used as a template for the new Language
     or
     Language.add('en-AU',locale_en, 'English (Australia)', 'Ozzie')
-    #The supplied locale's language is used as a template but english_name and native_name can be overriden
+    #The supplied locale's language is used as a template but attributes can be overriden
 =end
-    def self.add(tag, primary_subtag_or_template, english_name=nil, native_name=nil, direction=nil, pluralization=nil)
+    def self.add(tag, primary_subtag_or_template, english_name=nil,
+                 native_name=nil, direction=nil, pluralization=nil,
+                 primary_subtag = nil)
+
+      RFC_4646.parse(tag, true)
       options = {:tag => tag}
       case primary_subtag_or_template
-        when Locale
-          template_options = primary_subtag_or_template.language.attributes
+        when Locale, Language
+          template_options = {}
+          case primary_subtag_or_template
+            when Locale
+              template_options = primary_subtag_or_template.language.attributes
+            when Language
+              template_options = primary_subtag_or_template.attributes
+          end
+
           template_options.merge!({:english_name => english_name}) if english_name
           template_options.merge!({:native_name => native_name}) if native_name
-          options.reverse_merge!(template_options)
-        when Language
-          template_options = primary_subtag_or_template.attributes
-          template_options.merge!({:english_name => english_name}) if english_name
-          template_options.merge!({:native_name => native_name}) if native_name
+          template_options.merge!({:direction => direction}) if direction
+          template_options.merge!({:pluralization => pluralization}) if pluralization
+          template_options.merge!({:primary_subtag => primary_subtag}) if primary_subtag
           options.reverse_merge!(template_options)
         else
         options.merge(:primary_subtag => primary_subtag_or_template,

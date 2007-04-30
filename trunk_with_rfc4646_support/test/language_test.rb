@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/test_helper'
 class LanguageTest < Test::Unit::TestCase
   include Globalize
 
-  fixtures :globalize_languages
+  fixtures :globalize_languages, :globalize_countries
 
   def setup
   end
@@ -127,7 +127,7 @@ class LanguageTest < Test::Unit::TestCase
         Drop the country code and just use 'en' if you meant to just select the english language.
         If you really did mean to specify es-BL as a valid rfc_4646 tag then this tag
         is NOT available in the database.
-        You can add it via:
+        You can add it via: 'Globalize::Language.add()'
         EOM
 
     assert_raises ArgumentError do
@@ -136,7 +136,7 @@ class LanguageTest < Test::Unit::TestCase
       end
     end
 
-    raised_message = "Tag 'it' not available in the database. You can add it via:"
+    raised_message = "Tag 'it' not available in the database. You can add it via: 'Globalize::Language.add()'"
     #Intended rfc_4646 valid tag but missing in db
     assert_raises ArgumentError do
       assert_raised_message_equals(raised_message) do
@@ -145,4 +145,36 @@ class LanguageTest < Test::Unit::TestCase
     end
   end
 
+  def test_language_add
+
+    loc_es = Locale.new('es_US')
+    lang_es = Language.pick('es')
+
+    assert_raises(ArgumentError) do
+      Language.add('es-BL', lang_es, 'Spanish (Bolivia)')
+      Language.pick('es-BL')
+    end
+
+    assert_nothing_raised do
+      lang_es_BL = Language.add('es-BO', lang_es, 'Spanish (Bolivia)')
+
+      assert 'es-BO', lang_es_BL.tag
+      assert 'Spanish (Bolivia)', lang_es_BL.english_name
+      assert_equal lang_es.native_name, lang_es_BL.native_name
+      assert_equal lang_es.direction, lang_es_BL.direction
+      assert_equal lang_es.pluralization, lang_es_BL.pluralization
+
+      lang_es_BS = Language.add('es-BS', loc_es, 'Spanish (Bahamas)','Castellano', 'rtl','c == 1 ? 1 : 2', 'en')
+
+      assert 'es-BS', lang_es_BS.tag
+      assert 'Spanish (Bahams)', lang_es_BS.english_name
+      assert 'Castellano', lang_es_BS.native_name
+      assert 'rtl', lang_es_BS.direction
+      assert 'c == 1 ? 1 : 2', lang_es_BS.pluralization
+      assert 'en', lang_es_BS.primary_subtag
+
+      assert_not_nil Language.pick('es-BS')
+    end
+
+  end
 end

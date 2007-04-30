@@ -74,6 +74,12 @@ class RFC4646Test < Test::Unit::TestCase
   def test_parsing_well_formed_tags_with_validation
     tag = 'en-Latn-US'
     assert_nothing_thrown do
+
+      #ensure first time access for benchmarking
+      Singleton.send(:__init__, LanguageSubtagRegistry)
+
+      RFC_4646.parse('es-BL', false)
+      RFC_4646.parse('es-Letn', false)
       rfc = nil
       puts 'Benchmarking non-strict rfc4646 validation...'
       Benchmark.bm do |x|
@@ -89,6 +95,16 @@ class RFC4646Test < Test::Unit::TestCase
       end
 
       assert_not_nil rfc.lsr
+    end
+
+    assert_raises(ArgumentError) do
+      RFC_4646.parse('es-BL', true)
+      RFC_4646.parse('es-Letn', true)
+    end
+
+    assert_nothing_thrown do
+      RFC_4646.parse('es-BO', true)
+      RFC_4646.parse('es-Latn', true)
     end
   end
 
