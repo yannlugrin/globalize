@@ -124,6 +124,10 @@ module Globalize # :nodoc:
         @cache[cache_key]
       end
 
+      def cache_contains?(key, language, idx, namespace = nil)
+        @cache.has_key?(cache_key(key, language, idx, namespace))
+      end
+
       def cache_add(key, language, idx, translation, namespace = nil)
         cache_clear if @cache_size > max_cache_size * 1024
         size = key.size + (translation.nil? ? 0 : translation.size)
@@ -168,9 +172,8 @@ module Globalize # :nodoc:
         plural_idx  = language.plural_index(num) # language-defined plural form
         zplural_idx = zero_form ? 0 : plural_idx # takes zero-form into account
 
-        cached = cache_fetch(key, language, zplural_idx, namespace)
-        if cached
-          result = cached
+        if cache_contains?(key, language, zplural_idx, namespace)
+          result = cache_fetch(key, language, zplural_idx, namespace)
         else
           result = fetch_view_translation(key, language, zplural_idx, namespace)
 
