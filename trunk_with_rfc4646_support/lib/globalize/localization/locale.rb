@@ -54,7 +54,7 @@ module Globalize
     end
 
     def eql?(object)
-      self == (object)
+       self == (object) || (object.is_a?(String) && object.eql?(self.to_s))
     end
 
     def ==(object)

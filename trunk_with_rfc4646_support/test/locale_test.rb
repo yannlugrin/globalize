@@ -786,4 +786,41 @@ class LocaleTest < Test::Unit::TestCase
       assert_equal loc_es_MX, loc_es.fallbacks.last
     end
   end
+
+  def test_equality
+    language = 'en-US'
+    country = 'US'
+    tag = "#{language}_#{country}"
+
+    loc1 = Locale.new(language, country)
+    loc2 = Locale.new(language, country)
+    loc3 = Locale.new(tag)
+
+    assert loc1 == loc2
+    assert loc2 == loc1
+    assert loc3 == loc1
+    assert loc1 == loc3
+    assert loc1.eql?(loc2)
+    assert loc2.eql?(loc1)
+    assert loc3.eql?(loc1)
+    assert loc1.eql?(loc3)
+
+    assert loc1.eql?(tag)
+    assert loc2.eql?(tag)
+    assert loc3.eql?(tag)
+
+    assert !tag.eql?(loc1)
+    assert !tag.eql?(loc2)
+    assert !tag.eql?(loc3)
+
+    assert loc1.equal?(loc1)
+    assert loc2.equal?(loc2)
+    assert loc3.equal?(loc3)
+
+    assert !loc1.equal?(loc2)
+    assert !loc2.equal?(loc1)
+    assert !loc3.equal?(loc1)
+    assert !loc1.equal?(loc3)
+
+  end
 end

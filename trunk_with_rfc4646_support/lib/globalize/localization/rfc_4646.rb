@@ -213,5 +213,15 @@ module Globalize
       self.tag
     end
 
+    def ==(object)
+      object.equal?(self) ||
+        (object.instance_of?(self.class) &&
+          object.tag == tag)
+    end
+
+    def eql?(object)
+       self == (object) || (object.is_a?(String) && object.eql?(self.tag))
+    end
+
   end
 end

@@ -78,4 +78,28 @@ class RFC4646Test < Test::Unit::TestCase
     end
   end
 
+  def test_equality
+    tag = 'en-US'
+    rfc1 = RFC_4646.parse(tag)
+    rfc2 = RFC_4646.parse(tag)
+
+    assert rfc1 == rfc2
+    assert rfc2 == rfc1
+    assert rfc1.eql?(rfc2)
+    assert rfc2.eql?(rfc1)
+
+    assert rfc1.eql?(tag)
+    assert rfc2.eql?(tag)
+
+    assert !tag.eql?(rfc1)
+    assert !tag.eql?(rfc2)
+
+    assert rfc1.equal?(rfc1)
+    assert rfc2.equal?(rfc2)
+
+    assert !rfc1.equal?(rfc2)
+    assert !rfc2.equal?(rfc1)
+
+  end
+
 end
