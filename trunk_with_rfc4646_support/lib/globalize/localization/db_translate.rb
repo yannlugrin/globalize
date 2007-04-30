@@ -615,7 +615,7 @@ module Globalize # :nodoc:
             @@preload_facets ||= @@globalize_facets
             class << self
 
-              def sqlite?; connection.kind_of? ActiveRecord::ConnectionAdapters::SQLiteAdapter end
+              def sqlite?; defined?(ActiveRecord::ConnectionAdapters::SQLiteAdapter) and connection.kind_of?(ActiveRecord::ConnectionAdapters::SQLiteAdapter); end
 
               def globalize_facets
                 @@globalize_facets
