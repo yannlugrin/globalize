@@ -385,9 +385,8 @@ module Globalize # :nodoc:
             @@aliases = {}
             @@dyn_table_aliases = {} #Used for dynamic finders
             @@facets = facets
-            has_many :translations, :class_name => 'Globalize::ModelTranslation',
-                  :conditions => ['globalize_translations.table_name = ?', table_name],
-                  :foreign_key => 'item_id',
+            has_many :translations, :class_name => '::Globalize::ModelTranslation',
+                  :as => :item,
                   :dependent => :delete_all
 
             class << self
@@ -492,14 +491,14 @@ module Globalize # :nodoc:
               end
 
               has_many :#{facet}_translations, :class_name => '::Globalize::ModelTranslation',
-                    :conditions => ['globalize_translations.table_name = ? AND globalize_translations.facet = ?', table_name, "#{facet}"],
-                    :foreign_key => 'item_id',
+                    :conditions => ['globalize_translations.facet = ?', "#{facet}"],
+                    :as => :item,
                     :dependent => :delete_all
 
               #Used exclusively for globalizing dynamic finders (see method_missing)
               has_many :#{facet}_dyn_translations, :class_name => '::Globalize::ModelTranslation',
-                    :conditions => [@@dyn_table_aliases[:#{facet}] + '.table_name = ? AND ' + @@dyn_table_aliases[:#{facet}] + '.facet = ?', table_name, "#{facet}"],
-                    :foreign_key => 'item_id',
+                    :conditions => [@@dyn_table_aliases[:#{facet}] + '.facet = ?', "#{facet}"],
+                    :as => :item,
                     :dependent => :delete_all
 
 
@@ -554,7 +553,7 @@ module Globalize # :nodoc:
                   translation = self.#{facet}_translations.detect{|tr| tr.language_id == language.id }
                   if value
                     if translation.nil?
-                      translation = self.#{facet}_translations.build(:table_name => self.class.table_name,
+                      translation = self.#{facet}_translations.build(:item_type => self.class.name,
                           :item_id => self.id, :facet => "#{facet}", :language_id => language.id)
                     end
                     translation.text = value

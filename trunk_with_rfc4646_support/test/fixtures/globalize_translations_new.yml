@@ -1,7 +1,6 @@
-# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 prod_1_facet_1_he_tr:
   id: 4
-  table_name: globalize_products
+  item_type: Product
   item_id: 1
   facet: description
   language_id: 2
@@ -9,7 +8,7 @@ prod_1_facet_1_he_tr:
   type: ModelTranslation
 mfr_1_facet_1_he_tr:
   id: 5
-  table_name: globalize_manufacturers
+  item_type: Manufacturer
   item_id: 1
   facet: name
   language_id: 2
@@ -17,7 +16,7 @@ mfr_1_facet_1_he_tr:
   type: ModelTranslation
 prod_3_facet_1_he_tr:
   id: 9
-  table_name: globalize_products
+  item_type: Product
   item_id: 3
   facet: name
   language_id: 2
@@ -25,7 +24,7 @@ prod_3_facet_1_he_tr:
   type: ModelTranslation
 prod_4_facet_1_he_tr:
   id: 10
-  table_name: globalize_products
+  item_type: Product
   item_id: 4
   facet: name
   language_id: 2
@@ -33,7 +32,7 @@ prod_4_facet_1_he_tr:
   type: ModelTranslation
 prod_5_facet_1_he_tr:
   id: 11
-  table_name: globalize_products
+  item_type: Product
   item_id: 5
   facet: name
   language_id: 2
@@ -336,7 +335,7 @@ view_he_tr_month_dec:
 
 model_simple_name_1:
   id: 50
-  table_name: globalize_simples
+  item_type: Simple
   item_id: 1
   facet: name
   language_id: 2
@@ -345,7 +344,7 @@ model_simple_name_1:
 
 model_simple_desc_1:
   id: 51
-  table_name: globalize_simples
+  item_type: Simple
   item_id: 1
   facet: description
   language_id: 2
@@ -462,7 +461,7 @@ view_he_tr_validation_8:
 
 prod_5_facet_2_he_tr:
   id: 80
-  table_name: globalize_products
+  item_type: Product
   item_id: 5
   facet: name
   language_id: 7
@@ -470,7 +469,7 @@ prod_5_facet_2_he_tr:
   type: ModelTranslation
 prod_5_facet_3_he_tr:
   id: 81
-  table_name: globalize_products
+  item_type: Product
   item_id: 5
   facet: description
   language_id: 7

@@ -7,3 +7,35 @@ first_simple:
   description: This is a description of the first simple
   description_es: Esta es una descripcion del primer simple
   description_he: זהו התיאור הראשון
+second_simple:
+  id: 2
+  name: first
+  name_es: primer
+  name_he: זהו השם הראשון
+  description: This is a description of the second simple
+  description_es: Esta es una descripcion del segundo simple
+  description_he: זהו התיאור הראשון
+third_simple:
+  id: 3
+  name: first
+  name_es: primer
+  name_he: זהו השם הראשון
+  description: This is a description of the third simple
+  description_es: Esta es una descripcion del tercer simple
+  description_he: זהו התיאור הראשון
+fourth_simple:
+  id: 4
+  name: last
+  name_es: ultimo
+  name_he: זהו השם הראשון
+  description: This is a description of the fourth simple
+  description_es: Esta es una descripcion del cuarto simple
+  description_he: זהו התיאור הראשון
+fifth_simple:
+  id: 5
+  name: last
+  name_es: ultimo
+  name_he: זהו השם הראשון
+  description: This is a description of the fifth simple
+  description_es: Esta es una descripcion del quinto simple
+  description_he: זהו התיאור הראשון
