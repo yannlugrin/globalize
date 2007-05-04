@@ -1,0 +1,7 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+first_mapping:
+  option_id: 1
+  item_id: 1
+second_mapping:
+  option_id: 2
+  item_id: 2

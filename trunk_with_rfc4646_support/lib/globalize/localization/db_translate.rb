@@ -376,7 +376,7 @@ module Globalize # :nodoc:
       protected
 
         # Alternative access methodology using associations.  Preserves standard find behavior.
-        # <i>i.e. Globalize::DbTranslate.translation_method = :via_association</i>
+        # <i>i.e. Globalize::DbTranslate.storage_method = :via_association</i>
         def translate_via_association(facets, options)
           class_eval <<-HERE
             @@facet_options = {}
@@ -1296,6 +1296,8 @@ module Globalize # :nodoc:
           instantiator = determine_instantiator(match)
           facets = extract_attribute_names_from_match(match)
           super unless all_attributes_exists?(facets)
+
+          facets.collect! {|attr_name| respond_to?(:globalize_facets) && globalize_facets.include?(attr_name.intern) ? localized_facet(attr_name) : attr_name}
 
           attributes = construct_attributes_from_arguments(facets, arguments)
           options = { :conditions => attributes }

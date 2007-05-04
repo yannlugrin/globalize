@@ -1296,6 +1296,8 @@ module Globalize # :nodoc:
           facets = extract_attribute_names_from_match(match)
           super unless all_attributes_exists?(facets)
 
+          facets.collect! {|attr_name| respond_to?(:globalize_facets) && globalize_facets.include?(attr_name.intern) ? localized_facet(attr_name) : attr_name}
+
           attributes = construct_attributes_from_arguments(facets, arguments)
           options = { :conditions => attributes }
           set_readonly_option!(options)

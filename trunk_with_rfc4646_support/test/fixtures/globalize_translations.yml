@@ -476,3 +476,119 @@ prod_5_facet_3_he_tr:
   language_id: 7
   text: descripción de oreja
   type: ModelTranslation
+
+
+art_1_facet_1_he_tr:
+  id: 82
+  table_name: globalize_articles
+  item_id: 1
+  facet: description
+  language_id: 2
+  text: זהו תיאור המוצר הראשון
+  type: ModelTranslation
+auth_1_facet_1_he_tr:
+  id: 83
+  table_name: globalize_authors
+  item_id: 1
+  facet: name
+  language_id: 2
+  text: רברנד
+  type: ModelTranslation
+art_3_facet_1_he_tr:
+  id: 84
+  table_name: globalize_articles
+  item_id: 3
+  facet: name
+  language_id: 2
+  text: סקר
+  type: ModelTranslation
+art_4_facet_1_he_tr:
+  id: 85
+  table_name: globalize_articles
+  item_id: 4
+  facet: name
+  language_id: 2
+  text: סארט
+  type: ModelTranslation
+art_5_facet_1_he_tr:
+  id: 86
+  table_name: globalize_articles
+  item_id: 5
+  facet: name
+  language_id: 2
+  text: סארי
+  type: ModelTranslation
+art_5_facet_2_he_tr:
+  id: 87
+  table_name: globalize_articles
+  item_id: 5
+  facet: name
+  language_id: 7
+  text: oreja
+  type: ModelTranslation
+art_5_facet_3_he_tr:
+  id: 88
+  table_name: globalize_articles
+  item_id: 5
+  facet: description
+  language_id: 7
+  text: descripción de oreja
+  type: ModelTranslation
+
+
+itm_1_facet_1_he_tr:
+  id: 89
+  table_name: globalize_items
+  item_id: 1
+  facet: description
+  language_id: 2
+  text: זהו תיאור המוצר הראשון
+  type: ModelTranslation
+order_1_facet_1_he_tr:
+  id: 90
+  table_name: globalize_orders
+  item_id: 1
+  facet: name
+  language_id: 2
+  text: רברנד
+  type: ModelTranslation
+itm_3_facet_1_he_tr:
+  id: 91
+  table_name: globalize_items
+  item_id: 3
+  facet: name
+  language_id: 2
+  text: סקר
+  type: ModelTranslation
+itm_4_facet_1_he_tr:
+  id: 92
+  table_name: globalize_items
+  item_id: 4
+  facet: name
+  language_id: 2
+  text: סארט
+  type: ModelTranslation
+itm_5_facet_1_he_tr:
+  id: 93
+  table_name: globalize_items
+  item_id: 5
+  facet: name
+  language_id: 2
+  text: סארי
+  type: ModelTranslation
+itm_5_facet_2_he_tr:
+  id: 94
+  table_name: globalize_items
+  item_id: 5
+  facet: name
+  language_id: 7
+  text: oreja
+  type: ModelTranslation
+itm_5_facet_3_he_tr:
+  id: 95
+  table_name: globalize_items
+  item_id: 5
+  facet: description
+  language_id: 7
+  text: descripción de oreja
+  type: ModelTranslation

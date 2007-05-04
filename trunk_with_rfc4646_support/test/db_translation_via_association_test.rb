@@ -1,40 +1,43 @@
 require File.dirname(__FILE__) + '/test_helper'
 
-class TranslationTest < Test::Unit::TestCase
-  ::Globalize::DbTranslate.storage_method = :via_association
+class ViaAssociationTranslationTest < Test::Unit::TestCase
 
   self.use_instantiated_fixtures = true
   fixtures :globalize_languages, :globalize_translations, :globalize_countries,
-    :globalize_products, :globalize_manufacturers, :globalize_categories,
-    :globalize_categories_products, :globalize_simples
+    :globalize_items, :globalize_orders, :globalize_options,
+    :globalize_options_items, :globalize_simples
 
-  class ::Product < ActiveRecord::Base
-    set_table_name "globalize_products"
+  class ::Item < ActiveRecord::Base
+    set_table_name "globalize_items"
 
-    has_and_belongs_to_many :categories, :join_table => "globalize_categories_products"
-    belongs_to :manufacturer, :foreign_key => 'manufacturer_id'
+    has_and_belongs_to_many :options, :join_table => "globalize_options_items"
+    belongs_to :order
 
+    self.globalize_translation_storage_method = :via_association
     translates :name, :description, :specs, {
       :name => { :bidi_embed => false }, :specs => { :bidi_embed => false }}
   end
 
-  class ::Category < ActiveRecord::Base
-    set_table_name "globalize_categories"
-    has_and_belongs_to_many :products, :join_table => "globalize_categories_products"
+  class ::Option < ActiveRecord::Base
+    set_table_name "globalize_options"
+    has_and_belongs_to_many :items, :join_table => "globalize_options_items"
 
+    self.globalize_translation_storage_method = :via_association
     translates :name
   end
 
-  class ::Manufacturer < ActiveRecord::Base
-    set_table_name "globalize_manufacturers"
-    has_many :products
+  class ::Order < ActiveRecord::Base
+    set_table_name "globalize_orders"
+    has_many :items
 
+    self.globalize_translation_storage_method = :via_association
     translates :name
   end
 
-  class ::Simple < ActiveRecord::Base
+  class ::SimplePost < ActiveRecord::Base
     set_table_name "globalize_simples"
 
+    self.globalize_translation_storage_method = :via_association
     translates :name, :description,
                :name => {:fallback => true},
                :description => {:fallback => false, :base_as_default => false}
@@ -46,265 +49,265 @@ class TranslationTest < Test::Unit::TestCase
   end
 
   def test_simple
-    simp = Simple.find(1)
+    simp = SimplePost.find(1)
     assert_equal "first", simp.name
     assert_equal "This is a description of the first simple", simp.description
 
     ::Globalize::Locale.set('he','IL')
-    simp = Simple.find(1)
+    simp = SimplePost.find(1)
     assert_equal "זהו השם הראשון", simp.name
     assert_equal "זהו התיאור הראשון", simp.description
   end
 
   def test_product
-    prod = Product.find(1)
-    assert_equal "first-product", prod.code
-    assert_equal "these are the specs for the first product", prod.specs
-    assert_equal "This is a description of the first product", prod.description
+    item = Item.find(1)
+    assert_equal "first-product", item.code
+    assert_equal "these are the specs for the first product", item.specs
+    assert_equal "This is a description of the first product", item.description
 
     ::Globalize::Locale.set('he','IL')
-    prod = Product.find(1)
-    assert_equal "first-product", prod.code
+    item = Item.find(1)
+    assert_equal "first-product", item.code
     assert_equal "these are the specs for the first product",
-      prod.specs
+      item.specs
     assert_equal "זהו תיאור המוצר הראשון",
-      prod.description
+      item.description
   end
 
   def test_simple_save
-    simp = Simple.find(1)
+    simp = SimplePost.find(1)
     simp.name = '1st'
     simp.save!
 
     ::Globalize::Locale.set 'he','IL'
-    simp = Simple.find(1)
+    simp = SimplePost.find(1)
     simp.name = 'ה-1'
     simp.save!
   end
 
   def test_simple_create
-    simp = Simple.new
+    simp = SimplePost.new
     simp.name = '1st'
     simp.save!
 
     ::Globalize::Locale.set 'he','IL'
-    simp = Simple.new
+    simp = SimplePost.new
     simp.name = 'ה-1'
     simp.save!
   end
 
   def test_nil
     ::Globalize::Locale.set(nil)
-    prod = Product.find(1)
-    assert_equal "first-product", prod.code
+    item = Item.find(1)
+    assert_equal "first-product", item.code
     assert_equal "these are the specs for the first product",
-      prod.specs
+      item.specs
   end
 
   def test_nil_include_translated
     ::Globalize::Locale.set(nil)
 
-    prods = Product.find(:all, :order => "globalize_products.code", :include => :manufacturer)
-    assert_equal "first-product", prods[1].code
+    items = Item.find(:all, :order => "globalize_items.code", :include => :order)
+    assert_equal "first-product", items[1].code
     assert_equal "these are the specs for the first product",
-      prods[1].specs
-    assert_equal "first", prods[1].name
-    assert_equal "Reverend", prods.first.manufacturer.name
-    assert_equal "Reverend", prods.last.manufacturer.name
+      items[1].specs
+    assert_equal "first", items[1].name
+    assert_equal "Reverend", items.first.order.name
+    assert_equal "Reverend", items.last.order.name
   end
 
   def test_prod_tr_all
-    prods = Product.find(:all, :order => "code" )
-    assert_equal 5, prods.length
-    assert_equal "first-product", prods[1].code
-    assert_equal "second-product", prods[3].code
+    items = Item.find(:all, :order => "code" )
+    assert_equal 5, items.length
+    assert_equal "first-product", items[1].code
+    assert_equal "second-product", items[3].code
     assert_equal "these are the specs for the first product",
-      prods[1].specs
+      items[1].specs
     assert_equal "This is a description of the first product",
-      prods[1].description
+      items[1].description
     assert_equal "these are the specs for the second product",
-      prods[3].specs
+      items[3].specs
   end
 
   def test_prod_tr_id
-    prod = Product.find(1)
-    assert_equal "first-product", prod.code
+    item = Item.find(1)
+    assert_equal "first-product", item.code
     assert_equal "these are the specs for the first product",
-      prod.specs
+      item.specs
     assert_equal "This is a description of the first product",
-      prod.description
+      item.description
   end
 
   # Ordering of records returned is database-dependent although MySQL is explicit about ordering
   # its result sets. This means this test is only guaranteed to pass on MySQL.
   def pending_test_prod_tr_ids
-    prods = Product.find(1, 2)
-    assert_equal 2, prods.length
-    assert_equal "first-product", prods[0].code
-    assert_equal "second-product", prods[1].code
+    items = Item.find(1, 2)
+    assert_equal 2, items.length
+    assert_equal "first-product", items[0].code
+    assert_equal "second-product", items[1].code
     assert_equal "these are the specs for the first product",
-      prods[0].specs
+      items[0].specs
     assert_equal "This is a description of the first product",
-      prods[0].description
+      items[0].description
     assert_equal "these are the specs for the second product",
-      prods[1].specs
+      items[1].specs
   end
 
   def test_base
     ::Globalize::Locale.set('he','IL')
-    prod = Product.find(1)
-    assert_equal "first-product", prod.code
+    item = Item.find(1)
+    assert_equal "first-product", item.code
     assert_equal "these are the specs for the first product",
-      prod.specs
+      item.specs
     assert_equal "זהו תיאור המוצר הראשון",
-      prod.description
+      item.description
   end
 
   def test_habtm_translation
     ::Globalize::Locale.set('he','IL')
-    cat = Category.find(1)
-    prods = cat.products
-    assert_equal 1, prods.length
-    prod = prods.first
-    assert_equal "first-product", prod.code
+    option = Option.find(1)
+    items = option.items
+    assert_equal 1, items.length
+    item = items.first
+    assert_equal "first-product", item.code
     assert_equal "these are the specs for the first product",
-      prod.specs
+      item.specs
     assert_equal "זהו תיאור המוצר הראשון",
-      prod.description
+      item.description
   end
 
   # test has_many translation
   def test_has_many_translation
     ::Globalize::Locale.set('he','IL')
-    mfr = Manufacturer.find(1)
-    assert_equal 5, mfr.products.length
-    prod = mfr.products.find(1)
-    assert_equal "first-product", prod.code
+    order = Order.find(1)
+    assert_equal 5, order.items.length
+    item = order.items.find(1)
+    assert_equal "first-product", item.code
     assert_equal "these are the specs for the first product",
-      prod.specs
+      item.specs
     assert_equal "זהו תיאור המוצר הראשון",
-      prod.description
+      item.description
   end
 
   def test_belongs_to_translation
     ::Globalize::Locale.set('he','IL')
-    prod = Product.find(1)
-    mfr = prod.manufacturer
-    assert_equal "first-mfr", mfr.code
+    item = Item.find(1)
+    order = item.order
+    assert_equal "first-mfr", order.code
     assert_equal "רברנד",
-      mfr.name
+      order.name
   end
 
   def test_new
-    prod = Product.new(:code => "new-product", :specs => "These are the product specs")
-    assert_equal "These are the product specs", prod.specs
-    assert_nil prod.description
+    item = Item.new(:code => "new-product", :specs => "These are the product specs")
+    assert_equal "These are the product specs", item.specs
+    assert_nil item.description
   end
 
   # test creating updating
   def test_create_update
-    prod = Product.create(:code => "new-product",
+    item = Item.create(:code => "new-product",
       :specs => "These are the product specs")
-    assert prod.errors.empty?, prod.errors.full_messages.first
-    prod = nil
-    prod = Product.find_by_code("new-product")
-    assert_not_nil prod
-    assert_equal "These are the product specs", prod.specs
+    assert item.errors.empty?, item.errors.full_messages.first
+    item = nil
+    item = Item.find_by_code("new-product")
+    assert_not_nil item
+    assert_equal "These are the product specs", item.specs
 
-    prod.specs = "Dummy"
-    prod.save
-    prod = nil
-    prod = Product.find_by_code("new-product")
-    assert_not_nil prod
-    assert_equal "Dummy", prod.specs
+    item.specs = "Dummy"
+    item.save
+    item = nil
+    item = Item.find_by_code("new-product")
+    assert_not_nil item
+    assert_equal "Dummy", item.specs
   end
 
   def test_include
     ::Globalize::Locale.set('he','IL')
-    prods = Product.find(:all, :include => :manufacturer)
-    assert_equal 5, prods.size
-    assert_equal "רברנד", prods.first.manufacturer.name
-    assert_equal "רברנד", prods.last.manufacturer.name
+    items = Item.find(:all, :include => :order)
+    assert_equal 5, items.size
+    assert_equal "רברנד", items.first.order.name
+    assert_equal "רברנד", items.last.order.name
 
     ::Globalize::Locale.set('en','US')
-    prods = Product.find(:all, :include => :manufacturer)
-    assert_equal 5, prods.size
-    assert_equal "Reverend", prods.first.manufacturer.name
-    assert_equal "Reverend", prods.last.manufacturer.name
+    items = Item.find(:all, :include => :order)
+    assert_equal 5, items.size
+    assert_equal "Reverend", items.first.order.name
+    assert_equal "Reverend", items.last.order.name
   end
 
   def test_order_en
-    prods = Product.find(:all, :order => "name").select {|rec| rec.name}
-    assert_equal 5, prods[0].id
-    assert_equal 3, prods[1].id
-    assert_equal 4, prods[2].id
+    items = Item.find(:all, :order => "name").select {|rec| rec.name}
+    assert_equal 5, items[0].id
+    assert_equal 3, items[1].id
+    assert_equal 4, items[2].id
   end
 
   def test_order_he
     ::Globalize::Locale.set('he','IL')
-    prods = Product.find(:all, :order => "name").select {|rec| rec.name}
-    assert_equal 4, prods[1].id
-    assert_equal 5, prods[2].id
-    assert_equal 3, prods[3].id
+    items = Item.find(:all, :order => "name").select {|rec| rec.name}
+    assert_equal 4, items[1].id
+    assert_equal 5, items[2].id
+    assert_equal 3, items[3].id
   end
 
   def test_group_en
-    simples = Simple.find(:all, :group => "name")
+    simples = SimplePost.find(:all, :group => "name")
     assert_equal 2, simples.size
   end
 
   def test_group_es
     ::Globalize::Locale.set('es','ES')
-    simples = Simple.find(:all, :group => "name")
+    simples = SimplePost.find(:all, :group => "name")
     assert_equal 2, simples.size
   end
 
   def test_base_translation_create_base_as_default_true
-    prod = Product.create!(:code => 'test-base',
+    item = Item.create!(:code => 'test-base',
                            :name => 'english test',
                            :description => 'english description')
-    prod.reload
-    assert_equal 'english test', prod.name
-    assert_equal 'english description', prod.description
+    item.reload
+    assert_equal 'english test', item.name
+    assert_equal 'english description', item.description
 
     ::Globalize::Locale.set('he','IL')
-    prod = Product.find_by_code('test-base')
-    assert_equal 'english test', prod.name                #base_as_default = true
-    assert_equal "\xe2\x80\xaaenglish description\xe2\x80\xac", prod.description  #base_as_default = true
-    prod.name = "hebrew test"
-    prod.description = "hebrew description"
-    prod.save!
-    prod.reload
-    assert_equal 'hebrew test', prod.name
-    assert_equal 'hebrew description', prod.description
+    item = Item.find_by_code('test-base')
+    assert_equal 'english test', item.name                #base_as_default = true
+    assert_equal "\xe2\x80\xaaenglish description\xe2\x80\xac", item.description  #base_as_default = true
+    item.name = "hebrew test"
+    item.description = "hebrew description"
+    item.save!
+    item.reload
+    assert_equal 'hebrew test', item.name
+    assert_equal 'hebrew description', item.description
 
     # delete hebrew version and test if it reverts to english base
-    prod.name = nil
-    prod.description = nil
-    assert_equal 'english test', prod.name
-    assert_equal "\xe2\x80\xaaenglish description\xe2\x80\xac", prod.description
-    prod.save!
-    prod.reload
-    assert_equal 'english test', prod.name
-    assert_equal "\xe2\x80\xaaenglish description\xe2\x80\xac", prod.description
+    item.name = nil
+    item.description = nil
+    assert_equal 'english test', item.name
+    assert_equal "\xe2\x80\xaaenglish description\xe2\x80\xac", item.description
+    item.save!
+    item.reload
+    assert_equal 'english test', item.name
+    assert_equal "\xe2\x80\xaaenglish description\xe2\x80\xac", item.description
 
     # change base and see if hebrew gets updated
     ::Globalize::Locale.set('en','US')
-    prod.reload
-    prod.name = "english test two"
-    prod.description = "english description two"
-    prod.save!
-    prod.reload
-    assert_equal "english test two", prod.name
-    assert_equal "english description two", prod.description
+    item.reload
+    item.name = "english test two"
+    item.description = "english description two"
+    item.save!
+    item.reload
+    assert_equal "english test two", item.name
+    assert_equal "english description two", item.description
     ::Globalize::Locale.set('he','IL')
-    prod.reload
-    assert_equal "english test two", prod.name
-    assert_equal "\xe2\x80\xaaenglish description two\xe2\x80\xac", prod.description
+    item.reload
+    assert_equal "english test two", item.name
+    assert_equal "\xe2\x80\xaaenglish description two\xe2\x80\xac", item.description
   end
 
   def test_base_translation_create_base_as_default_false
-    simple = Simple.create!(:name => 'english test',
+    simple = SimplePost.create!(:name => 'english test',
                           :description => 'english description')
     assert_equal 'english test', simple.name
     assert_equal 'english description', simple.description
@@ -341,12 +344,12 @@ class TranslationTest < Test::Unit::TestCase
   end
 
   def test_destroy
-    prod = Product.find(1)
+    item = Item.find(1)
     tr = ::Globalize::ModelTranslation.find(:first, :conditions => [
       "table_name = ? AND item_id = ? AND facet = ? AND language_id = ?",
       "globalize_products", 1, "description", 2 ])
     assert_not_nil tr
-    prod.destroy
+    item.destroy
     tr = ::Globalize::ModelTranslation.find(:first, :conditions => [
       "table_name = ? AND item_id = ? AND facet = ? AND language_id = ?",
       "globalize_products", 1, "description", 2 ])
@@ -358,7 +361,7 @@ class TranslationTest < Test::Unit::TestCase
       "table_name = ? AND item_id = ? AND facet = ? AND language_id = ?",
       "globalize_products", 1, "description", 2 ])
     assert_not_nil tr
-    Product.destroy(1)
+    Item.destroy(1)
     tr = ::Globalize::ModelTranslation.find(:first, :conditions => [
       "table_name = ? AND item_id = ? AND facet = ? AND language_id = ?",
       "globalize_products", 1, "description", 2 ])
@@ -367,31 +370,31 @@ class TranslationTest < Test::Unit::TestCase
 
   def test_returned_base
     ::Globalize::Locale.set('he','IL')
-    prod = Product.find(1)
-    assert_equal "first-product", prod.code
+    item = Item.find(1)
+    assert_equal "first-product", item.code
     assert_equal "these are the specs for the first product",
-      prod.specs
+      item.specs
     assert_equal "זהו תיאור המוצר הראשון",
-      prod.description
+      item.description
 
-    assert prod.specs_is_base?
-    assert !prod.description_is_base?
+    assert item.specs_is_base?
+    assert !item.description_is_base?
 
-    assert_equal 'ltr', prod.specs.direction
-    assert_equal 'rtl', prod.description.direction
+    assert_equal 'ltr', item.specs.direction
+    assert_equal 'rtl', item.description.direction
   end
 
   def test_bidi_embed
     ::Globalize::Locale.set('he','IL')
-    prod = Product.find(2)
+    item = Item.find(2)
     assert_equal "\xe2\x80\xaaThis is a description of the second product\xe2\x80\xac",
-      prod.description
+      item.description
   end
 
   def test_fallbacks
 
     ::Globalize::Locale.set('en','US')
-    simp = Simple.new
+    simp = SimplePost.new
     simp.name = 'A simple model'
     simp.description = 'A simple model\'s description'
     simp.save!
@@ -448,7 +451,7 @@ class TranslationTest < Test::Unit::TestCase
     ::Globalize::Locale.set_base_language(Language.pick('es-MX'))
 
     ::Globalize::Locale.set('he','IL')
-    simp = Simple.create!(:name => 'hebrew name fallbacks 2',
+    simp = SimplePost.create!(:name => 'hebrew name fallbacks 2',
                           :description => 'hebrew desc fallbacks 2')
     assert_equal 'hebrew name fallbacks 2', simp.name
     assert_equal 'hebrew desc fallbacks 2', simp.description
@@ -480,23 +483,23 @@ class TranslationTest < Test::Unit::TestCase
   end
 
   def test_dynamic_finders
-    prod1 = Product.find_by_name('efe')
-    prod2 = Product.find_by_name('ear')
-    assert_not_nil prod1
-    assert_not_nil prod2
+    item1 = Item.find_by_name('efe')
+    item2 = Item.find_by_name('ear')
+    assert_not_nil item1
+    assert_not_nil item2
 
     ::Globalize::Locale.set('he_IL')
-    prod3 = Product.find_by_name('סקר')
-    assert_not_nil prod3
-    assert_equal prod1, prod3
+    item3 = Item.find_by_name('סקר')
+    assert_not_nil item3
+    assert_equal item1, item3
 
     ::Globalize::Locale.set('es_ES')
-    prod4 = Product.find_by_name_and_description('oreja','descripción de oreja')
-    assert_not_nil prod4
-    assert_equal prod2, prod4
+    item4 = Item.find_by_name_and_description('oreja','descripción de oreja')
+    assert_not_nil item4
+    assert_equal item2, item4
 
-    prod4 = Product.find_or_create_by_name('oreja')
-    assert_not_nil prod4
-    assert_equal prod2, prod4
+    item4 = Item.find_or_create_by_name('oreja')
+    assert_not_nil item4
+    assert_equal item2, item4
   end
 end

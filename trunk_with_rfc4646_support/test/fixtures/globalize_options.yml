@@ -1,0 +1,7 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+first_option:
+  id: 1
+  code: cat1
+another_option:
+  id: 2
+  code: cat2
