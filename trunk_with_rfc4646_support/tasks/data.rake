@@ -44,53 +44,44 @@ namespace :globalize do
     raise "Task unavailable to this database (no migration support)" unless ActiveRecord::Base.connection.supports_migrations?
 
     ActiveRecord::Base.connection.create_table :globalize_countries, :force => true do |t|
-      t.column :code,                   :string,  :limit => 2
-      t.column :english_name,           :string
-      t.column :date_format,            :string
-      t.column :currency_format,        :string
-      t.column :currency_code,          :string,  :limit => 3
-      t.column :thousands_sep,          :string,  :limit => 2
-      t.column :decimal_sep,            :string,  :limit => 2
-      t.column :currency_decimal_sep,   :string,  :limit => 2
-      t.column :number_grouping_scheme, :string
+      t.column :code,               :string, :limit => 2
+      t.column :english_name,       :string
+      t.column :date_format,        :string
+      t.column :currency_format,    :string
+      t.column :currency_code,      :string, :limit => 3
+      t.column :thousands_sep,      :string, :limit => 1
+      t.column :decimal_sep,        :string, :limit => 1
+      t.column :currency_decimal_sep,        :string, :limit => 1
+      t.column :number_grouping_scheme,      :string
     end
     ActiveRecord::Base.connection.add_index :globalize_countries, :code
 
     ActiveRecord::Base.connection.create_table :globalize_translations, :force => true do |t|
-      t.column :type,                   :string
-      t.column :tr_key,                 :string
-      t.column :table_name,             :string
-      t.column :item_id,                :integer
-      t.column :facet,                  :string
-      t.column :built_in,               :boolean, :default => true
-      t.column :language_id,            :integer
+      t.column :type,           :string
+      t.column :tr_key,         :string
+      t.column :table_name,     :string
+      t.column :item_id,        :integer
+      t.column :facet,          :string
+      t.column :language_id,    :integer
       t.column :pluralization_index,    :integer
-      t.column :text,                   :text
-      t.column :namespace,              :string
+      t.column :text,           :text
+      t.column :namespace,      :string
     end
-    ActiveRecord::Base.connection.add_index :globalize_translations, [ :tr_key, :language_id ]
-    ActiveRecord::Base.connection.add_index :globalize_translations, [ :table_name, :item_id, :language_id ], :name => 'globalize_translations_table_name_and_item_and_language'
+
+    ActiveRecord::Base.connection.add_index :globalize_translations, [ :tr_key, :language_id ], :name => 'tr_key'
+    ActiveRecord::Base.connection.add_index :globalize_translations, [ :table_name, :item_id, :language_id ], :name => 'table_name'
+
 
     ActiveRecord::Base.connection.create_table :globalize_languages, :force => true do |t|
-      t.column :iso_639_1,              :string,  :limit => 2
-      t.column :iso_639_2,              :string,  :limit => 3
-      t.column :iso_639_3,              :string,  :limit => 3
-      t.column :rfc_3066,               :string
-      t.column :english_name,           :string
-      t.column :english_name_locale,    :string
-      t.column :english_name_modifier,  :string
-      t.column :native_name,            :string
-      t.column :native_name_locale,     :string
-      t.column :native_name_modifier,   :string
-      t.column :macro_language,         :boolean
-      t.column :direction,              :string
-      t.column :pluralization,          :string
-      t.column :scope,                  :string,  :limit => 1
+      t.column :tag, :string
+      t.column :primary_subtag, :string
+      t.column :english_name, :string
+      t.column :native_name, :string
+      t.column :direction, :string
+      t.column :pluralization, :string
     end
-    ActiveRecord::Base.connection.add_index :globalize_languages, :iso_639_1
-    ActiveRecord::Base.connection.add_index :globalize_languages, :iso_639_2
-    ActiveRecord::Base.connection.add_index :globalize_languages, :iso_639_3
-    ActiveRecord::Base.connection.add_index :globalize_languages, :rfc_3066
+
+    ActiveRecord::Base.connection.add_index :globalize_languages, :tag
   end
 
   desc 'Drops Globalize database tables'
