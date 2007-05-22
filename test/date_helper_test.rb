@@ -50,7 +50,9 @@ class DateHelperTest < Test::Unit::TestCase
 
     # We didn't supply the plural translation for this; in production, we would
     assert_equal "about 1 hours", distance_of_time_in_words(60*60, 0)
-
+    
+    # longer than 1 month... 
+   	assert_equal "about 3 months", distance_of_time_in_words(from, Time.mktime(2003, 12, 9, 15, 40))
   end
 
   def test_distance_in_words_he
