@@ -78,6 +78,15 @@ class ViewTranslationTest < Test::Unit::TestCase
     assert_equal "quite a dark and stormy night", "%d dark and stormy nights".t
   end
 
+	def test_set_pluralized_translation
+    Locale.set_pluralized_translation '%d dark and stormy nights', 
+      1, 'quite a dark and stormy night'
+    Locale.set_pluralized_translation '%d dark and stormy nights', 
+      2, 'wow, %d dark and stormy nights'
+    assert_equal "quite a dark and stormy night", "%d dark and stormy nights" / 1
+    assert_equal "wow, 5 dark and stormy nights", "%d dark and stormy nights" / 5
+	end
+	
   def test_missed_report
     Locale.set("he-IL")
     assert_nil ViewTranslation.find(:first,

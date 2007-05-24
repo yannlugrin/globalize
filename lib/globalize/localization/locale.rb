@@ -169,16 +169,9 @@ module Globalize
       translator.set(key, language, translations, zero_form, namespace)
     end
 
-    def self.set_pluralized_translation(key, *options)
-      key, language, translations, zero_form = key_and_language(key, options)
-      raise ArgumentError, "No translations given" if options.empty?
-      translator.set_pluralized(key, language, translations, zero_form, nil)
-    end
-
-    def self.set_pluralized_translation_with_namespace(key, *options)
-      key, language, translations, zero_form = key_and_language(key, options)
-      raise ArgumentError, "No translations given" if options.empty?
-      translator.set_pluralized(key, language, translations, zero_form, namespace)
+    def self.set_pluralized_translation(key, idx, translation, namespace = nil, language = nil)
+      language ||= self.language
+			translator.set_pluralized(key, language, idx, translation, namespace)
     end
 
     def self.translate(key, default = nil, arg = nil, namespace = nil) # :nodoc:
