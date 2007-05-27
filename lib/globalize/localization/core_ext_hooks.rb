@@ -2,6 +2,7 @@
 # the :: prefix)
 class ::String # :nodoc: 
   include Globalize::CoreExtensions::String
+  include Globalize::CoreExtensions::BidiString
 end
 
 class ::Symbol # :nodoc:  

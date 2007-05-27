@@ -55,6 +55,22 @@ class CoreExtTest < Test::Unit::TestCase
     assert_equal "Not translated", _("Not translated")
   end
 
+	def test_bidi_markup
+		assert_equal 'hello there', 'hello there'.bidi_markup
+		assert_equal 'אהלן', 'אהלן'.bidi_markup
+		Locale.set 'he-IL'
+		assert_equal '<span dir="ltr">hello there</span>', 'hello there'.bidi_markup
+		assert_equal 'אהלן', 'אהלן'.bidi_markup		
+	end
+
+	def test_bidi_html
+		assert_equal 'hello there', 'hello there'.bidi_html
+		assert_equal 'אהלן', 'אהלן'.bidi_html
+		Locale.set 'he-IL'
+		assert_equal "\xe2\x80\xaahello there\xe2\x80\xac", 'hello there'.bidi_html
+		assert_equal 'אהלן', 'אהלן'.bidi_html		
+	end
+
   def teardown
     Locale.set("en-US")
   end

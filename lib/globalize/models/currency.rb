@@ -78,6 +78,10 @@ module Globalize
       (na? || other_money.na?) ? Currency.na :
         Currency.new(cents - other_money.cents)
     end
+    
+    def -@
+    	Currency.new(-cents)
+		end
 
     # Multiply money by amount
     def *(amount)
