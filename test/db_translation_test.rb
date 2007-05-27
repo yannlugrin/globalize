@@ -14,8 +14,7 @@ class TranslationTest < Test::Unit::TestCase
     has_and_belongs_to_many :categories, :join_table => "globalize_categories_products"
     belongs_to :manufacturer, :foreign_key => 'manufacturer_id'
 
-    translates :name, :description, :specs, {
-      :name => { :bidi_embed => false }, :specs => { :bidi_embed => false } }
+    translates :name, :description, :specs
   end
 
   class Category < ActiveRecord::Base
@@ -364,13 +363,6 @@ class TranslationTest < Test::Unit::TestCase
 
     assert_equal 'ltr', prod.specs.direction
     assert_equal 'rtl', prod.description.direction
-  end
-
-  def test_bidi_embed
-    Globalize::Locale.set("he-IL")
-    prod = Product.find(2)
-    assert_equal "\xe2\x80\xaaThis is a description of the second product\xe2\x80\xac",
-      prod.description
   end
 
 	# test to make sure only changed fields are saved -- should not create

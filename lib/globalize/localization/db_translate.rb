@@ -59,31 +59,6 @@ module Globalize # :nodoc:
 
       The available options are described below:
 
-      ==== Option for Bidrectional text (bidi)
-
-      Globalize fully supports Bidirectional text. By default all attributes
-      that have been passed to 'translates' will have bidi active.
-
-      If for some reason, you wish do disactivate bidi for a particular attribute
-      then you may specify this in the options hash. e.g.
-
-        translates :name, :description, {:name => {:bidi_embed => false}}
-
-      In this example bidi will be active for the 'description' attribute but
-      not for the 'name' attribute.
-
-      With 'bidi_embed' active the direction of the string is determined in the
-      following manner:
-
-      * If an attribute has no translation for the current locale then the
-      direction will be that of the base locale.
-
-      * If an attribute has a translation for the currently active locale then
-      the direction of it's value will be that of the active locale.
-
-      Note: This feature is valid for both of the currently supported storage mechanisms
-
-
       == Storage Mechanisms
 
       Globalize now supports two methods of storing model translations:
@@ -369,7 +344,6 @@ module Globalize # :nodoc:
         def translate_internal(facets, options)
           facets_string = "[" + facets.map {|facet| ":#{facet}"}.join(", ") + "]"
           class_eval %{
-            @@facet_options = {}
             @@globalize_facets = #{facets_string}
 
             class << self
@@ -428,12 +402,7 @@ module Globalize # :nodoc:
           }
 
           facets.each do |facet|
-            bidi = (!(options[facet] && !options[facet][:bidi_embed])).to_s
             class_eval %{
-
-              #Handle facet-specific options (.e.g a bidirectional setting)
-              @@facet_options[:#{facet}] ||= {}
-              @@facet_options[:#{facet}][:bidi] = #{bidi}
 
               #Accessor that proxies to the right accessor for the current locale
               def #{facet}
@@ -445,7 +414,7 @@ module Globalize # :nodoc:
                 else
                   value = read_attribute(:#{facet})
                 end
-                value.nil? ? nil : add_bidi(value, :#{facet})
+                value
               end
 
               #Accessor before typecasting that proxies to the right accessor for the current locale
@@ -458,7 +427,7 @@ module Globalize # :nodoc:
                 else
                   value = read_attribute_before_type_cast('#{facet}')
                 end
-                value.nil? ? nil : add_bidi(value, :#{facet})
+                value
               end
 
               #Write to appropriate localized attribute
@@ -481,8 +450,7 @@ module Globalize # :nodoc:
 
               #Read base language attribute directly
               def _#{facet}
-                value = read_attribute(:#{facet})
-                value.nil? ? nil : add_bidi(value, :#{facet})
+                read_attribute(:#{facet})
               end
 
               #Read base language attribute directly without typecasting
@@ -494,30 +462,6 @@ module Globalize # :nodoc:
               def _#{facet}=(value)
                 write_attribute(:#{facet}, value)
               end
-
-              def add_bidi(value, facet)
-                return value unless Locale.active?
-                value.direction = self.send("\#{facet}_is_base?") ?
-                  (Locale.base_language ? Locale.base_language.direction : nil) :
-                  (Locale.active ? Locale.language.direction : nil)
-
-                  # insert bidi embedding characters, if necessary
-                  if @@facet_options[facet][:bidi] &&
-                      Locale.language && Locale.language.direction && value.direction
-                    if Locale.language.direction == 'ltr' && value.direction == 'rtl'
-                      bidi_str = "\xe2\x80\xab" + value + "\xe2\x80\xac"
-                      bidi_str.direction = value.direction
-                      return bidi_str
-                    elsif Locale.language.direction == 'rtl' && value.direction == 'ltr'
-                      bidi_str = "\xe2\x80\xaa" + value + "\xe2\x80\xac"
-                      bidi_str.direction = value.direction
-                      return bidi_str
-                    end
-                  end
-                  return value
-              end
-
-              protected :add_bidi
             }
           end
         end
@@ -527,7 +471,6 @@ module Globalize # :nodoc:
         def translate_external(facets, options)
           facets_string = "[" + facets.map {|facet| ":#{facet}"}.join(", ") + "]"
           class_eval <<-HERE
-            @@facet_options = {}
             attr_writer :fully_loaded
             def fully_loaded?; @fully_loaded; end
             @@globalize_facets = #{facets_string}
@@ -569,11 +512,7 @@ module Globalize # :nodoc:
           HERE
 
           facets.each do |facet|
-            bidi = (!(options[facet] && !options[facet][:bidi_embed])).to_s
             class_eval <<-HERE
-              @@facet_options[:#{facet}] ||= {}
-              @@facet_options[:#{facet}][:bidi] = #{bidi}
-
               def #{facet}
                 if not_original_language
                   raise WrongLanguageError.new(@original_language, Locale.language)
@@ -585,20 +524,6 @@ module Globalize # :nodoc:
                 result.direction = #{facet}_is_base? ?
                   (Locale.base_language ? Locale.base_language.direction : nil) :
                   (@original_language ? @original_language.direction : nil)
-
-                # insert bidi embedding characters, if necessary
-                if @@facet_options[:#{facet}][:bidi] &&
-                    Locale.language && Locale.language.direction && result.direction
-                  if Locale.language.direction == 'ltr' && result.direction == 'rtl'
-                    bidi_str = "\xe2\x80\xab" + result + "\xe2\x80\xac"
-                    bidi_str.direction = result.direction
-                    return bidi_str
-                  elsif Locale.language.direction == 'rtl' && result.direction == 'ltr'
-                    bidi_str = "\xe2\x80\xaa" + result + "\xe2\x80\xac"
-                    bidi_str.direction = result.direction
-                    return bidi_str
-                  end
-                end
 
                 return result
               end

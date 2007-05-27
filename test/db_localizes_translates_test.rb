@@ -469,8 +469,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     Product.class_eval %{
       self.keep_translations_in_model = true
       translates :name, :description, :specs, {
-        :base_as_default => true,
-        :name => { :bidi_embed => false }, :specs => { :bidi_embed => false }
+        :base_as_default => true
       }
     }
 
@@ -482,23 +481,6 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
 
     assert prod.specs_is_base?
     assert !prod.description_is_base?
-
-    assert_equal 'ltr', prod.specs.direction
-    assert_equal 'rtl', prod.description.direction
   end
 
-  def test_bidi_embed
-    Product.class_eval %{
-      self.keep_translations_in_model = true
-      translates :name, :description, :specs, {
-        :base_as_default => true,
-        :name => { :bidi_embed => false }, :specs => { :bidi_embed => false }
-      }
-    }
-
-    Globalize::Locale.set("he-IL")
-    prod = Product.find(2)
-    assert_equal "\xe2\x80\xaaThis is a description of the second product\xe2\x80\xac",
-      prod.description
-  end
 end
