@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/test_helper'
 
-class TranslationTest < Test::Unit::TestCase
+class DbTranslationCoalesceTest < Test::Unit::TestCase
 
   self.use_instantiated_fixtures = true
   fixtures :globalize_languages, :globalize_translations, :globalize_countries,
@@ -392,7 +392,7 @@ class TranslationTest < Test::Unit::TestCase
       -    then hash will contain stale data. Problem trying to keep this synced.
 =end
 
-  def test_fallbacks
+  def test_explicit_fallbacks
     ::Globalize::Locale.clear_fallbacks
 
     ::Globalize::Locale.set('en','US')
@@ -450,6 +450,57 @@ class TranslationTest < Test::Unit::TestCase
     simp.reload
     assert_equal 'A simple model', simp.name
     assert_nil simp.description
+  end
+
+  def test_implicit_fallbacks
+    ::Globalize::Locale.clear_fallbacks
+
+    ::Globalize::Locale.set('en')
+    simp = ::Simple.new
+    simp.name = 'A simple model'
+    simp.description = 'A simple model\'s description'
+    simp.save!
+
+    ::Globalize::Locale.set('es-AR')
+    simp.reload
+    simp.name = 'Un modelo simple (AR)'
+    simp.description = 'La descripción de un modelo simple (AR)'
+    simp.save!
+
+    ::Globalize::Locale.set('en','US')
+    simp.reload
+    assert_equal 'A simple model', simp.name
+    assert_equal 'A simple model\'s description', simp.description
+
+    ::Globalize::Locale.set('es','ES')
+    simp.reload
+    assert_equal 'Un modelo simple (AR)', simp.name, "Should fallback implicitly to es-AR"
+    assert_nil simp.description, "Should not fallback as attribute is excluded from fallbacks"
+
+    ::Globalize::Locale.set('es-MX','MX')
+    simp.reload
+    assert_equal 'Un modelo simple (AR)', simp.name, "Should fallback implicitly to es-AR"
+    assert_nil simp.description, "Should not fallback as attribute is excluded from fallbacks"
+
+    simp.name = 'Un modelo simple (MX)'
+    simp.description = 'La descripción de un modelo simple (MX)'
+    simp.save!
+
+    ::Globalize::Locale.set('es','ES')
+    simp.reload
+    assert ['Un modelo simple (AR)', 'Un modelo simple (MX)'].any? {|t| t == simp.name }, "Should fallback implicitly to es-AR"
+    assert_nil simp.description, "Should not fallback as attribute is excluded from fallbacks"
+
+    ::Globalize::Locale.set('es-419','ES')
+    simp.reload
+    assert ['Un modelo simple (AR)', 'Un modelo simple (MX)'].any? {|t| t == simp.name }, "Should fallback implicitly to es-AR"
+    assert_nil simp.description, "Should not fallback as attribute is excluded from fallbacks"
+
+    Globalize::DbTranslate.enable_fallbacks = false
+    simp.reload
+    assert_equal 'A simple model', simp.name, "Should not fallback"
+    assert_nil simp.description, "Should not fallback and should be nil as base_as_default is false"
+    Globalize::DbTranslate.enable_fallbacks = true
   end
 
   def test_fallbacks_for_base_locale

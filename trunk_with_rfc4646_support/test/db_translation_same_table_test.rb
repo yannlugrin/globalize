@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/test_helper'
 
-class LocalizesTranslatesTest < Test::Unit::TestCase
+class DbTranslationSameTableTest < Test::Unit::TestCase
 
   self.use_instantiated_fixtures = true
   fixtures :globalize_languages, :globalize_translations, :globalize_countries,
@@ -514,7 +514,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     }
   end
 
-  def test_fallbacks
+  def test_explicit_fallbacks
     ::Globalize::Locale.clear_fallbacks
     article = ::Article.create!(:code => 'test-fallback',
                            :name => 'english name fallbacks',
@@ -557,6 +557,71 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     assert_equal 'english name fallbacks', article.name_before_type_cast
     assert_nil article.description
     assert_nil article.description_before_type_cast
+  end
+
+  def test_implicit_fallbacks
+    ::Globalize::Locale.clear_fallbacks
+    article = ::Article.create!(:code => 'test-fallback',
+                           :name => 'english name fallbacks',
+                           :description => 'english desc fallbacks')
+    assert_equal 'english name fallbacks', article.name
+    assert_equal 'english desc fallbacks', article.description
+    assert_equal 'english name fallbacks', article.name_before_type_cast
+    assert_equal 'english desc fallbacks', article.description_before_type_cast
+
+    ::Globalize::Locale.set('es','ES')
+    assert_equal 'english name fallbacks', article.name
+    assert_equal 'english name fallbacks', article.name_before_type_cast
+    assert_nil article.description
+    assert_nil article.description_before_type_cast
+
+    ::Globalize::Locale.set('es-AR','ES')
+    assert_equal 'english name fallbacks', article.name
+    assert_equal 'english name fallbacks', article.name_before_type_cast
+    assert_nil article.description
+    assert_nil article.description_before_type_cast
+
+    article.name = "spanish name fallbacks (AR)"
+    article.save!
+    assert_equal 'spanish name fallbacks (AR)', article.name
+    assert_equal 'spanish name fallbacks (AR)', article.name_before_type_cast
+
+
+    ::Globalize::Locale.set('es','ES')
+    assert_equal 'spanish name fallbacks (AR)', article.name
+    assert_equal 'spanish name fallbacks (AR)', article.name_before_type_cast
+    assert_nil article.description
+    assert_nil article.description_before_type_cast
+
+    ::Globalize::Locale.set('es-MX','MX')
+    assert_equal 'spanish name fallbacks (AR)', article.name
+    assert_equal 'spanish name fallbacks (AR)', article.name_before_type_cast
+    assert_nil article.description
+    assert_nil article.description_before_type_cast
+
+    article.name = "spanish name fallbacks (MX)"
+    article.save!
+
+    ::Globalize::Locale.set('es','ES')
+    assert ['spanish name fallbacks (AR)', 'spanish name fallbacks (MX)'].any? {|t| t == article.name}
+    assert ['spanish name fallbacks (AR)', 'spanish name fallbacks (MX)'].any? {|t| t == article.name_before_type_cast}
+    assert_nil article.description
+    assert_nil article.description_before_type_cast
+
+    ::Globalize::Locale.set('es-419','ES')
+    assert ['spanish name fallbacks (AR)', 'spanish name fallbacks (MX)'].any? {|t| t == article.name}
+    assert ['spanish name fallbacks (AR)', 'spanish name fallbacks (MX)'].any? {|t| t == article.name_before_type_cast}
+    assert_nil article.description
+    assert_nil article.description_before_type_cast
+
+    Globalize::DbTranslate.enable_fallbacks = false
+    ::Globalize::Locale.set('es-419','ES')
+    assert_equal 'english name fallbacks', article.name
+    assert_equal 'english name fallbacks', article.name_before_type_cast
+    assert_nil article.description
+    assert_nil article.description_before_type_cast
+
+    Globalize::DbTranslate.enable_fallbacks = true
   end
 
   def test_fallbacks_for_base_locale
