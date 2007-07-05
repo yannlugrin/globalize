@@ -841,7 +841,7 @@ class LocaleTest < Test::Unit::TestCase
   end
 
   def test_base_language
-    Locale.clear_cache
+    Locale.clear_cache(true)
 
     loc_en_US = Locale.new('en','US')
     loc_es_AR = Locale.new('es','AR')

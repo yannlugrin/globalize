@@ -140,10 +140,14 @@ module Globalize
     end
 
     # Clears the locale cache -- used mostly for testing.
-    # Will also clear the active locale if clear_active argument is true
+    # Will also clear the active locale and the base locale if clear_active argument is true
     def self.clear_cache(clear_active = false)
       @@cache.clear
-      @@active = nil if clear_active
+      if clear_active
+        @@active = nil
+        @@base_language = nil
+        @@base_language_code = nil
+      end
     end
 
     # Returns the active locale.
