@@ -4,6 +4,9 @@ module Globalize
   # views, and flashes, but not database content.
   class ViewTranslation < Translation # :nodoc:
 
+    @@enable_fallbacks = true
+    mattr_accessor :enable_fallbacks
+
     def self.pick(key, language, idx, namespace = nil)
       conditions = 'tr_key = ? AND language_id = ? AND pluralization_index = ?'
       namespace_condition = namespace ? ' AND namespace = ?' : ' AND namespace IS NULL'

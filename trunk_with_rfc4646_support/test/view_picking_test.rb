@@ -44,7 +44,8 @@ class ViewPickingTest < Test::Unit::TestCase
 
   def test_fallbacks
     tc = TestController.new([@base_path])
-    Locale.set('de','US', [['he','IL']])
+    Locale.set_fallback('de', 'he')
+    Locale.set('de','US')
     assert_match /Hebrew/, tc.render("test")
     assert_no_match /English/, tc.render("test")
   end

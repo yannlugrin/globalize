@@ -35,20 +35,16 @@ module Globalize
     def self.no_cents; @@no_cents end
     def self.no_cents=(val); @@no_cents = val end
 
-    @@free = Currency.new(0)
-    @@free.freeze
-
     # Returns the Currency object representing a price of 0.
-    def self.free
-      @@free
+    def self.free(clear = false)
+      @@free = nil if clear
+      @@free ||= Currency.new(0).freeze
     end
 
-    @@na = Currency.new(nil)
-    @@na.freeze
-
     # Returns the Currency object representing an unknown price.
-    def self.na
-      @@na
+    def self.na(clear = false)
+      @@na = nil if clear
+      @@na ||= Currency.new(nil).freeze
     end
 
     def <=>(other)
@@ -106,12 +102,12 @@ module Globalize
 			if options[:code]
         currency_code = options[:country] ?
           options[:country].currency_code :
-          ( Locale.active? ? Locale.active.currency_code : nil )
+          ( (Locale.active? && Locale.active.country) ? Locale.active.currency_code : nil )
         currency_code ?
 					self.amount(false, force_cents) + " " + currency_code :
 					self.amount(false, force_cents)
       else
-        if Locale.active?
+        if Locale.active? && Locale.active.country
           fmt = Locale.active.currency_format || '$%n'
           fmt.sub('%n', self.amount(false, force_cents))
         else
@@ -128,7 +124,7 @@ module Globalize
       return nil if na?
       decimal_sep = unlocalized ?
         '.' :
-        (Locale.active? ?
+        ((Locale.active? && Locale.active.country) ?
           (Locale.active.currency_decimal_sep || Locale.active.decimal_sep || '.') :
           '.')
       dollar_str = unlocalized ? dollar_part.to_s : dollar_part.localize

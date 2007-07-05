@@ -83,20 +83,6 @@ class LanguageTest < Test::Unit::TestCase
     assert_equal 'Spanish', lang.english_name
     assert_equal 'Español', lang.native_name
 
-    #Will still work. Uses 'en' tag
-    assert_nothing_raised do
-      rfc = RFC_3066.parse 'en-US'
-      std_err_msg = "Supplying an RFC_3066 instance to Language.pick(rfc_or_tag) is deprecated! Use  a valid rfc_4646 language tag or an instance of RFC_4646).\n"
-      assert_stderr_equal std_err_msg do
-        lang = Language.pick(rfc)
-      end
-
-      assert_equal 'en', lang.tag
-      assert_equal 'en', lang.primary_subtag
-      assert_equal 'English', lang.english_name
-      assert_equal 'English', lang.native_name
-    end
-
     assert_nothing_raised do
       rfc = RFC_4646.parse 'sl-Latn-IT-nedis'
       lang = Language.pick(rfc)
@@ -115,21 +101,9 @@ class LanguageTest < Test::Unit::TestCase
       assert_equal 'Español', lang.native_name
     end
 
-    #Intended rfc_3066 valid tag
-    #As a rfc_4646 this doesn't exist in the database
-    #so we expect an ambiguity exception (TODO: Perhaps should use an ambiguity excpetion class?)
-    raised_message = <<-'EOM'
-        Language.pick now only accepts a valid rfc_4646 language tag.
-        If you supplied a tag with this format {language_code}_{country_code}
-        e.g en-US
-        it was taken to be the American regional variant of the English language
-        and for this reason may not have been found in the database.
-        Drop the country code and just use 'en' if you meant to just select the english language.
-        If you really did mean to specify es-BL as a valid rfc_4646 tag then this tag
-        is NOT available in the database.
-        You can add it via: 'Globalize::Language.add()'
-        EOM
+    raised_message = "Tag 'es-BL' not available in the database. You can add it via: 'Globalize::Language.add()'"
 
+    #rfc_4646 valid tag but missing in db
     assert_raises ArgumentError do
       assert_raised_message_equals(raised_message) do
         lang = Language.pick('es-BL')
@@ -137,7 +111,8 @@ class LanguageTest < Test::Unit::TestCase
     end
 
     raised_message = "Tag 'it' not available in the database. You can add it via: 'Globalize::Language.add()'"
-    #Intended rfc_4646 valid tag but missing in db
+
+    #rfc_4646 valid tag but missing in db
     assert_raises ArgumentError do
       assert_raised_message_equals(raised_message) do
         lang = Language.pick('it')
@@ -147,7 +122,7 @@ class LanguageTest < Test::Unit::TestCase
 
   def test_language_add
 
-    loc_es = Locale.new('es_US')
+    loc_es = Locale.new('es','US')
     lang_es = Language.pick('es')
 
     assert_raises(ArgumentError) do

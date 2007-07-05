@@ -37,33 +37,10 @@ module Globalize
           rfc_or_language_tag = RFC_4646.parse(tag)
         when RFC_4646
           tag = rfc_or_language_tag.tag
-        when RFC_3066
-          tag = rfc_or_language_tag.language
-          $stderr.puts "Supplying an RFC_3066 instance to Language.pick(rfc_or_tag) is deprecated! Use  a valid rfc_4646 language tag or an instance of RFC_4646)."
-          #$stdout.puts caller.inspect unless $stderr.kind_of?(StringIO)
       end
 
       lang = find_by_tag(tag)
-      return lang if lang
-
-      #as we don't know wether the string argument was meant to be a valid
-      #rfc_4646 or rfc_3066 tag we throw an exception and let them decide.
-      if rfc_or_language_tag.kind_of?(RFC_4646) && rfc_or_language_tag.tag.include?('-')
-        raise ArgumentError, <<-EOM
-        Language.pick now only accepts a valid rfc_4646 language tag.
-        If you supplied a tag with this format {language_code}_{country_code}
-        e.g en-US
-        it was taken to be the American regional variant of the English language
-        and for this reason may not have been found in the database.
-        Drop the country code and just use 'en' if you meant to just select the english language.
-        If you really did mean to specify #{tag} as a valid rfc_4646 tag then this tag
-        is NOT available in the database.
-        You can add it via: 'Globalize::Language.add()'
-        EOM
-      else
-        raise ArgumentError, "Tag '#{tag}' not available in the database. You can add it via: 'Globalize::Language.add()'"
-      end
-
+      raise ArgumentError, "Tag '#{tag}' not available in the database. You can add it via: 'Globalize::Language.add()'" unless lang
       lang
     end
 
@@ -133,15 +110,6 @@ module Globalize
             "#{self.inspect}:#{self.class.name}"
             )
         end
-      end
-    end
-
-    def xxx_code=(new_code)
-      if new_code =~ /-/
-        self.rfc_3066 = new_code
-      else
-        raise ArgumentError,
-          "code must be in rfc_3066 format, with a hyphen character; was #{new_code}"
       end
     end
 

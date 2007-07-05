@@ -6,7 +6,6 @@ ml_lib_path = "#{root_path}/lib/globalize"
 
 # Load globalize libs
 require "globalize/localization/db_view_translator"
-require "globalize/localization/rfc_3066"
 require "globalize/localization/rfc_4646"
 require "globalize/localization/language_subtag_registry_parser"
 require "globalize/localization/locale"

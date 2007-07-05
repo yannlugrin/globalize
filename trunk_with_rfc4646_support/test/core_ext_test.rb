@@ -9,6 +9,10 @@ class CoreExtTest < Test::Unit::TestCase
     Locale.set('en','US')
   end
 
+  def teardown
+    Locale.set('en','US')
+  end
+
   def test_numbers
     assert_equal "23,123,456", 23123456.localize
     assert_equal "23,123,456.45625", 23123456.45625.localize
@@ -55,7 +59,21 @@ class CoreExtTest < Test::Unit::TestCase
     assert_equal "Not translated", _("Not translated")
   end
 
-  def teardown
-    Locale.set('en','US')
+  def test_no_country_set
+
+    assert_nothing_raised do
+      Locale.clear_cache(true)
+      Locale.set('en')
+
+      t = Time.mktime(2005, 10, 17, 0, 0, 0, 0)
+      assert_equal "Mon Oct 17", t.localize("%a %b %d")
+
+      d = Date.new(2005, 10, 17)
+      assert_equal "Mon Oct 17", d.localize("%a %b %d")
+
+      assert_equal "23,123,456", 23123456.localize
+      assert_equal "23,123,456.45625", 23123456.45625.localize
+      assert_equal "12,345", 12345.localize
+    end
   end
 end

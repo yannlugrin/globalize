@@ -393,6 +393,7 @@ class TranslationTest < Test::Unit::TestCase
 =end
 
   def test_fallbacks
+    ::Globalize::Locale.clear_fallbacks
 
     ::Globalize::Locale.set('en','US')
     simp = ::Simple.new
@@ -421,22 +422,26 @@ class TranslationTest < Test::Unit::TestCase
     assert_equal 'Un modelo simple', simp.name
     assert_nil simp.description
 
-    ::Globalize::Locale.set('es-MX','MX',[['en','US'],['es','ES']])
+    ::Globalize::Locale.set_fallback('es-MX', 'en', 'es')
+    ::Globalize::Locale.set('es-MX')
     simp.reload
     assert_equal 'A simple model', simp.name
     assert_nil simp.description
 
-    ::Globalize::Locale.set('es-MX','MX',[['es','ES'], ['en','US']])
+    ::Globalize::Locale.set_fallback('es-MX', 'es', 'en')
+    ::Globalize::Locale.set('es-MX')
     simp.reload
     assert_equal 'Un modelo simple', simp.name
     assert_nil simp.description
 
-    ::Globalize::Locale.set('de','CH',[['es','ES'], ['en','US']])
+    ::Globalize::Locale.set_fallback('de', 'es', 'en')
+    ::Globalize::Locale.set('de')
     simp.reload
     assert_equal 'Un modelo simple', simp.name
     assert_nil simp.description
 
-    ::Globalize::Locale.set('de','CH',[['en','US'],['es','ES']])
+    ::Globalize::Locale.set_fallback('de', 'en', 'es')
+    ::Globalize::Locale.set('de','CH')
     simp.reload
     assert_equal 'A simple model', simp.name
     assert_nil simp.description
@@ -449,6 +454,7 @@ class TranslationTest < Test::Unit::TestCase
 
   def test_fallbacks_for_base_locale
 
+    ::Globalize::Locale.clear_fallbacks
     ::Globalize::Locale.set_base_language(Language.pick('es-MX'))
 
     ::Globalize::Locale.set('he','IL')
@@ -475,7 +481,8 @@ class TranslationTest < Test::Unit::TestCase
     assert_equal 'spanish name fallbacks 2', simp.name
     assert_nil simp.description
 
-    ::Globalize::Locale.set('es-MX','ES', [['he','IL']])
+    ::Globalize::Locale.set_fallback('es-MX', 'he')
+    ::Globalize::Locale.set('es-MX')
     simp.reload
     assert_equal 'hebrew name fallbacks 2', simp.name
     assert_nil simp.description

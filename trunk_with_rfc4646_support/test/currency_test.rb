@@ -146,4 +146,20 @@ class CurrencyTest < Test::Unit::TestCase
     assert_equal 995, m1.cents
   end
 
+  def test_no_country_set
+
+    assert_nothing_raised do
+      Locale.clear_cache(true)
+      Locale.set('en')
+
+      m1 = Currency.new(1234567)
+      assert_equal "12,345.67", m1.amount
+
+      m1 = Currency.new(1234567)
+      assert_equal "12,345.67", m1.format
+      assert_equal "12,345.67", m1.format(:code => true)
+      assert_equal "12,345.67 USD", m1.format(:code => true, :country => Country.pick('US'))
+    end
+  end
+
 end

@@ -91,7 +91,7 @@ module Globalize # :nodoc:
       def localize( base = 10 )
         str = self.to_s( base )
         if (base == 10)
-          if Locale.active?
+          if Locale.active? && Locale.active.country
             delimiter = Locale.active.thousands_sep
             number_grouping_scheme = Locale.active.number_grouping_scheme
           end
@@ -116,7 +116,7 @@ module Globalize # :nodoc:
       def localize
         str = self.to_s
         if str =~ /^[\d\.]+$/
-          if Locale.active?
+          if Locale.active? && Locale.active.country
             active_locale = Locale.active
             delimiter = active_locale.thousands_sep
             decimal   = active_locale.decimal_sep
@@ -152,7 +152,7 @@ module Globalize # :nodoc:
           when '%a'; o << "#{::Date::ABBR_DAYNAMES[wday]} [abbreviated weekday]".t(::Date::ABBR_DAYNAMES[wday])
           when '%B'; o << "#{::Date::MONTHNAMES[mon]} [month]".t(::Date::MONTHNAMES[mon])
           when '%b'; o << "#{::Date::ABBR_MONTHNAMES[mon]} [abbreviated month]".t(::Date::ABBR_MONTHNAMES[mon])
-          when '%c'; o << ((Locale.active? && !Locale.active.date_format.nil?) ?
+          when '%c'; o << ((Locale.active? && Locale.active.country && !Locale.active.date_format.nil?) ?
             localize(Locale.active.date_format) : strftime('%c'))
           when '%p'; o << if hour < 12 then 'AM [Ante Meridiem]'.t("AM") else 'PM [Post Meridiem]'.t("PM") end
           else;      o << c
@@ -176,7 +176,7 @@ module Globalize # :nodoc:
           when '%a'; o << "#{::Date::ABBR_DAYNAMES[wday]} [abbreviated weekday]".t(::Date::ABBR_DAYNAMES[wday])
           when '%B'; o << "#{::Date::MONTHNAMES[mon]} [month]".t(::Date::MONTHNAMES[mon])
           when '%b'; o << "#{::Date::ABBR_MONTHNAMES[mon]} [abbreviated month]".t(::Date::ABBR_MONTHNAMES[mon])
-          when '%c'; o << ((Locale.active? && !Locale.active.date_format.nil?) ?
+          when '%c'; o << ((Locale.active? && Locale.active.country && !Locale.active.date_format.nil?) ?
             localize(Locale.active.date_format) : strftime('%c'))
           when '%p'; o << if hour < 12 then 'AM [Ante Meridiem]'.t("am") else 'PM [Post Meridiem]'.t("am") end
           when '%P'; o << if hour < 12 then 'AM [Ante Meridiem]'.t("AM") else 'PM [Post Meridiem]'.t("PM") end

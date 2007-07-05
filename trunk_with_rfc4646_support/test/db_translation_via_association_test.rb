@@ -420,22 +420,26 @@ class ViaAssociationTranslationTest < Test::Unit::TestCase
     assert_equal 'Un modelo simple', simp.name
     assert_nil simp.description
 
-    ::Globalize::Locale.set('es-MX','MX',[['en','US'],['es','ES']])
+    ::Globalize::Locale.set_fallback('es-MX', 'en', 'es')
+    ::Globalize::Locale.set('es-MX')
     simp.reload
     assert_equal 'A simple model', simp.name
     assert_nil simp.description
 
-    ::Globalize::Locale.set('es-MX','MX',[['es','ES'], ['en','US']])
+    ::Globalize::Locale.set_fallback('es-MX', 'es', 'en')
+    ::Globalize::Locale.set('es-MX')
     simp.reload
     assert_equal 'Un modelo simple', simp.name
     assert_nil simp.description
 
-    ::Globalize::Locale.set('de','CH',[['es','ES'], ['en','US']])
+    ::Globalize::Locale.set_fallback('de', 'es', 'en')
+    ::Globalize::Locale.set('de')
     simp.reload
     assert_equal 'Un modelo simple', simp.name
     assert_nil simp.description
 
-    ::Globalize::Locale.set('de','CH',[['en','US'],['es','ES']])
+    ::Globalize::Locale.set_fallback('de', 'en', 'es')
+    ::Globalize::Locale.set('de')
     simp.reload
     assert_equal 'A simple model', simp.name
     assert_nil simp.description
@@ -448,6 +452,7 @@ class ViaAssociationTranslationTest < Test::Unit::TestCase
 
   def test_fallbacks_for_base_locale
 
+    ::Globalize::Locale.clear_fallbacks
     ::Globalize::Locale.set_base_language(Language.pick('es-MX'))
 
     ::Globalize::Locale.set('he','IL')
@@ -456,7 +461,7 @@ class ViaAssociationTranslationTest < Test::Unit::TestCase
     assert_equal 'hebrew name fallbacks 2', simp.name
     assert_equal 'hebrew desc fallbacks 2', simp.description
 
-    ::Globalize::Locale.set('es-MX','MX')
+    ::Globalize::Locale.set('es-MX')
     simp.reload
     assert_nil simp.name
     assert_nil simp.description
@@ -469,12 +474,13 @@ class ViaAssociationTranslationTest < Test::Unit::TestCase
     assert_equal 'spanish name fallbacks 2', simp.name
     assert_equal 'spanish desc fallbacks 2', simp.description
 
-    ::Globalize::Locale.set('es-MX','MX')
+    ::Globalize::Locale.set('es-MX')
     simp.reload
     assert_equal 'spanish name fallbacks 2', simp.name
     assert_nil simp.description
 
-    ::Globalize::Locale.set('es-MX','ES', [['he','IL']])
+    ::Globalize::Locale.set_fallback('es-MX', 'he')
+    ::Globalize::Locale.set('es-MX')
     simp.reload
     assert_equal 'hebrew name fallbacks 2', simp.name
     assert_nil simp.description
@@ -488,12 +494,12 @@ class ViaAssociationTranslationTest < Test::Unit::TestCase
     assert_not_nil item1
     assert_not_nil item2
 
-    ::Globalize::Locale.set('he_IL')
+    ::Globalize::Locale.set('he','IL')
     item3 = Item.find_by_name('סקר')
     assert_not_nil item3
     assert_equal item1, item3
 
-    ::Globalize::Locale.set('es_ES')
+    ::Globalize::Locale.set('es','ES')
     item4 = Item.find_by_name_and_description('oreja','descripción de oreja')
     assert_not_nil item4
     assert_equal item2, item4

@@ -226,7 +226,10 @@ class ViewTranslationTest < Test::Unit::TestCase
     # phew!
   end
 
-  def test_set_translation_with_fallbacks
+  def test_set_translation_with_explicit_fallbacks
+    Locale.clear_cache
+    Locale.clear_fallbacks
+
     assert_equal "english", "english".t
     Locale.set_translation("english", "english translated")
     assert_equal "english translated", "english".t
@@ -245,36 +248,81 @@ class ViewTranslationTest < Test::Unit::TestCase
     Locale.set("en","US")
     assert_equal "english translated", "english".t
 
-    #test primary subtag fallback with no fallbacks
+    #test primary subtag fallback with no explicit fallbacks
     Locale.set("es-MX","MX")
     assert_equal "ingles traducido al castellano de españa", "english".t
 
     #test with matching fallbacks
-    Locale.set("es-MX","MX", [['es','ES'],['es-AR','AR'],['es-419','MX']])
+    Locale.clear_cache(true)
+    Locale.set_fallback("es-MX",'es','es-AR','es-419')
+    Locale.set("es-MX","MX")
     assert_equal "ingles traducido al castellano de españa", "english".t
 
-    Locale.set("es-MX","MX", [['es-AR','AR'],['es','ES'],['es-419','MX']])
+    Locale.set_fallback("es-MX", 'es-AR', 'es', 'es-419')
+    Locale.set("es-MX")
     assert_equal "ingles traducido al castellano de argentina", "english".t
 
-    Locale.set("es-MX","MX", [['es-419','MX'],['es-AR','AR'],['es','ES']])
+    Locale.set_fallback("es-MX", 'es-419', 'es-AR', 'es')
+    Locale.set("es-MX")
     assert_equal "ingles traducido al castellano generico de sur america", "english".t
 
-    Locale.set("es-MX","MX", [['en','ES'],['es-AR','AR'],['es','ES']])
+    Locale.set_fallback("es-MX", 'en', 'es-AR', 'es')
+    Locale.set("es-MX")
     assert_equal "english translated", "english".t
 
-    Locale.set("es-MX","MX", [['de','CH'],['es-AR','AR'],['es','ES']])
+    Locale.set_fallback("es-MX", 'de', 'es-AR', 'es')
+    Locale.set("es-MX")
     assert_equal "ingles traducido al castellano de argentina", "english".t
 
     #test primary subtag fallback with no matching fallbacks
-    Locale.set("es-MX","MX", [['de','CH'],['zh','CN']])
+    Locale.set_fallback("es-MX", 'de', 'zh')
+    Locale.set("es-MX","MX")
     assert_equal "ingles traducido al castellano de españa", "english".t
 
     #test no matching fallbacks
-    Locale.set("de","CH", [['he','IL'],['zh','CN']])
+    Locale.set_fallback("de", 'he', 'zh')
+    Locale.set("de","CH")
     assert_equal "english", "english".t
   end
 
-  def test_zero_form_with_fallbacks
+  def test_set_translation_with_implicit_fallbacks
+    Locale.clear_cache
+    Locale.clear_fallbacks
+    Locale.translator.cache_reset
+
+    assert_equal "english", "english".t
+    Locale.set_translation("english", "english translated")
+    assert_equal "english translated", "english".t
+
+    Locale.set('es-AR','AR')
+    assert_equal "english", "english".t
+    Locale.set_translation("english", "ingles traducido al castellano de argentina")
+    assert_equal "ingles traducido al castellano de argentina", "english".t
+
+    Locale.set('es-MX','MX')
+    assert_equal "ingles traducido al castellano de argentina", "english".t, 'Should fallback implicitly to es-AR'
+    Locale.set_translation("english", "ingles traducido al castellano de mexico")
+    assert_equal "ingles traducido al castellano de mexico", "english".t
+
+    Locale.set('es-419','ES')
+    assert ["ingles traducido al castellano de mexico", "ingles traducido al castellano de argentina"].any? {|t| t == "english".t}, "Should fallback implicitly to either es-AR or es-MX"
+
+    Locale.set('es','ES')
+    assert ["ingles traducido al castellano de mexico", "ingles traducido al castellano de argentina"].any? {|t| t == "english".t}, "Should fallback implicitly to either es-AR or es-MX"
+    Locale.set_translation("english", "ingles traducido al castellano de españa")
+    assert_equal "ingles traducido al castellano de españa", "english".t
+
+    Locale.set('es-419','ES')
+    assert_equal "ingles traducido al castellano de españa", "english".t, "Should fallback implicitly to es"
+
+    Globalize::ViewTranslation::enable_fallbacks = false
+    Locale.set('es-419','ES')
+    assert_equal "english", "english".t, "Should not fallback!"
+    Globalize::ViewTranslation::enable_fallbacks = true
+  end
+
+  def test_zero_form_with_explicit_fallbacks
+    Locale.clear_fallbacks
     Locale.set_translation("%d items in your cart",
       [ "One item in your cart", "%d items in your cart" ], "Your cart is empty")
     assert_equal "8 items in your cart", "%d items in your cart" / 8
@@ -293,18 +341,20 @@ class ViewTranslationTest < Test::Unit::TestCase
     assert_equal "1 items in your cart", "%d items in your cart" / 1
     assert_equal "0 items in your cart", "%d items in your cart" / 0
 
-    Locale.set("de","CH", [['es','ES'],['zh','CN']])
+    Locale.set_fallback("de", 'es', 'zh')
+    Locale.set("de","CH")
     assert_equal "8 articulos en tu carrito", "%d items in your cart" / 8
     assert_equal "Un artículo en tu carrito", "%d items in your cart" / 1
     assert_equal "Tu carrito está vacio", "%d items in your cart" / 0
 
-    Locale.set("es-MX","MX", [['es','ES'],['zh','CN']])
+    Locale.set_fallback("es-MX", 'es', 'zh')
+    Locale.set("es-MX")
     assert_equal "8 articulos en tu carrito", "%d items in your cart" / 8
     assert_equal "Un artículo en tu carrito", "%d items in your cart" / 1
     assert_equal "Tu carrito está vacio", "%d items in your cart" / 0
   end
 
-  def test_zero_form_default_with_fallbacks
+  def test_zero_form_default_with_explicit_fallbacks
     Locale.set_translation("%d items in your cart",
       [ "One item in your cart", "%d items in your cart" ])
     assert_equal "8 items in your cart", "%d items in your cart" / 8
@@ -323,18 +373,20 @@ class ViewTranslationTest < Test::Unit::TestCase
     assert_equal "1 items in your cart", "%d items in your cart" / 1
     assert_equal "0 items in your cart", "%d items in your cart" / 0
 
-    Locale.set("de","CH", [['es','ES'],['zh','CN']])
+    Locale.set_fallback("de", 'es', 'zh')
+    Locale.set("de")
     assert_equal "8 articulos en tu carrito", "%d items in your cart" / 8
     assert_equal "Un artículo en tu carrito", "%d items in your cart" / 1
     assert_equal "0 articulos en tu carrito", "%d items in your cart" / 0
 
-    Locale.set("es-MX","MX", [['es','ES'],['zh','CN']])
+    Locale.set_fallback("es-MX", 'es', 'zh')
+    Locale.set("es-MX")
     assert_equal "8 articulos en tu carrito", "%d items in your cart" / 8
     assert_equal "Un artículo en tu carrito", "%d items in your cart" / 1
     assert_equal "0 articulos en tu carrito", "%d items in your cart" / 0
   end
 
-  def test_string_substitute_with_fallbacks
+  def test_string_substitute_with_explicit_fallbacks
     Globalize::Locale.set("en-US","US")
     Locale.set_translation("Bye, %s", 'See ya, %s')
     assert_equal "See ya, Josh", "Bye, %s" / "Josh"
@@ -347,8 +399,9 @@ class ViewTranslationTest < Test::Unit::TestCase
     Locale.set_translation("Bye, %s", 'Adios, %s')
     assert_equal "Adios, Josh", "Bye, %s" / "Josh"
 
+    #test implicit fallbacks
     Globalize::Locale.set("en","US")
-    assert_equal "Bye, Josh", "Bye, %s" / "Josh"
+    assert ["See ya, Josh","Cheerio, Josh"].any? {|t| t == "Bye, %s" / "Josh"}, 'Implicit fallbacks means either previous en-US or en-GB translation is possible'
 
     Locale.set_translation("Bye, %s", 'Good bye, %s')
     assert_equal "Good bye, Josh", "Bye, %s" / "Josh"
@@ -356,16 +409,20 @@ class ViewTranslationTest < Test::Unit::TestCase
     Globalize::Locale.set("en-AU","AU")
     assert_equal "Good bye, Josh", "Bye, %s" / "Josh"
 
-    Globalize::Locale.set("en-AU","AU",[['en-NZ','NZ'],['en-GB','GB'],['en-US','US']])
+    Locale.set_fallback("en-AU", 'en-NZ', 'en-GB', 'en-US')
+    Globalize::Locale.set("en-AU")
     assert_equal "Cheerio, Josh", "Bye, %s" / "Josh"
 
-    Globalize::Locale.set("es-MX","MX",[['en-GB','GB'],['en-US','US']])
+    Locale.set_fallback("es-MX", 'en-GB', 'en-US')
+    Globalize::Locale.set("es-MX")
     assert_equal "Cheerio, Josh", "Bye, %s" / "Josh"
 
-    Globalize::Locale.set("es-MX","MX",[['en-US','US'],['en-GB','GB']])
+    Locale.set_fallback("es-MX", 'en-US', 'en-GB')
+    Globalize::Locale.set("es-MX")
     assert_equal "See ya, Josh", "Bye, %s" / "Josh"
 
-    Globalize::Locale.set("es-MX","MX")
+    Locale.clear_fallbacks
+    Globalize::Locale.set("es-MX")
     assert_equal "Adios, Josh", "Bye, %s" / "Josh"
   end
 
@@ -413,5 +470,52 @@ class ViewTranslationTest < Test::Unit::TestCase
     assert_raise(RuntimeError) { "%s and %d" / ['one'] }
     assert_raise(RuntimeError) { "%s and %d" / ['one','two'] }
     assert_raise(RuntimeError) { "%d and %d" / [2,2] }
+  end
+
+  def test_hash_based_multiple_argument_interpolation
+    Globalize::Locale.set("en","US")
+    Locale.set_translation("{person}, I'm going on holiday to {place}", "{person}, I'm going on holiday to {place}")
+
+    Globalize::Locale.set("es","ES")
+    Locale.set_translation("{person}, I'm going on holiday to {place}", "{person}, me voy de vacaciones a {place}")
+
+    Globalize::Locale.set("en","US")
+    assert_equal "John, I'm going on holiday to Ibiza", "{person}, I'm going on holiday to {place}" / {:person => 'John', :place => 'Ibiza'}
+
+    Globalize::Locale.set("es","ES")
+    assert_equal "John, me voy de vacaciones a Ibiza", "{person}, I'm going on holiday to {place}" / {:person => 'John', :place => 'Ibiza'}
+  end
+
+  def test_hash_based_multiple_argument_interpolation_with_escaping
+    Globalize::Locale.set("en","US")
+    Locale.set_translation("{{person}}, I'm going on holiday to {place}", "{{person}}, I'm going on holiday to {place}")
+
+    Globalize::Locale.set("es","ES")
+    Locale.set_translation("{{person}}, I'm going on holiday to {place}", "{{person}}, me voy de vacaciones a {place}")
+    Locale.set_translation("{{{person}}}, I'm going on holiday to {place}", "{{{person}}}, me voy de vacaciones a {place}")
+
+    Globalize::Locale.set("en","US")
+    assert_equal "{person}, I'm going on holiday to Ibiza", "{{person}}, I'm going on holiday to {place}" / {:person => 'John', :place => 'Ibiza'}
+
+    Globalize::Locale.set("es","ES")
+    assert_equal "{person}, me voy de vacaciones a Ibiza", "{{person}}, I'm going on holiday to {place}" / {:person => 'John', :place => 'Ibiza'}
+    assert_equal "{{person}}, me voy de vacaciones a Ibiza", "{{{person}}}, I'm going on holiday to {place}" / {:person => 'John', :place => 'Ibiza'}
+  end
+
+  def test_mixing_multiple_argument_interpolation
+    Globalize::Locale.set("en","US")
+    Locale.set_translation("{person}, %s has been to {place} with %s, %d times", ["{person}, %s has been to {place} with %s once", "{person}, %s has been to {place} with %s, %d times"])
+    Locale.set_translation("{person} goes to {place} with {other_person}, %d times every {periodicity} years", ["{person}, %s has been to {place} with %s once", "{person}, %s has been to {place} with %s, %d times"])
+
+    Globalize::Locale.set("es","ES")
+    Locale.set_translation("{person}, %s has been to {place} with %s, %d times", ["{person}, %s ha estado en {place} con %s una vez", "{person}, %s ha estado en {place} con %s, %d veces"])
+
+    Globalize::Locale.set("en","US")
+    assert_equal "John, Tony has been to Ibiza with Anne once", "{person}, %s has been to {place} with %s, %d times" / [{:person => 'John', :place => 'Ibiza'}, 'Tony', 'Anne', 1]
+    assert_equal "John, Tony has been to Ibiza with Anne, 2 times", "{person}, %s has been to {place} with %s, %d times" / [{:person => 'John', :place => 'Ibiza'}, 'Tony', 'Anne', 2]
+
+    Globalize::Locale.set("es","ES")
+    assert_equal "John, Tony ha estado en Ibiza con Anne una vez", "{person}, %s has been to {place} with %s, %d times" / [{:person => 'John', :place => 'Ibiza'}, 'Tony', 'Anne', 1]
+    assert_equal "John, Tony ha estado en Ibiza con Anne, 2 veces", "{person}, %s has been to {place} with %s, %d times" / [{:person => 'John', :place => 'Ibiza'}, 'Tony', 'Anne', 2]
   end
 end

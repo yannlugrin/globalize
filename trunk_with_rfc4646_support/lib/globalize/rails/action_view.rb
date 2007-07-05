@@ -31,7 +31,7 @@ module ActionView # :nodoc: all
 
       def locate_globalize_path(template_path, use_full_path)
 
-        locale_codes = Globalize::Locale.active.possible_codes(true)
+        locale_codes = Globalize::Locale.possible_codes(Globalize::Locale.active.code, true)
 
         cache_key = nil
         locale_codes.each do |code|

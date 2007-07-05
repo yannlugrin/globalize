@@ -515,6 +515,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
   end
 
   def test_fallbacks
+    ::Globalize::Locale.clear_fallbacks
     article = ::Article.create!(:code => 'test-fallback',
                            :name => 'english name fallbacks',
                            :description => 'english desc fallbacks')
@@ -543,13 +544,15 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     assert_nil article.description
     assert_nil article.description_before_type_cast
 
-    ::Globalize::Locale.set('es-MX','MX', [['es','ES'],['en','US']])
+    ::Globalize::Locale.set_fallback('es-MX', 'es', 'en')
+    ::Globalize::Locale.set('es-MX')
     assert_equal 'spanish name fallbacks', article.name
     assert_equal 'spanish name fallbacks', article.name_before_type_cast
     assert_nil article.description
     assert_nil article.description_before_type_cast
 
-    ::Globalize::Locale.set('es-MX','MX', [['en','US'],['es','ES']])
+    ::Globalize::Locale.set_fallback('es-MX', 'en', 'es')
+    ::Globalize::Locale.set('es-MX')
     assert_equal 'english name fallbacks', article.name
     assert_equal 'english name fallbacks', article.name_before_type_cast
     assert_nil article.description
@@ -557,7 +560,7 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
   end
 
   def test_fallbacks_for_base_locale
-
+    ::Globalize::Locale.clear_fallbacks
     ::Globalize::Locale.set_base_language(Language.pick('es-MX'))
 
     ::Globalize::Locale.set('he','IL')
@@ -590,7 +593,8 @@ class LocalizesTranslatesTest < Test::Unit::TestCase
     assert_nil article.description
     assert_nil article.description_before_type_cast
 
-    ::Globalize::Locale.set('es-MX','ES', [['he','IL']])
+    ::Globalize::Locale.set_fallback('es-MX', 'he')
+    ::Globalize::Locale.set('es-MX')
     assert_equal 'hebrew name fallbacks 2', article.name
     assert_equal 'hebrew name fallbacks 2', article.name_before_type_cast
     assert_nil article.description

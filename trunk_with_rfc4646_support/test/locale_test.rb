@@ -8,63 +8,132 @@ class LocaleTest < Test::Unit::TestCase
   def setup
   end
 
-  def test_valid_locale_using_rfc_3066
-    loc = nil
-    assert_stderr_includes "Locale.new(rfc3066_tag) is deprecated! Use Locale.new(language_tag, country_code) or Locale.new('{language_tag}_{country_code}').\n" do
-      loc = Locale.new('en-US')
-    end
-    assert_equal 'en', loc.language.code
-    assert_equal 'US', loc.country.code
-
-    assert_stderr_includes "Locale.set(rfc3066_tag) is deprecated! Use Locale.set(language_tag, country_code) or Locale.set('{language_tag}_{country_code}').\n" do
-      loc = Locale.set('en-US')
-    end
-    assert_equal 'en', loc.language.code
-    assert_equal 'US', loc.country.code
-  end
-
-  def test_valid_locale_with_single_argument
-    loc = nil
-    loc2 = nil
+  def test_setting_valid_locale_with_lang_and_country_arguments
     assert_nothing_raised do
-      loc = Locale.set('en_US')
-      loc2 = Locale.new('en_US')
+      Locale.clear_cache(true)
+      assert !Locale.active?
+
+      loc = nil
+
+      loc = Locale.set('en', 'US')
+      assert_equal 'en', loc.language.code
+      assert_equal 'US', loc.country.code
+      assert_equal 'English', loc.language.english_name
+      assert_equal 'United States', loc.country.english_name
+      assert_equal 'en',      loc.rfc.tag
+      assert_equal 'en',      loc.rfc.primary
+      assert_nil              loc.rfc.region
+
+      assert Locale.active?
+
+      loc = Locale.set('en-GB', 'GB')
+      assert_equal 'en-GB', loc.language.code
+      assert_equal 'GB', loc.country.code
+      assert_equal 'English (UK)', loc.language.english_name
+      assert_equal 'United Kingdom',   loc.country.english_name
+      assert_equal 'en-GB',      loc.rfc.tag
+      assert_equal 'en',      loc.rfc.primary
+      assert_equal 'GB',      loc.rfc.region
+
+      loc = Locale.set('en-GB', 'US')
+      assert_equal 'en-GB', loc.language.code
+      assert_equal 'US', loc.country.code
+
+      loc = Locale.set('es', 'ES')
+      assert_equal 'es', loc.language.code
+      assert_equal 'ES', loc.country.code
+      assert_equal 'Spanish', loc.language.english_name
+      assert_equal 'Spain',   loc.country.english_name
+      assert_equal 'es',      loc.rfc.tag
+      assert_equal 'es',      loc.rfc.primary
+      assert_nil              loc.rfc.region
+
+      loc = Locale.set('es', 'MX')
+      assert_equal 'es', loc.language.code
+      assert_equal 'MX', loc.country.code
+
+      loc = Locale.set('es-MX', 'MX')
+      assert_equal 'es-MX', loc.language.code
+      assert_equal 'MX', loc.country.code
+      assert_equal 'Spanish (Mexico)', loc.language.english_name
+      assert_equal 'Mexico',  loc.country.english_name
+      assert_equal 'es-MX',   loc.rfc.tag
+      assert_equal 'es',      loc.rfc.primary
+      assert_equal 'MX',      loc.rfc.region
+
+      loc = Locale.set('es-MX', 'AR')
+      assert_equal 'es-MX', loc.language.code
+      assert_equal 'AR', loc.country.code
     end
-    assert_equal 'en', loc.language.code
-    assert_equal 'en', loc2.language.code
-    assert_equal 'US', loc.country.code
-    assert_equal 'US', loc2.country.code
   end
 
-  def test_new_valid_simple_locale
-    loc = nil
+  def test_setting_valid_locale_with_lang_argument_and_country_picking_from_region
+    assert_nothing_raised do
+      Locale.clear_cache(true)
 
-    assert_stderr_empty do
-      loc = Locale.new('en','US')
+      loc = nil
+      loc = Locale.set('en-US')
+      assert_equal 'en-US', loc.language.code
+      assert_equal 'US', loc.country.code
+
+      loc = Locale.set('en-GB')
+      assert_equal 'en-GB', loc.language.code
+      assert_equal 'GB', loc.country.code
+
+      loc = Locale.set('es-MX')
+      assert_equal 'es-MX', loc.language.code
+      assert_equal 'MX', loc.country.code
     end
+  end
 
-    assert_equal 'en',      loc.language.code
-    assert_equal 'English', loc.language.english_name
-    assert_equal 'US',      loc.country.code
-    assert_equal 'United States', loc.country.english_name
-    assert_equal 'en',      loc.rfc.tag
-    assert_equal 'en',      loc.rfc.primary
-    assert_nil              loc.rfc.region
+  def test_setting_valid_locale_with_lang_argument_and_country_picking_from_active_locale
+    assert_nothing_raised do
+      Locale.clear_cache(true)
 
-    assert_stderr_empty do
-      loc = Locale.new('es','ES')
+      loc = nil
+      loc = Locale.set('en','US')
+      assert_equal 'en', loc.language.code
+      assert_equal 'US', loc.country.code
+
+      loc = Locale.set('es')
+      assert_equal 'es', loc.language.code
+      assert_equal 'US', loc.country.code
+
+      loc = Locale.set('de')
+      assert_equal 'de', loc.language.code
+      assert_equal 'US', loc.country.code
+
+      loc = Locale.set('sl-Latn-IT-nedis')
+      assert_equal 'sl-Latn-IT-nedis', loc.language.code
+      assert_equal 'IT', loc.country.code
+
+      loc = Locale.set('es-MX')
+      assert_equal 'es-MX', loc.language.code
+      assert_equal 'MX', loc.country.code
+
+      loc = Locale.set('de')
+      assert_equal 'de', loc.language.code
+      assert_equal 'MX', loc.country.code
+
+      loc = Locale.set('de')
+      assert_equal 'de', loc.language.code
+      assert_equal 'MX', loc.country.code
+
+      loc = Locale.set('zh-Hans')
+      assert_equal 'zh-Hans', loc.language.code
+      assert_equal 'MX', loc.country.code
     end
+  end
 
-    assert_equal 'es',      loc.language.code
-    assert_equal 'Spanish', loc.language.english_name
-    assert_equal 'ES',      loc.country.code
-    assert_equal 'Spain',   loc.country.english_name
-    assert_equal 'es',      loc.rfc.tag
-    assert_equal 'es',      loc.rfc.primary
-    assert_nil              loc.rfc.region
+  def test_setting_valid_locale_with_lang_argument_and_no_active_locale
+    assert_nothing_raised do
+      Locale.clear_cache(true)
+      Locale.set('es')
+    end
   end
 
   def test_set_nil_locale
+    Locale.clear_cache(true)
 
     assert_nothing_raised do
       Locale.set(nil)
@@ -80,100 +149,79 @@ class LocaleTest < Test::Unit::TestCase
       Locale.set(nil,'US')
     end
     assert !Locale.active?
-  end
 
-  def test_set_simple_current_locale
-
-    loc = nil
+    Locale.clear_cache(true)
 
     assert_nothing_raised do
-      loc = Locale.set('en','US')
+      Locale.set('en-GB')
     end
 
-    assert                  Locale.active?
-    assert_equal loc,       Locale.active
-    assert_equal 'en',      loc.language.code
-    assert_equal 'English', loc.language.english_name
-    assert_equal 'US',      loc.country.code
-    assert_equal 'United States', loc.country.english_name
-    assert_equal 'en',      loc.rfc.tag
-    assert_equal 'en',      loc.rfc.primary
-    assert_nil              loc.rfc.region
+    assert Locale.active?
 
     assert_nothing_raised do
-      loc = Locale.set('es','ES')
+      Locale.set(nil)
     end
-
-    assert                  Locale.active?
-    assert_equal loc,       Locale.active
-    assert_equal 'es',      loc.language.code
-    assert_equal 'Spanish', loc.language.english_name
-    assert_equal 'ES',      loc.country.code
-    assert_equal 'Spain',   loc.country.english_name
-    assert_equal 'es',      loc.rfc.tag
-    assert_equal 'es',      loc.rfc.primary
-    assert_nil              loc.rfc.region
+    assert !Locale.active?
   end
-
 
   def test_set_current_locale_with_invalid_tag
     assert_raises(ArgumentError) do
-      std_err_msg = "Locale.set(rfc3066_tag) is deprecated! Use Locale.set(language_tag, country_code) or Locale.set('{language_tag}_{country_code}').\n"
-
-      assert_stderr_equal std_err_msg do
-        Locale.set('')
-      end
-
-      #TODO: Do we allow language only locales?
-      assert_stderr_equal std_err_msg do
-        Locale.set('en') #invalid rfc_3066/valid rfc_4646 language tag
-      end
-
-      assert_stderr_equal std_err_msg do
-        Locale.set('i') #invalid rfc_3066/rfc_4646
-      end
-
-      assert_stderr_equal std_err_msg do
-        Locale.set('zap-Ping') #invalid rfc_3066 / valid rfc_4646 language tag (Ping not registered)
-      end
-
-      assert_stderr_equal std_err_msg do
-        Locale.set('i-navajo') #invalid rfc_3066 / valid rfc_4646 language tag (grandfathered)
-      end
-
-      assert_stderr_equal std_err_msg do
-        Locale.set('zap') #invalid rfc_3066 / valid rfc_4646 language tag
-      end
-
-      assert_stderr_equal std_err_msg do
-        Locale.set('en-GB-oed') #invalid rfc_3066 / valid rfc_4646 grandfathered language tag
-      end
-
-      assert_stderr_empty do
-        Locale.set('e','US')
-        Locale.set('languages','US')
-        Locale.set('i-aim','US')
-        Locale.set('en-US-Latn','US')
-      end
+      Locale.set('')
     end
+
+    assert_raises(ArgumentError) do
+      Locale.set('i') #invalid rfc_4646
+    end
+
+    assert_raises(ArgumentError) do
+      Locale.set('zap-Ping') #valid rfc_4646 language tag (Ping not registered)
+    end
+
+    assert_raises(ArgumentError) do
+      Locale.set('i-navajo') #valid rfc_4646 language tag (grandfathered)
+    end
+
+    assert_nothing_raised do
+      Locale.set('zap') #valid rfc_4646 language tag
+    end
+
+    assert_raises(ArgumentError) do
+      Locale.set('en-GB-oed') #invalid rfc_3066 / valid rfc_4646 grandfathered language tag
+    end
+
+    assert_raises(ArgumentError) do
+      Locale.set('e','US')
+    end
+
+    assert_raises(ArgumentError) do
+      Locale.set('languages','US')
+    end
+
+    assert_raises(ArgumentError) do
+      Locale.set('i-aim','US')
+    end
+
+    assert_raises(ArgumentError) do
+      Locale.set('en-US-Latn','US')
+    end
+
   end
 
   def test_set_current_locale_with_non_existant_tags
     assert_raises(ArgumentError) do
-      std_err_msg = "Locale.set(rfc3066_tag) is deprecated! Use Locale.set(language_tag, country_code) or Locale.set('{language_tag}_{country_code}').\n"
+      Locale.set('no-DE') #non existant valid 'no' language tag
+    end
 
-      assert_stderr_equal std_err_msg do
-        Locale.set('no-DE') #non existant valid 'no' language tag
-      end
+    assert_raises(ArgumentError) do
+      Locale.set('en-BA') #non existant valid 'BA' country tag
+    end
 
-      assert_stderr_equal std_err_msg do
-        Locale.set('en-BA') #non existant valid 'BA' country tag
-      end
+    assert_raises(ArgumentError) do
+      Locale.set('no','DE') #non existant valid 'no' language tag
+    end
 
-      assert_stderr_empty do
-        Locale.set('no','DE') #non existant valid 'no' language tag
-        Locale.set('en','BA') #non existant valid 'BA' country tag
-      end
+    assert_raises(ArgumentError) do
+      Locale.set('en','BA') #non existant valid 'BA' country tag
     end
   end
 
@@ -367,42 +415,156 @@ class LocaleTest < Test::Unit::TestCase
 
   end
 
-  def test_set_locale_with_fallbacks
-    Locale.clear_cache
+  def test_new_locale_with_language_variants_having_region
+    loc = Locale.new('en-US')
+
+    assert_equal 'en-US',        loc.language.code
+    assert_equal 'en',           loc.language.primary_subtag
+    assert_equal 'English (US)', loc.language.english_name
+    assert_equal 'US',           loc.country.code
+    assert_equal 'United States', loc.country.english_name
+    assert_equal 'en-US',        loc.rfc.tag
+    assert_equal 'en',           loc.rfc.primary
+    assert_equal 'US',           loc.rfc.region
+
+    loc = Locale.new('es-AR')
+
+    assert_equal 'es-AR',    loc.language.code
+    assert_equal 'es',       loc.language.primary_subtag
+    assert_equal 'Spanish (Argentina)', loc.language.english_name
+    assert_equal 'AR',       loc.country.code
+    assert_equal 'Argentina',loc.country.english_name
+    assert_equal 'es-AR',    loc.rfc.tag
+    assert_equal 'es',       loc.rfc.primary
+    assert_equal 'AR',       loc.rfc.region
+
+    loc = Locale.new('zh-Hant-CN')
+
+    assert_equal 'zh-Hant-CN', loc.language.code
+    assert_equal 'zh',         loc.language.primary_subtag
+    assert_equal 'PRC Mainland Chinese in traditional script (redundant)', loc.language.english_name
+    assert_equal 'CN',       loc.country.code
+    assert_equal 'China',    loc.country.english_name
+    assert_equal 'zh-Hant-CN',  loc.rfc.tag
+    assert_equal 'zh',       loc.rfc.primary
+    assert_equal 'CN',       loc.rfc.region
+    assert_equal 'Hant',     loc.rfc.script
+
+    loc = Locale.new('zh-Hant-TW')
+
+    assert_equal 'zh-Hant-TW', loc.language.code
+    assert_equal 'zh',         loc.language.primary_subtag
+    assert_equal 'Taiwan Chinese in traditional script (redundant)', loc.language.english_name
+    assert_equal 'TW',       loc.country.code
+    assert_equal 'Taiwan',   loc.country.english_name
+    assert_equal 'zh-Hant-TW',  loc.rfc.tag
+    assert_equal 'zh',       loc.rfc.primary
+    assert_equal 'TW',       loc.rfc.region
+    assert_equal 'Hant',     loc.rfc.script
+
+    loc = Locale.new('en-GB-scouse')
+
+    assert_equal 'en-GB-scouse',   loc.language.code
+    assert_equal 'en',             loc.language.primary_subtag
+    assert_equal 'English as used in the United Kingdom, Liverpudlian dialect)', loc.language.english_name
+    assert_equal 'GB',             loc.country.code
+    assert_equal 'United Kingdom', loc.country.english_name
+    assert_equal 'en-GB-scouse',   loc.rfc.tag
+    assert_equal 'en',             loc.rfc.primary
+    assert_equal 'GB',             loc.rfc.region
+    assert_includes 'scouse',      loc.rfc.variants
+
+    loc = Locale.new('sl-Latn-IT-nedis')
+
+    assert_equal 'sl-Latn-IT-nedis', loc.language.code
+    assert_equal 'sl',               loc.language.primary_subtag
+    assert_equal 'Nadiza dialect of Slovenian written using the Latin script as used in Italy', loc.language.english_name
+    assert_equal 'IT',               loc.country.code
+    assert_equal 'Italy',            loc.country.english_name
+    assert_equal 'sl-Latn-IT-nedis', loc.rfc.tag
+    assert_equal 'sl',               loc.rfc.primary
+    assert_equal 'Latn',             loc.rfc.script
+    assert_equal 'IT',               loc.rfc.region
+    assert_includes 'nedis',         loc.rfc.variants
+
+  end
+
+  def test_implicit_fallbacks
+    Locale.clear_cache(true)
+    Locale.clear_fallbacks
+
+    Locale.set('en')
+    loc_en = Locale.active
+    en_fallbacks = ['en-US','en-GB', 'en-GB-scouse', 'en-AU', 'en-NZ']
+    assert en_fallbacks.all? {|f| loc_en.fallbacks(false, true).include? f}
+    assert !loc_en.fallbacks(false, true).include?('en')
+
+    Locale.set('en-US')
+    loc_en_us = Locale.active
+    en_us_fallbacks = ['en', 'en-GB', 'en-GB-scouse', 'en-AU', 'en-NZ']
+    assert en_us_fallbacks.all? {|f| loc_en_us.fallbacks(false, true).include? f}
+    assert !loc_en_us.fallbacks(false, true).include?('en-US')
+
+  end
+
+  def test_explicit_implicit_fallbacks
+    Locale.set_fallback('en', 'en-GB', 'en-US')
+    Locale.set('en')
+    loc_en = Locale.active
+    en_explicit_fallbacks = ['en-GB','en-US']
+    en_implicit_fallbacks = ['en-GB-scouse', 'en-AU', 'en-NZ']
+    en_fallbacks = loc_en.fallbacks(false, true)
+
+    assert_equal en_explicit_fallbacks, en_fallbacks[0..(en_explicit_fallbacks.size - 1)], 'Explicit fallbacks should be first in order'
+    assert en_implicit_fallbacks.all? {|f| en_fallbacks[en_explicit_fallbacks.size..(en_fallbacks.size - 1)].include? f}, 'Implicit fallbacks should all be present but in any order'
+    assert !en_fallbacks.include?('en')
+
+
+    Locale.set_fallback('en-US', 'en-GB', 'en-AU', 'en-NZ')
+    Locale.set('en-US')
+    loc_en_us = Locale.active
+    en_us_explicit_fallbacks = ['en-GB', 'en-AU', 'en-NZ', 'en']
+    en_us_implicit_fallbacks = ['en-GB-scouse']
+    en_us_fallbacks = loc_en_us.fallbacks(false, true)
+
+    assert_equal en_us_explicit_fallbacks, en_us_fallbacks[0..(en_us_explicit_fallbacks.size - 1)], 'Explicit fallbacks should be first in order'
+    assert en_us_implicit_fallbacks.all? {|f| en_us_fallbacks[en_us_explicit_fallbacks.size..(en_us_fallbacks.size - 1)].include? f}, 'Implicit fallbacks should all be present but in any order'
+    assert !en_us_fallbacks.include?('en-US')
+  end
+
+  def test_set_fallbacks
+    Locale.clear_cache(true)
+    Locale.clear_fallbacks
+
+    es_fallbacks = ['es-AR', 'es-MX']
+    en_fallbacks = ['en-GB', 'en-AU']
+
     assert_nothing_raised do
-      loc_es_AR = Locale.new('es','AR')
-      loc_es_MX = Locale.new('es','MX')
-
-      loc_es = Locale.set('es','ES', [['es','AR'],['es','MX']])
-
-      assert                  Locale.active?
-      assert_equal loc_es,    Locale.active
-      assert_equal 'es',      loc_es.language.code
-      assert_equal 'ES',      loc_es.country.code
-      assert_equal loc_es_AR, loc_es.fallbacks.first
-      assert_equal loc_es_MX, loc_es.fallbacks.last
+      assert !(Locale.fallbacks? 'es')
+      Locale.set_fallback('es', 'es-AR', 'es-MX')
+      assert Locale.fallbacks?('es')
+      assert_equal Locale.fallbacks['es'], es_fallbacks
     end
 
     assert_raises ArgumentError do
-      loc_es = Locale.set('en-US', [['en-GB'],['en-AU']])
+      assert !(Locale.fallbacks? 'en')
+      Locale.set_fallback('en', 'e1', 'es-MX')
+      assert !(Locale.fallbacks? 'en')
     end
 
     assert_nothing_raised do
-      std_err_msg = "Locale.set(rfc3066_tag) is deprecated! Use Locale.set(language_tag, country_code) or Locale.set('{language_tag}_{country_code}').\n"
-      flbck_err_msg = "Fallbacks can only be defined using the Locale.new(language_tag, country_code) or the Locale.new('{language_tag}_{country_code}') syntax.\n"
-      loc_en = nil
+      assert_equal Locale.fallbacks['es'], es_fallbacks
+      Locale.set_fallback 'es', 'en-GB', 'en-AU'
+      assert_not_equal Locale.fallbacks['es'], es_fallbacks
+      assert_equal Locale.fallbacks['es'], en_fallbacks
+    end
 
-      assert_stderr_includes std_err_msg do
-        loc_en = Locale.set('en-US', nil, [['en-GB'],['en-AU']])
-        assert                  Locale.active?
-        assert_equal loc_en,    Locale.active
-        assert_equal 'en',      loc_en.language.code
-        assert_equal 'US',      loc_en.country.code
-      end
-
-      assert_stderr_equal flbck_err_msg do
-        assert_nil loc_en.fallbacks
-      end
+    assert_nothing_raised do
+      assert Locale.fallbacks
+      assert Locale.fallbacks?('es')
+      Locale.clear_fallbacks
+      assert Locale.fallbacks.empty?
+      assert !Locale.fallbacks?('es')
     end
   end
 
@@ -411,8 +573,8 @@ class LocaleTest < Test::Unit::TestCase
 
     loc_es_AR = Locale.new('es','AR')
     loc_es_MX = Locale.new('es','MX')
-    loc_es_US = Locale.new('es','US')
-    loc_es = Locale.set('es','ES', [['es','AR'],['es','MX']])
+    loc_en_US = Locale.new('en-US','US')
+    loc_es = Locale.set('es','ES')
 
     assert Locale.active?
     assert_equal loc_es, Locale.active
@@ -443,14 +605,11 @@ class LocaleTest < Test::Unit::TestCase
     assert_equal 'es', Locale.language.code
     assert_equal 'ES', Locale.country.code
 
-    std_err_msg = "Locale.set(rfc3066_tag) is deprecated! Use Locale.set(language_tag, country_code) or Locale.set('{language_tag}_{country_code}').\n"
-    assert_stderr_includes std_err_msg do
-      Locale.switch_locale('es-US') do
-        assert Locale.active?
-        assert_equal loc_es_US, Locale.active
-        assert_equal 'es', Locale.language.code
-        assert_equal 'US', Locale.country.code
-      end
+    Locale.switch_locale('en-US') do
+      assert Locale.active?
+      assert_equal loc_en_US, Locale.active
+      assert_equal 'en-US', Locale.language.code
+      assert_equal 'US', Locale.country.code
     end
 
     assert Locale.active?
@@ -471,17 +630,15 @@ class LocaleTest < Test::Unit::TestCase
       Locale.switch_locale('e','US') {}
     end
 
-    assert_stderr_equal std_err_msg do
-      assert_raises ArgumentError do
-        #Note: Since we have to remain compatible with Locale.set(code)
-        Locale.switch_locale('es',nil) {}
+    assert_nothing_raised do
+      Locale.switch_locale('es',nil) do
+        assert_equal 'es', Locale.language.code
+        assert_equal 'ES', Locale.country.code
       end
     end
 
-    assert_stderr_equal std_err_msg do
-      assert_raises ArgumentError do
-        Locale.switch_locale('e-US') {}
-      end
+    assert_raises ArgumentError do
+      Locale.switch_locale('e-US') {}
     end
 
     assert_raises ArgumentError do
@@ -492,37 +649,18 @@ class LocaleTest < Test::Unit::TestCase
     assert_equal loc_es, Locale.active
     assert_equal 'es', Locale.language.code
     assert_equal 'ES', Locale.country.code
-    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
 
     Locale.switch_locale('es','MX') do
       assert Locale.active?
       assert_equal loc_es_MX, Locale.active
       assert_equal 'es', Locale.language.code
       assert_equal 'MX', Locale.country.code
-      assert_nil Locale.active.fallbacks
     end
 
     assert Locale.active?
     assert_equal loc_es, Locale.active
     assert_equal 'es', Locale.language.code
     assert_equal 'ES', Locale.country.code
-    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
-
-    Locale.clear_cache #As we've already defined the 'es_MX' locale
-
-    Locale.switch_locale('es','MX', [['es','ES'],['es','AR']]) do
-      assert Locale.active?
-      assert_equal loc_es_MX, Locale.active
-      assert_equal 'es', Locale.language.code
-      assert_equal 'MX', Locale.country.code
-      assert_equal [loc_es, loc_es_AR], Locale.active.fallbacks
-    end
-
-    assert Locale.active?
-    assert_equal loc_es, Locale.active
-    assert_equal 'es', Locale.language.code
-    assert_equal 'ES', Locale.country.code
-    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
   end
 
   def test_switch_language
@@ -531,7 +669,7 @@ class LocaleTest < Test::Unit::TestCase
     loc_es_AR = Locale.new('es','AR')
     loc_es_MX = Locale.new('es','MX')
     loc_es_US = Locale.new('es','US')
-    loc_es = Locale.set('es','ES', [['es','AR'],['es','MX']])
+    loc_es = Locale.set('es','ES')
 
     assert Locale.active?
     assert_equal loc_es, Locale.active
@@ -560,17 +698,6 @@ class LocaleTest < Test::Unit::TestCase
     assert_equal 'es', Locale.language.code
     assert_equal 'ES', Locale.country.code
 
-    Locale.switch_language('es-419') do
-      assert Locale.active?
-      assert_equal 'es-419', Locale.language.code
-      assert_equal 'ES', Locale.country.code
-    end
-
-    assert Locale.active?
-    assert_equal loc_es, Locale.active
-    assert_equal 'es', Locale.language.code
-    assert_equal 'ES', Locale.country.code
-
     assert_nothing_raised do
       Locale.switch_language(nil) {}
     end
@@ -591,35 +718,30 @@ class LocaleTest < Test::Unit::TestCase
     assert_equal loc_es, Locale.active
     assert_equal 'es', Locale.language.code
     assert_equal 'ES', Locale.country.code
-    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
 
     Locale.switch_language('en') do
       assert Locale.active?
       assert_equal 'en', Locale.language.code
       assert_equal 'ES', Locale.country.code
-      assert_nil Locale.active.fallbacks
     end
 
     assert Locale.active?
     assert_equal loc_es, Locale.active
     assert_equal 'es', Locale.language.code
     assert_equal 'ES', Locale.country.code
-    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
 
     Locale.clear_cache #As we've already defined the 'es_MX' locale
 
-    Locale.switch_language('en',[['es','ES'],['es','AR']]) do
+    Locale.switch_language('en') do
       assert Locale.active?
       assert_equal 'en', Locale.language.code
       assert_equal 'ES', Locale.country.code
-      assert_equal [loc_es, loc_es_AR], Locale.active.fallbacks
     end
 
     assert Locale.active?
     assert_equal loc_es, Locale.active
     assert_equal 'es', Locale.language.code
     assert_equal 'ES', Locale.country.code
-    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
   end
 
   def test_switch_country
@@ -628,7 +750,7 @@ class LocaleTest < Test::Unit::TestCase
     loc_es_AR = Locale.new('es','AR')
     loc_es_MX = Locale.new('es','MX')
     loc_es_US = Locale.new('es','US')
-    loc_es = Locale.set('es','ES', [['es','AR'],['es','MX']])
+    loc_es = Locale.set('es','ES')
 
     assert Locale.active?
     assert_equal loc_es, Locale.active
@@ -692,35 +814,30 @@ class LocaleTest < Test::Unit::TestCase
     assert_equal loc_es, Locale.active
     assert_equal 'es', Locale.language.code
     assert_equal 'ES', Locale.country.code
-    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
 
     Locale.clear_cache
     Locale.switch_country('MX') do
       assert Locale.active?
       assert_equal 'es', Locale.language.code
       assert_equal 'MX', Locale.country.code
-      assert_equal loc_es.fallbacks, Locale.active.fallbacks
     end
 
     assert Locale.active?
     assert_equal loc_es, Locale.active
     assert_equal 'es', Locale.language.code
     assert_equal 'ES', Locale.country.code
-    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
 
     Locale.clear_cache
-    Locale.switch_country('AR',[['es','ES'],['es','AR']]) do
+    Locale.switch_country('AR') do
       assert Locale.active?
       assert_equal 'es', Locale.language.code
       assert_equal 'AR', Locale.country.code
-      assert_equal [loc_es, loc_es_AR], Locale.active.fallbacks
     end
 
     assert Locale.active?
     assert_equal loc_es, Locale.active
     assert_equal 'es', Locale.language.code
     assert_equal 'ES', Locale.country.code
-    assert_equal [loc_es_AR, loc_es_MX], Locale.active.fallbacks
   end
 
   def test_base_language
@@ -730,7 +847,7 @@ class LocaleTest < Test::Unit::TestCase
     loc_es_AR = Locale.new('es','AR')
     loc_es_MX = Locale.new('es','MX')
     loc_es_US = Locale.new('es','US')
-    loc_es = Locale.set('es','ES', [['es','AR'],['es','MX']])
+    loc_es = Locale.set('es','ES')
 
     assert_raises NoBaseLanguageError do
       Locale.base_language
@@ -749,52 +866,29 @@ class LocaleTest < Test::Unit::TestCase
   end
 
   def test_possible_codes
-    loc = Locale.set('es','ES', [['es','AR'],['es','MX']])
-    assert_equal ["es_ES", "es", "ES"], loc.possible_codes(false)
-    assert_equal ["es_ES", "es", "ES", "es_AR", "AR", "es_MX", "MX"], loc.possible_codes(true)
+    Locale.set_fallback('es', 'es-AR', 'es-MX')
+    Locale.set_fallback('en-GB', 'en-US', 'en-AU', 'en-NZ')
 
-    possible_codes = ["en-GB_GB", "en-GB","en","GB"]
-    possible_fallbacks = ["en-US_GB","en-US","en-AU_GB","en-AU","en-NZ_GB","en-NZ"]
-    loc = Locale.set('en-GB','GB', [['en-US','GB'], ['en-AU','GB'],['en-NZ','GB']])
-    assert_equal possible_codes, loc.possible_codes(false)
-    assert_equal possible_codes + possible_fallbacks, loc.possible_codes(true)
-  end
+    loc = Locale.set('es','ES')
 
-  def test_set_locale_with_fallbacks
-    Locale.clear_cache
-    assert_nothing_raised do
-      loc_es_AR = Locale.new('es','AR')
-      loc_es_MX = Locale.new('es','MX')
+    assert_equal ["es"], Locale.possible_codes('es', false)
+    assert_equal ["es", "es-AR", "AR", "es-MX", "MX"], Locale.possible_codes('es', true)
 
-      loc_es = Locale.set('es','ES', ['es_AR','es_MX'])
+    possible_codes = ["en-GB", "en", "GB"]
+    possible_fallbacks = ["en-GB", "en", "GB", "en-US","US", "en-AU", "AU", "en-NZ", "NZ"]
 
-      assert                  Locale.active?
-      assert_equal loc_es,    Locale.active
-      assert_equal 'es',      loc_es.language.code
-      assert_equal 'ES',      loc_es.country.code
-      assert_equal loc_es_AR, loc_es.fallbacks.first
-      assert_equal loc_es_MX, loc_es.fallbacks.last
-
-      Locale.clear_cache
-      loc_es = Locale.set('es_ES', nil, ['es_AR','es_MX'])
-
-      assert                  Locale.active?
-      assert_equal loc_es,    Locale.active
-      assert_equal 'es',      loc_es.language.code
-      assert_equal 'ES',      loc_es.country.code
-      assert_equal loc_es_AR, loc_es.fallbacks.first
-      assert_equal loc_es_MX, loc_es.fallbacks.last
-    end
+    loc = Locale.set('en-GB')
+    assert_equal possible_codes, Locale.possible_codes('en-GB', false)
+    assert_equal (possible_codes + possible_fallbacks).uniq, Locale.possible_codes('en-GB', true)
   end
 
   def test_equality
     language = 'en-US'
     country = 'US'
-    tag = "#{language}_#{country}"
 
     loc1 = Locale.new(language, country)
     loc2 = Locale.new(language, country)
-    loc3 = Locale.new(tag)
+    loc3 = Locale.new(language)
 
     assert loc1 == loc2
     assert loc2 == loc1
@@ -804,14 +898,6 @@ class LocaleTest < Test::Unit::TestCase
     assert loc2.eql?(loc1)
     assert loc3.eql?(loc1)
     assert loc1.eql?(loc3)
-
-    assert loc1.eql?(tag)
-    assert loc2.eql?(tag)
-    assert loc3.eql?(tag)
-
-    assert !tag.eql?(loc1)
-    assert !tag.eql?(loc2)
-    assert !tag.eql?(loc3)
 
     assert loc1.equal?(loc1)
     assert loc2.equal?(loc2)

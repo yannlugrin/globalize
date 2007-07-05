@@ -2,6 +2,7 @@ require 'stringio'
 module Globalize
 
   class NoBaseLanguageError < StandardError; end
+  class NoCountryError < StandardError; end
 
 =begin rdoc
   Locale defines the currenctly active _locale_. You'll mostly use it like this:
@@ -14,9 +15,11 @@ module Globalize
     attr_reader :language, :country, :code, :rfc
     attr_accessor :date_format, :currency_format, :currency_code,
       :thousands_sep, :decimal_sep, :currency_decimal_sep,
-      :number_grouping_scheme
+      :number_grouping_scheme, :implicit_fallbacks
+    cattr_reader :fallbacks
 
     @@cache = {}
+    @@fallbacks = {}
     @@translator_class = DbViewTranslator
     @@active = nil
     @@base_language = nil
@@ -26,31 +29,23 @@ module Globalize
 =begin
  Creates a new locale object by looking up an RFC 3066 code in the database.
 =end
-    def initialize(language_tag, country_code = nil, fallbacks = nil)
+    def initialize(language_tag, country_code = nil)
       return nil unless language_tag
 
+      @rfc = RFC_4646.parse(language_tag)
+      @code = @rfc.tag
+
       unless country_code.blank?
-        @rfc = RFC_4646.parse(language_tag)
-        @code = @rfc.tag
         @country = Country.pick(country_code)
       else
-        locale_array = language_tag.split('_')
-        if locale_array.size == 2
-          @rfc = RFC_4646.parse(locale_array.first)
-          @code = @rfc.tag
-          @country = Country.pick(locale_array.last)
-        else
-          @rfc = RFC_3066.parse(language_tag)
-          @code = @rfc.locale
-          @country = Country.pick(@rfc)
-          $stderr.puts "Locale.new(rfc3066_tag) is deprecated! Use Locale.new(language_tag, country_code) or Locale.new('{language_tag}_{country_code}')." unless caller.any? {|stack_entry| stack_entry =~ /`set'/}
-        end
+        @country = Country.pick(@rfc.region) unless @rfc.region.blank?
+        @country = @@active.country if !@country && @@active
       end
 
       @language = Language.pick(@rfc)
 
       setup_fields
-      setup_fallbacks(fallbacks)
+      setup_implicit_fallbacks
     end
 
     def eql?(object)
@@ -67,29 +62,21 @@ module Globalize
       @language && @country && @rfc
     end
 
-    def fallbacks
-      if @language_fallbacks && @rfc.kind_of?(RFC_3066)
-        $stderr.puts "Fallbacks can only be defined using the Locale.new(language_tag, country_code) or the Locale.new('{language_tag}_{country_code}') syntax."
-        nil
-      else
-        @language_fallbacks
-      end
-    end
-
     #possible locale (i.e. language and country) codes for active locale(with/out fallbacks)
     #used e.g. to define action_mailer/view picking extensions
-    def possible_codes(incl_fallbacks = false)
-      codes = [self.to_s, self.language.code, self.language.primary_subtag, self.country.code]
-      codes += self.fallbacks.collect {|f| f.possible_codes(false)} if incl_fallbacks && self.fallbacks
+    def self.possible_codes(language_code, incl_fallbacks = false)
+      rfc = RFC_4646.parse(language_code)
+      codes = [language_code, (rfc.primary == language_code ? nil : rfc.primary), rfc.region]
+      codes += self.fallbacks[language_code].collect {|f| self.possible_codes(f, false)} if incl_fallbacks && self.fallbacks[language_code]
       codes.compact.flatten.uniq
     end
 
     #possible language codes for active locale(with/out fallbacks)
     #used e.g. to define view/model translation locale fallback possibilities
-    def possible_languages(incl_fallbacks = true)
+    def self.possible_languages(language_code, incl_fallbacks = true)
       codes = []
-      codes = self.fallbacks.collect {|f| f.language} if incl_fallbacks && self.fallbacks
-      codes += [Language.pick(self.language.primary_subtag)]
+      codes = self.fallbacks[language_code] if incl_fallbacks && self.fallbacks[language_code]
+      codes += [Language.pick(language_code)]
       codes.compact.flatten.uniq
     end
 
@@ -97,60 +84,72 @@ module Globalize
       "#{@language.code}_#{@country.code}"
     end
 
-    def self.possible_code?(code)
-      lang, country = code.split('_')
-      return false if country && (country.size < 2 || country.size > 8)
-      return RFC_4646.parse(lang) rescue false
-    end
-
-
     # Is there an active locale?
     def self.active?; !@@active.nil? end
 
-    # This is the focal point of the class. Sets the locale in the familiar
-    # RFC 3066 format (see: http://www.faqs.org/rfcs/rfc3066.html). It can
+    # This is the focal point of the class. Sets the locale in the
+    # RFC 4646 format (see: http://www.faqs.org/rfcs/rfc3066.html). It can
     # also take a Locale object. Set it to the +nil+ object, to deactivate
     # the locale.
-    def self.set(locale_or_language_tag, country_code = nil, fallbacks = nil)
+    def self.set(locale_or_language_tag, country_code = nil)
       if locale_or_language_tag.kind_of? Locale
         @@active = locale_or_language_tag
       elsif locale_or_language_tag.nil?
         @@active = nil
       else
         locale_or_language_tag = locale_or_language_tag.code if locale_or_language_tag.kind_of? Language
+
         case country_code
-          when nil, ''
-            locale_array = locale_or_language_tag.split('_')
-            locale_tag = nil
-            unless locale_array.size == 2
-              $stderr.puts "Locale.set(rfc3066_tag) is deprecated! Use Locale.set(language_tag, country_code) or Locale.set('{language_tag}_{country_code}')."
-              #$stdout.puts caller.inspect unless $stderr.kind_of?(StringIO)
-              locale_tag = locale_or_language_tag.dup
-            else
-              locale_or_language_tag = locale_array.first
-              country_code = locale_array.last
-              locale_tag = "#{locale_or_language_tag}_#{country_code}"
-            end
           when Country
-            locale_tag = "#{locale_or_language_tag}_#{country_code.code}"
             country_code = country_code.code
-          else
-            locale_tag = "#{locale_or_language_tag}_#{country_code}"
         end
-        @@active = ( @@cache[cache_key(locale_tag, fallbacks)] ||= Locale.new(locale_or_language_tag, country_code, fallbacks) )
+
+        locale_tag = "#{locale_or_language_tag}_#{country_code}" if country_code
+        unless country_code
+          rfc = RFC_4646.parse(locale_or_language_tag)
+          locale_tag = "#{locale_or_language_tag}_#{rfc.region}" if rfc.region
+          locale_tag ||= "#{locale_or_language_tag}_#{@@active.country.code}" if @@active && @@active.country
+          locale_tag ||= "#{locale_or_language_tag}"
+        end
+
+        @@active = ( @@cache[cache_key(locale_tag)] ||= Locale.new(locale_or_language_tag, country_code) )
       end
     end
 
+    def self.set_fallback(language_code, *fallbacks)
+      fallbacks.each { |f| RFC_4646.parse(f) }
+      @@fallbacks[language_code] = fallbacks
+    end
+
+    def self.clear_fallbacks
+      @@fallbacks.clear
+    end
+
+    def self.fallbacks?(language_code)
+      @@fallbacks.key? language_code
+    end
+
+    def fallbacks(load_locale = false, implicit = false)
+      fallbacks = self.class.fallbacks[self.code]
+      fallbacks ||= []
+      fallbacks << self.rfc.primary if self.rfc.primary != self.rfc.tag
+      fallbacks << self.implicit_fallbacks if implicit
+      fallbacks = fallbacks.flatten.uniq
+      fallbacks.collect! {|f| Language.pick(f) } if load_locale
+      fallbacks
+    end
+
     # Clears the locale cache -- used mostly for testing.
-    def self.clear_cache
+    # Will also clear the active locale if clear_active argument is true
+    def self.clear_cache(clear_active = false)
       @@cache.clear
+      @@active = nil if clear_active
     end
 
     # Returns the active locale.
     def self.active; @@active end
 
-    def self.cache_key(key, fallbacks)
-      key << "_" << fallbacks.flatten.join('_') if fallbacks && !fallbacks.empty?
+    def self.cache_key(key)
       key
     end
 
@@ -203,11 +202,6 @@ module Globalize
       active? ? active.country : nil
     end
 
-    # Returns the currently active fallbacks or +nil+.
-    def self.fallbacks
-      active? ? active.fallbacks : nil
-    end
-
     # Allows you to switch the current locale while within the block.
     # The previously current locale is restored after the block is finished.
     #
@@ -219,13 +213,13 @@ module Globalize
     #
     #     product.name
     #     > skis
-    def self.switch_locale(language_tag, country_code = nil, fallbacks = nil, &block)
+    def self.switch_locale(language_tag, country_code = nil, &block)
       current_locale = Locale.active
       raise ArgumentError, 'at least one argument is required' if language_tag.blank? && country_code.blank?
 
       language_tag = current_locale.language if language_tag.blank?
 
-      Locale.set(language_tag, country_code, fallbacks)
+      Locale.set(language_tag, country_code)
       result = block.call
       Locale.set(current_locale)
       result
@@ -246,9 +240,9 @@ module Globalize
     #     product.name
     #     > calcetines
     #       Locale.country => Spain
-    def self.switch_language(language_tag, fallbacks = nil, &block)
+    def self.switch_language(language_tag, &block)
       current_locale = Locale.active
-      Locale.set(language_tag, current_locale.country, fallbacks)
+      Locale.set(language_tag, current_locale.country)
       result = block.call
       Locale.set(current_locale)
       result
@@ -265,10 +259,10 @@ module Globalize
     #     end
     #
     #     Locale.country => United States of America
-    def self.switch_country(country_code, fallbacks = nil, &block)
+    def self.switch_country(country_code, &block)
       current_locale = Locale.active
       raise ArgumentError, "country_code is required" if country_code.blank?
-      Locale.set(current_locale.language, country_code, fallbacks ? fallbacks : current_locale.fallbacks)
+      Locale.set(current_locale.language, country_code)
       result = block.call
       Locale.set(current_locale)
       result
@@ -354,31 +348,35 @@ module Globalize
       end
 
       def setup_fields
-        return if !@country
+        return unless @country
 
         [:date_format, :currency_format, :currency_code, :thousands_sep,
           :decimal_sep, :currency_decimal_sep, :number_grouping_scheme
         ].each {|f| instance_variable_set "@#{f}", @country.send(f) }
       end
 
-      def setup_fallbacks(list_of_fallbacks)
-        return unless list_of_fallbacks && list_of_fallbacks.kind_of?(Array)
-        begin
-          if list_of_fallbacks.all? {|flbck| flbck.kind_of? Locale }
-            @language_fallbacks = list_of_fallbacks
-          else
-            @language_fallbacks = list_of_fallbacks.collect do |flbck|
-              case flbck
-                when String
-                  flbck = flbck.split('_')
-              end
-              locale_tag = flbck[1].blank? ? flbck.first : "#{flbck[0]}_#{flbck[1]}"
-              @@cache[locale_tag] ||= Locale.new(*flbck)
-            end
-          end
-        rescue ArgumentError => ae
-          raise ArgumentError, "ArgumentError for fallback! Nested Exception: #{ae.message}"
-        end
+      def setup_implicit_fallbacks
+        @implicit_fallbacks = Language.find(:all, :conditions => ['primary_subtag = ? AND tag != ?', self.language.primary_subtag, self.code]).collect(&:tag)
       end
+
+      #def setup_fallbacks(list_of_fallbacks)
+      #  return unless list_of_fallbacks && list_of_fallbacks.kind_of?(Array)
+      #  begin
+      #    if list_of_fallbacks.all? {|flbck| flbck.kind_of? Locale }
+      #      @language_fallbacks = list_of_fallbacks
+      #    else
+      #      @language_fallbacks = list_of_fallbacks.collect do |flbck|
+      #        case flbck
+      #          when String
+      #            flbck = flbck.split('_')
+      #        end
+      #        locale_tag = flbck[1].blank? ? flbck.first : "#{flbck[0]}_#{flbck[1]}"
+      #        @@cache[locale_tag] ||= Locale.new(*flbck)
+      #      end
+      #    end
+      #  rescue ArgumentError => ae
+      #    raise ArgumentError, "ArgumentError for fallback! Nested Exception: #{ae.message}"
+      #  end
+      #end
   end
 end

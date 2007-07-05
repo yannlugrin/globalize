@@ -44,6 +44,12 @@ module Globalize #:nodoc:
       @@instance = new(supported_locales, base_locale, active_locales, default_locale)
     end
 
+    def self.define_by_key(key, supported_locales = [], base_locale = 'en_US', active_locales = [], default_locale = nil)
+      return @@instances[key] if (defined?(@@instances) && @@instances[key])
+      @@instances ||= {}
+      @@instances[key] = new(supported_locales, base_locale, active_locales, default_locale)
+    end
+
     private_class_method  :new
 
     def self.instance
@@ -53,8 +59,20 @@ module Globalize #:nodoc:
       end
     end
 
-    def self.clear
+    def self.instances(key)
+      if defined? @@instances
+        @@instances[key].send(:setup) unless @@instances[key] && @@instances[key].supported_locales_map
+        return @@instances[key]
+      end
+    end
+
+    def self.clear(key = nil)
       @@instance = nil
+      @@instances[key] = nil if key
+    end
+
+    def self.clear_all(key)
+      @@instances = {}
     end
 
     def initialize(supported_locales, base_locale, active_locales, default_locale)
@@ -71,150 +89,173 @@ module Globalize #:nodoc:
     end
 
     class << self
-      def supported_locale_codes
-        self.instance.supported_locales
+      def supported_locale_codes(key = nil)
+        return self.instance.supported_locales unless key
+        return self.instances(key).supported_locales
       end
 
-      def supported_locales
-        self.instance.supported_locales.collect do |locale_code|
-          self.instance.supported_locales_map[locale_code]
+      def supported_locales(key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        current_instance.supported_locales.collect do |locale_code|
+          current_instance.supported_locales_map[locale_code]
         end
       end
 
-      def supported_language_codes
-        self.instance.supported_locales.collect do |locale_code|
-          self.instance.supported_locales_map[locale_code].language.code
+      def supported_language_codes(key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        current_instance.supported_locales.collect do |locale_code|
+          current_instance.supported_locales_map[locale_code].language.code
         end
       end
 
-      def active_locale_codes
-        self.instance.active_locales
+      def active_locale_codes(key = nil)
+        return self.instance.active_locales unless key
+        return self.instances(key).active_locales
       end
 
-      def active_locales
-        self.instance.active_locales.collect do |locale_code|
-          self.instance.active_locales_map[locale_code]
+      def active_locales(key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        current_instance.active_locales.collect do |locale_code|
+          current_instance.active_locales_map[locale_code]
         end
       end
 
-      def active_language_codes
-        self.instance.active_locales.collect do |locale_code|
-          self.instance.active_locales_map[locale_code].language.code
+      def active_language_codes(key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        current_instance.active_locales.collect do |locale_code|
+          current_instance.active_locales_map[locale_code].language.code
         end
       end
 
-      def inactive_locale_codes
-        self.instance.supported_locales - self.instance.active_locales
+      def inactive_locale_codes(key = nil)
+        return self.instance.supported_locales - self.instance.active_locales unless key
+        return self.instances(key).supported_locales - self.instances(key).active_locales
       end
 
-      def inactive_locales
-        inactive_locale_codes.collect do |locale_code|
-          self.instance.supported_locales_map[locale_code]
+      def inactive_locales(key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        inactive_locale_codes(key).collect do |locale_code|
+          current_instance.supported_locales_map[locale_code]
         end
       end
 
-      def inactive_language_codes
-        inactive_locale_codes.collect do |locale_code|
-          self.instance.supported_locales_map[locale_code].language.code
+      def inactive_language_codes(key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        inactive_locale_codes(key).collect do |locale_code|
+          current_instance.supported_locales_map[locale_code].language.code
         end
       end
 
-      def supported?(locale)
+      def supported?(locale, key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+
         case locale
           when String
-            supported_locale_codes.include?(locale) || supported_language_codes.include?(locale)
+            supported_locale_codes(key).include?(locale) || supported_language_codes(key).include?(locale)
           when Globalize::Locale
-          self.instance.supported_locales_map.values.any? {|l| l.code == locale.code}
+          current_instance.supported_locales_map.values.any? {|l| l.code == locale.code}
         end
       end
 
-      def supported(code)
-        self.instance.supported_locales_map[code] || supported_language(code)
+      def supported(code, key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        current_instance.supported_locales_map[code] || supported_language(code, key)
       end
 
-      def supported_language(language_code)
-        supported_code = self.instance.supported_locales_map.keys.detect do |code|
+      def supported_language(language_code, key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        supported_code = current_instance.supported_locales_map.keys.detect do |code|
           code[0..1] == language_code
         end
-        self.instance.supported_locales_map[supported_code] if supported_code
+        current_instance.supported_locales_map[supported_code] if supported_code
       end
 
       alias_method :[], :supported
 
-      def active(code)
-        self.instance.active_locales_map[code] || active_language(code)
+      def active(code, key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        current_instance.active_locales_map[code] || active_language(code, key)
       end
 
-      def active_language(language_code)
-        active_code = self.instance.active_locales_map.keys.detect do |code|
+      def active_language(language_code, key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        active_code = current_instance.active_locales_map.keys.detect do |code|
           code[0..1] == language_code
         end
-        self.instance.active_locales_map[active_code] if active_code
+        current_instance.active_locales_map[active_code] if active_code
       end
 
-      def non_base(code)
-        return nil if code == base_locale_code || code == base_language_code
-        self.instance.supported_locales_map[code] || non_base_language(code)
+      def non_base(code, key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        return nil if code == base_locale_code(key) || code == base_language_code(key)
+        current_instance.supported_locales_map[code] || non_base_language(code, key)
       end
 
-      def non_base_language(language_code)
-        return nil if language_code == base_language_code
-        non_base_code = self.instance.supported_locales_map.keys.detect do |code|
+      def non_base_language(language_code, key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        return nil if language_code == base_language_code(key)
+        non_base_code = current_instance.supported_locales_map.keys.detect do |code|
           code[0..1] == language_code
         end
-        self.instance.supported_locales_map[non_base_code] if non_base_code
+        current_instance.supported_locales_map[non_base_code] if non_base_code
       end
 
-      def non_base?(locale)
+      def non_base?(locale, key = nil)
         case locale
           when String
-            locale = locale.split('_').first
-            non_base_locale_codes.include?(locale) || non_base_language_codes.include?(locale)
+            non_base_locale_codes(key).include?(locale) || non_base_language_codes(key).include?(locale)
           when Globalize::Locale
-            non_base_locales.any? {|l| l.code == locale.code}
+            non_base_locales(key).any? {|l| l.code == locale.code}
         end
       end
 
-      def active?(locale)
+      def active?(locale, key = nil)
+        current_instance = key ? self.instances(key) : self.instance
         case locale
           when String
-            active_locale_codes.include?(locale) || active_language_codes.include?(locale)
+            active_locale_codes(key).include?(locale) || active_language_codes(key).include?(locale)
           when Globalize::Locale
-            self.instance.active_locales_map.values.any? {|l| l.code == locale.code}
+            current_instance.active_locales_map.values.any? {|l| l.code == locale.code}
         end
       end
 
-      def inactive?(locale)
+      def inactive?(locale, key = nil)
         case locale
           when String
-            inactive_locale_codes.include?(locale) || inactive_language_codes.include?(locale)
+            inactive_locale_codes(key).include?(locale) || inactive_language_codes(key).include?(locale)
           when Globalize::Locale
-            inactive_locales.any? {|l| l.code == locale.code}
+            inactive_locales(key).any? {|l| l.code == locale.code}
         end
       end
 
-      def base_locale
-        self.instance.base_locale_object
+      def base_locale(key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        current_instance.base_locale_object
       end
 
-      def default_locale
-        self.instance.default_locale_object
+      def default_locale(key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        current_instance.default_locale_object
       end
 
-      def base_locale_code
-        self.instance.base_locale
+      def base_locale_code(key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        current_instance.base_locale
       end
 
-      def base_language_code
-        self.instance.base_locale_object.language.code
+      def base_language_code(key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        current_instance.base_locale_object.language.code
       end
 
-      def default_locale_code
-        self.instance.default_locale
+      def default_locale_code(key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        current_instance.default_locale
       end
 
-      def default_language_code
-        self.instance.default_locale_object.language.code
+      def default_language_code(key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        current_instance.default_locale_object.language.code
       end
 
       def base_english_name
@@ -225,56 +266,59 @@ module Globalize #:nodoc:
         Globalize::Locale.base_language.native_name
       end
 
-      def default_english_name
-        self.instance.default_locale_object.language.english_name
+      def default_english_name(key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        current_instance.default_locale_object.language.english_name
       end
 
-      def default_native_name
-        self.instance.default_locale_object.language.native_name
+      def default_native_name(key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        current_instance.default_locale_object.language.native_name
       end
 
-      def non_base_locales
-        self.instance.supported_locales.dup.delete_if {|locale_code| locale_code == base_locale_code}.collect {|locale_code| self.instance.supported_locales_map[locale_code]}.compact
+      def non_base_locales(key = nil)
+        current_instance = key ? self.instances(key) : self.instance
+        current_instance.supported_locales.dup.delete_if {|locale_code| locale_code == base_locale_code(key)}.collect {|locale_code| current_instance.supported_locales_map[locale_code]}.compact
       end
 
-      def non_base_locale_codes
-        non_base_locales.collect {|locale| locale.code}
+      def non_base_locale_codes(key = nil)
+        non_base_locales(key).collect {|locale| locale.to_s}
       end
 
-      def non_base_language_codes
-        non_base_locales.collect {|locale| locale.language.code}
+      def non_base_language_codes(key = nil)
+        non_base_locales(key).collect {|locale| locale.language.code}
       end
 
-      def non_base_native_language_names
-        non_base_locales.collect {|locale| locale.language.native_name}
+      def non_base_native_language_names(key = nil)
+        non_base_locales(key).collect {|locale| locale.language.native_name}
       end
 
-      def non_base_english_language_names
-        non_base_locales.collect {|locale| locale.language.english_name}
+      def non_base_english_language_names(key = nil)
+        non_base_locales(key).collect {|locale| locale.language.english_name}
       end
 
-      def supported_native_language_names
-        supported_locales.collect {|locale| locale.language.native_name}
+      def supported_native_language_names(key = nil)
+        supported_locales(key).collect {|locale| locale.language.native_name}
       end
 
-      def supported_english_language_names
-        supported_locales.collect {|locale| locale.language.english_name}
+      def supported_english_language_names(key = nil)
+        supported_locales(key).collect {|locale| locale.language.english_name}
       end
 
-      def active_native_language_names
-        active_locales.collect {|locale| locale.language.native_name}
+      def active_native_language_names(key = nil)
+        active_locales(key).collect {|locale| locale.language.native_name}
       end
 
-      def active_english_language_names
-        active_locales.collect {|locale| locale.language.english_name}
+      def active_english_language_names(key = nil)
+        active_locales(key).collect {|locale| locale.language.english_name}
       end
 
-      def inactive_native_language_names
-        inactive_locales.collect {|locale| locale.language.native_name}
+      def inactive_native_language_names(key = nil)
+        inactive_locales(key).collect {|locale| locale.language.native_name}
       end
 
-      def inactive_english_language_names
-        inactive_locales.collect {|locale| locale.language.english_name}
+      def inactive_english_language_names(key = nil)
+        inactive_locales(key).collect {|locale| locale.language.english_name}
       end
     end
 

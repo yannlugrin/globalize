@@ -127,11 +127,13 @@ class ViewTranslationNamespaceTest < Test::Unit::TestCase
     assert_equal 'libro', 'book'.t
     assert_equal 'reservar', 'book' >> 'verbs'
 
-    Locale.set('de','CH',[['es','ES'],['en','US']])
+    Locale.set_fallback('de', 'es', 'en')
+    Locale.set('de')
     assert_equal 'libro', 'book'.t
     assert_equal 'reservar', 'book' >> 'verbs'
 
-    Locale.set('de','CH',[['en','US'], ['es','ES']])
+    Locale.set_fallback('de', 'en', 'es')
+    Locale.set('de')
     assert_equal 'tome', 'book'.t
     assert_equal 'reserve', 'book' >> 'verbs'
   end

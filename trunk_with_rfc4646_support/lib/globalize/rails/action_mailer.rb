@@ -78,7 +78,6 @@ module ActionMailer # :nodoc:
           templates.each do |path|
             sections = File.basename(path).split(".")[0..-2] || []
 
-            #Globalize::Locale.possible_code?
             # skip if this is some other language
             next if !code && ((sections.size >= 3) && (!valid_mime_types.include?(sections[1])) || (sections.size == 2))
 
@@ -122,7 +121,7 @@ module ActionMailer # :nodoc:
 
       def locale_codes
         loc = Globalize::Locale.active
-        codes = Globalize::Locale.active.possible_codes(true) if loc
+        codes = Globalize::Locale.possible_codes(loc.code, true) if loc
         codes ||= []
         codes << nil # look for default path, with no localization
       end

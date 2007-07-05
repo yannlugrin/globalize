@@ -14,12 +14,10 @@ module Globalize # :nodoc:
       " Can't interpolate multiple numbers." if key.scan(/(%d)/).flatten.size > 1
 
       fallbacks = nil
-      primary_subtag = nil
 
       case locale_or_language
         when Locale
-          fallbacks = locale_or_language.fallbacks
-          primary_subtag = locale_or_language.language.primary_subtag
+          fallbacks = locale_or_language.fallbacks(true, true) if Globalize::ViewTranslation::enable_fallbacks
           language = locale_or_language.language
         else
           language = locale_or_language
@@ -34,13 +32,21 @@ module Globalize # :nodoc:
       real_default = default || key
 
       result = fetch_from_cache(key, language, real_default, num,
-                                namespace, primary_subtag, fallbacks)
+                                namespace, fallbacks)
 
+      hash = nil
       if arg
         strings = []
         if arg.kind_of?(Array)
+          hash = arg.shift if arg.first.kind_of?(Hash)
           strings = arg.select {|e| !e.kind_of?(Numeric)}
         end
+
+        if hash || arg.kind_of?(Hash)
+          hash = arg unless hash
+          result = interpolate_with_hash(result, hash)
+        end
+
         result.scan(/(%[s|d])/).flatten.each do |interpolation|
           case interpolation
             when '%s'
@@ -56,6 +62,17 @@ module Globalize # :nodoc:
         result
       end
       result
+    end
+
+    def interpolate_with_hash(string, hash)
+      hash.inject(string) do |target, (search, replace)|
+        unless target.match(Regexp.escape("{{#{search}}}"))
+          target = target.sub("{#{search}}", replace.to_s)
+        else
+          target = target.sub("{{#{search}}}", "{#{search}}")
+        end
+        target
+      end
     end
 
     def set(key, language, translations, zero_form = nil, namespace = nil) # :nodoc:
@@ -165,13 +182,12 @@ module Globalize # :nodoc:
       end
 
       def fetch_from_cache(key, language, real_default, num,
-                           namespace = nil, primary_subtag = nil, fallbacks = nil)
+                           namespace = nil, fallbacks = nil)
         return real_default if language.nil?
 
         zero_form   = num == 0
         plural_idx  = language.plural_index(num) # language-defined plural form
         zplural_idx = zero_form ? 0 : plural_idx # takes zero-form into account
-
 
         if cache_contains?(key, language, zplural_idx, namespace)
           result = cache_fetch(key, language, zplural_idx, namespace)
@@ -183,8 +199,7 @@ module Globalize # :nodoc:
 
           unless result
             languages = []
-            languages = fallbacks.collect {|f| f.language } if fallbacks
-            languages += [Language.pick(primary_subtag)] if primary_subtag && language.code != primary_subtag
+            languages = fallbacks if fallbacks
             languages = languages.flatten.uniq.compact
 
             unless languages.empty?
@@ -196,7 +211,7 @@ module Globalize # :nodoc:
             end
           end
 
-          cache_add(key, language, zplural_idx, result, namespace) if result
+          cache_add(key, language, zplural_idx, result, namespace) if result && result != real_default
         end
         result ||= real_default
       end
