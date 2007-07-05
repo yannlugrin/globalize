@@ -1,40 +1,40 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 prod_1_facet_1_he_tr:
   id: 4
-  table_name: globalize_products
-  item_id: 1
+  translatable_type: Product
+  translatable_id: 1
   facet: description
   language_id: 2
   text: זהו תיאור המוצר הראשון
   type: ModelTranslation
 mfr_1_facet_1_he_tr:
   id: 5
-  table_name: globalize_manufacturers
-  item_id: 1
+  translatable_type: Manufacturer
+  translatable_id: 1
   facet: name
   language_id: 2
   text: רברנד
   type: ModelTranslation
 prod_3_facet_1_he_tr:
   id: 9
-  table_name: globalize_products
-  item_id: 3
+  translatable_type: Product
+  translatable_id: 3
   facet: name
   language_id: 2
   text: סקר
   type: ModelTranslation
 prod_4_facet_1_he_tr:
   id: 10
-  table_name: globalize_products
-  item_id: 4
+  translatable_type: Product
+  translatable_id: 4
   facet: name
   language_id: 2
   text: סארט
   type: ModelTranslation
 prod_5_facet_1_he_tr:
   id: 11
-  table_name: globalize_products
-  item_id: 5
+  translatable_type: Product
+  translatable_id: 5
   facet: name
   language_id: 2
   text: סארי
@@ -336,8 +336,8 @@ view_he_tr_month_dec:
 
 model_simple_name_1:
   id: 50
-  table_name: globalize_simples
-  item_id: 1
+  translatable_type: Simple
+  translatable_id: 1
   facet: name
   language_id: 2
   text: זהו השם הראשון
@@ -345,8 +345,8 @@ model_simple_name_1:
 
 model_simple_desc_1:
   id: 51
-  table_name: globalize_simples
-  item_id: 1
+  translatable_type: Simple
+  translatable_id: 1
   facet: description
   language_id: 2
   text: זהו התיאור הראשון
@@ -462,16 +462,16 @@ view_he_tr_validation_8:
 
 prod_5_facet_2_he_tr:
   id: 80
-  table_name: globalize_products
-  item_id: 5
+  translatable_type: Product
+  translatable_id: 5
   facet: name
   language_id: 7
   text: oreja
   type: ModelTranslation
 prod_5_facet_3_he_tr:
   id: 81
-  table_name: globalize_products
-  item_id: 5
+  translatable_type: Product
+  translatable_id: 5
   facet: description
   language_id: 7
   text: descripción de oreja
@@ -480,56 +480,56 @@ prod_5_facet_3_he_tr:
 
 art_1_facet_1_he_tr:
   id: 82
-  table_name: globalize_articles
-  item_id: 1
+  translatable_type: Article
+  translatable_id: 1
   facet: description
   language_id: 2
   text: זהו תיאור המוצר הראשון
   type: ModelTranslation
 auth_1_facet_1_he_tr:
   id: 83
-  table_name: globalize_authors
-  item_id: 1
+  translatable_type: Author
+  translatable_id: 1
   facet: name
   language_id: 2
   text: רברנד
   type: ModelTranslation
 art_3_facet_1_he_tr:
   id: 84
-  table_name: globalize_articles
-  item_id: 3
+  translatable_type: Article
+  translatable_id: 3
   facet: name
   language_id: 2
   text: סקר
   type: ModelTranslation
 art_4_facet_1_he_tr:
   id: 85
-  table_name: globalize_articles
-  item_id: 4
+  translatable_type: Article
+  translatable_id: 4
   facet: name
   language_id: 2
   text: סארט
   type: ModelTranslation
 art_5_facet_1_he_tr:
   id: 86
-  table_name: globalize_articles
-  item_id: 5
+  translatable_type: Article
+  translatable_id: 5
   facet: name
   language_id: 2
   text: סארי
   type: ModelTranslation
 art_5_facet_2_he_tr:
   id: 87
-  table_name: globalize_articles
-  item_id: 5
+  translatable_type: Article
+  translatable_id: 5
   facet: name
   language_id: 7
   text: oreja
   type: ModelTranslation
 art_5_facet_3_he_tr:
   id: 88
-  table_name: globalize_articles
-  item_id: 5
+  translatable_type: Article
+  translatable_id: 5
   facet: description
   language_id: 7
   text: descripción de oreja
@@ -538,57 +538,75 @@ art_5_facet_3_he_tr:
 
 itm_1_facet_1_he_tr:
   id: 89
-  table_name: globalize_items
-  item_id: 1
+  translatable_type: Item
+  translatable_id: 1
   facet: description
   language_id: 2
   text: זהו תיאור המוצר הראשון
   type: ModelTranslation
 order_1_facet_1_he_tr:
   id: 90
-  table_name: globalize_orders
-  item_id: 1
+  translatable_type: Order
+  translatable_id: 1
   facet: name
   language_id: 2
   text: רברנד
   type: ModelTranslation
 itm_3_facet_1_he_tr:
   id: 91
-  table_name: globalize_items
-  item_id: 3
+  translatable_type: Item
+  translatable_id: 3
   facet: name
   language_id: 2
   text: סקר
   type: ModelTranslation
 itm_4_facet_1_he_tr:
   id: 92
-  table_name: globalize_items
-  item_id: 4
+  translatable_type: Item
+  translatable_id: 4
   facet: name
   language_id: 2
   text: סארט
   type: ModelTranslation
 itm_5_facet_1_he_tr:
   id: 93
-  table_name: globalize_items
-  item_id: 5
+  translatable_type: Item
+  translatable_id: 5
   facet: name
   language_id: 2
   text: סארי
   type: ModelTranslation
 itm_5_facet_2_he_tr:
   id: 94
-  table_name: globalize_items
-  item_id: 5
+  translatable_type: Item
+  translatable_id: 5
   facet: name
   language_id: 7
   text: oreja
   type: ModelTranslation
 itm_5_facet_3_he_tr:
   id: 95
-  table_name: globalize_items
-  item_id: 5
+  translatable_type: Item
+  translatable_id: 5
   facet: description
   language_id: 7
   text: descripción de oreja
+  type: ModelTranslation
+
+model_simple_post_name_1:
+  id: 96
+  translatable_type: SimplePost
+  translatable_id: 1
+  facet: name
+  language_id: 2
+  text: זהו השם הראשון
+  type: ModelTranslation
+
+model_simple_post_desc_1:
+  id: 97
+  translatable_type: SimplePost
+  translatable_id: 1
+  facet: description
+  language_id: 2
+  text: זהו התיאור הראשון
   type: ModelTranslation

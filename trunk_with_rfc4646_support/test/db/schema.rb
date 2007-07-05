@@ -209,19 +209,19 @@ ActiveRecord::Schema.define do
   add_index :globalize_countries, :code
 
   create_table :globalize_translations, :force => true do |t|
-    t.column :type,           :string
-    t.column :tr_key,         :string
-    t.column :table_name,     :string
-    t.column :item_id,        :integer
-    t.column :facet,          :string
-    t.column :language_id,    :integer
-    t.column :pluralization_index,    :integer
-    t.column :text,           :text
-    t.column :namespace,      :string
+    t.column :type,                :string
+    t.column :tr_key,              :string
+    t.column :translatable_type,   :string
+    t.column :translatable_id,     :integer
+    t.column :facet,               :string
+    t.column :language_id,         :integer
+    t.column :pluralization_index, :integer
+    t.column :text,                :text
+    t.column :namespace,           :string
   end
 
   add_index :globalize_translations, [ :tr_key, :language_id ], :name => 'tr_key'
-  add_index :globalize_translations, [ :table_name, :item_id, :language_id ], :name => 'table_name'
+  add_index :globalize_translations, [ :translatable_type, :translatable_id, :language_id ], :name => 'globalize_translations_translatable_type_and_id_and_language'
 
 
   create_table :globalize_languages, :force => true do |t|

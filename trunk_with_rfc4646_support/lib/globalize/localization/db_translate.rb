@@ -386,9 +386,8 @@ module Globalize # :nodoc:
             @@aliases = {}
             @@dyn_table_aliases = {} #Used for dynamic finders
             @@facets = facets
-            has_many :translations, :class_name => 'Globalize::ModelTranslation',
-                  :conditions => ['globalize_translations.table_name = ?', table_name],
-                  :foreign_key => 'item_id',
+            has_many :translations, :class_name => '::Globalize::ModelTranslation',
+                  :as => :translatable,
                   :dependent => :delete_all
 
             class << self
@@ -494,14 +493,14 @@ module Globalize # :nodoc:
               end
 
               has_many :#{facet}_translations, :class_name => '::Globalize::ModelTranslation',
-                    :conditions => ['globalize_translations.table_name = ? AND globalize_translations.facet = ?', table_name, "#{facet}"],
-                    :foreign_key => 'item_id',
+                    :conditions => ['globalize_translations.facet = ?', "#{facet}"],
+                    :as => :translatable,
                     :dependent => :delete_all
 
               #Used exclusively for globalizing dynamic finders (see method_missing)
               has_many :#{facet}_dyn_translations, :class_name => '::Globalize::ModelTranslation',
-                    :conditions => [@@dyn_table_aliases[:#{facet}] + '.table_name = ? AND ' + @@dyn_table_aliases[:#{facet}] + '.facet = ?', table_name, "#{facet}"],
-                    :foreign_key => 'item_id',
+                    :conditions => [@@dyn_table_aliases[:#{facet}] + '.facet = ?', "#{facet}"],
+                    :as => :translatable,
                     :dependent => :delete_all
 
 
@@ -556,8 +555,8 @@ module Globalize # :nodoc:
                   translation = self.#{facet}_translations.detect{|tr| tr.language_id == language.id }
                   if value
                     if translation.nil?
-                      translation = self.#{facet}_translations.build(:table_name => self.class.table_name,
-                          :item_id => self.id, :facet => "#{facet}", :language_id => language.id)
+                      translation = self.#{facet}_translations.build(:translatable_type => self.class.name,
+                          :translatable_id => self.id, :facet => "#{facet}", :language_id => language.id)
                     end
                     translation.text = value
                     translation.save! unless translation.new_record?
@@ -989,8 +988,8 @@ module Globalize # :nodoc:
 
         unless Locale.base?
           trs = ModelTranslation.find(:all,
-            :conditions => [ "table_name = ? AND item_id = ? AND language_id = ? AND " +
-            "facet IN (#{[ '?' ] * postload_facets.size * ', '})", table_name,
+            :conditions => [ "translatable_type = ? AND translatable_id = ? AND language_id = ? AND " +
+            "facet IN (#{[ '?' ] * postload_facets.size * ', '})", self.class.name,
             self.id, Locale.active.language.id ] + postload_facets.map {|facet| facet.to_s} )
           trs ||= []
           trs.each do |tr|
@@ -1003,16 +1002,16 @@ module Globalize # :nodoc:
 
       def find_translation_for(facet, language)
         ModelTranslation.find(:first,
-          :conditions => {:table_name => self.class.table_name,
-                          :item_id => self.id,
+          :conditions => {:translatable_type => self.class.name,
+                          :translatable_id => self.id,
                           :language_id => language.id,
                           :facet => facet})
       end
 
       def destroy
         globalize_old_destroy
-        ModelTranslation.delete_all( [ "table_name = ? AND item_id = ?",
-          self.class.table_name, id ])
+        ModelTranslation.delete_all( [ "translatable_type = ? AND translatable_id = ?",
+          self.class.name, id ])
       end
 
       def reload
@@ -1076,12 +1075,12 @@ module Globalize # :nodoc:
             write_attribute("#{facet}_not_base", text)
             language_id = Locale.active.language.id
             tr = ModelTranslation.find(:first, :conditions =>
-              [ "table_name = ? AND item_id = ? AND facet = ? AND language_id = ?",
-              table_name, id, facet.to_s, language_id ])
+              [ "translatable_type = ? AND translatable_id = ? AND facet = ? AND language_id = ?",
+              self.class.name, id, facet.to_s, language_id ])
             if tr.nil?
               # create new record
-              ModelTranslation.create(:table_name => table_name,
-                :item_id => id, :facet => facet.to_s,
+              ModelTranslation.create(:translatable_type => self.class.name,
+                :translatable_id => id, :facet => facet.to_s,
                 :language_id => language_id,
                 :text => text) unless text.nil?
             elsif text.blank?
@@ -1188,10 +1187,10 @@ module Globalize # :nodoc:
               select_clause << ", COALESCE(#{facet_table_alias}.text, #{table_name}.`#{facet}`) AS `#{facet}`, "
               select_clause << " #{facet_table_alias}.text AS `#{facet}_not_base` "
               joins_clause  << " LEFT OUTER JOIN globalize_translations AS #{facet_table_alias} " +
-                "ON #{facet_table_alias}.table_name = ? " +
-                "AND #{table_name}.#{primary_key} = #{facet_table_alias}.item_id " +
+                "ON #{facet_table_alias}.translatable_type = ? " +
+                "AND #{table_name}.#{primary_key} = #{facet_table_alias}.translatable_id " +
                 "AND #{facet_table_alias}.facet = ? AND #{facet_table_alias}.language_id = ? "
-              joins_args << table_name << facet << language_id
+              joins_args << name << facet << language_id
 
               #for translated fields inside WHERE clause substitute corresponding COALESCE string
               where_clause.gsub!(/((((#{table_name}\.)|\W)#{facet})|^#{facet})\W/, " COALESCE(#{facet_table_alias}.text, #{table_name}.`#{facet}`) ")
@@ -1225,10 +1224,10 @@ module Globalize # :nodoc:
                 select_clause << ", COALESCE(#{facet_table_alias}.text, #{included_table}.`#{facet}`) " +
                   "AS `#{assoc}_#{facet}` "
                 joins_clause << " LEFT OUTER JOIN globalize_translations AS #{facet_table_alias} " +
-                  "ON #{facet_table_alias}.table_name = ? " +
-                  "AND #{table_name}.#{fk} = #{facet_table_alias}.item_id " +
+                  "ON #{facet_table_alias}.translatable_type = ? " +
+                  "AND #{table_name}.#{fk} = #{facet_table_alias}.translatable_id " +
                   "AND #{facet_table_alias}.facet = ? AND #{facet_table_alias}.language_id = ? "
-                joins_args << klass.table_name << facet.to_s << language_id
+                joins_args << klass.name << facet.to_s << language_id
               end
             end
             joins_clause << "LEFT OUTER JOIN #{included_table} " +

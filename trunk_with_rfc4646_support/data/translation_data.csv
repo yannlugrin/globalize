@@ -1,4 +1,4 @@
-"id","type","tr_key","table_name","item_id","facet","language_id","text","pluralization_index"
+"id","type","tr_key","translatable_type","translatable_id","facet","language_id","text","pluralization_index"
 3611,"ViewTranslation","Sunday [weekday]","",,"",114,"Sondag",1
 3612,"ViewTranslation","Monday [weekday]","",,"",114,"Maandag",1
 3613,"ViewTranslation","Tuesday [weekday]","",,"",114,"Dinsdag",1

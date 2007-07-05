@@ -306,25 +306,25 @@ class DbTranslationCoalesceTest < Test::Unit::TestCase
   def test_destroy
     prod = ::Product.find(1)
     tr = ::Globalize::ModelTranslation.find(:first, :conditions => [
-      "table_name = ? AND item_id = ? AND facet = ? AND language_id = ?",
-      "globalize_products", 1, "description", 2 ])
+      "translatable_type = ? AND translatable_id = ? AND facet = ? AND language_id = ?",
+      "Product", 1, "description", 2 ])
     assert_not_nil tr
     prod.destroy
     tr = ::Globalize::ModelTranslation.find(:first, :conditions => [
-      "table_name = ? AND item_id = ? AND facet = ? AND language_id = ?",
-      "globalize_products", 1, "description", 2 ])
+      "translatable_type = ? AND translatable_id = ? AND facet = ? AND language_id = ?",
+      "Product", 1, "description", 2 ])
     assert_nil tr
   end
 
   def test_destroy_class_method
     tr = ::Globalize::ModelTranslation.find(:first, :conditions => [
-      "table_name = ? AND item_id = ? AND facet = ? AND language_id = ?",
-      "globalize_products", 1, "description", 2 ])
+      "translatable_type = ? AND translatable_id = ? AND facet = ? AND language_id = ?",
+      "Product", 1, "description", 2 ])
     assert_not_nil tr
     ::Product.destroy(1)
     tr = ::Globalize::ModelTranslation.find(:first, :conditions => [
-      "table_name = ? AND item_id = ? AND facet = ? AND language_id = ?",
-      "globalize_products", 1, "description", 2 ])
+      "translatable_type = ? AND translatable_id = ? AND facet = ? AND language_id = ?",
+      "Product", 1, "description", 2 ])
     assert_nil tr
   end
 
