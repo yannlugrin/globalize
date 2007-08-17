@@ -60,6 +60,7 @@ spanish:
   native_name: Español
   direction: ltr
   pluralization: 'c == 1 ? 1 : 2'
+  country_id: 6
 
 american_english:
   id: 8

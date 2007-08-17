@@ -196,13 +196,13 @@ ActiveRecord::Schema.define do
 
 
   create_table :globalize_countries, :force => true do |t|
-    t.column :code,               :string, :limit => 2
-    t.column :english_name,       :string
-    t.column :date_format,        :string
-    t.column :currency_format,    :string
-    t.column :currency_code,      :string, :limit => 3
-    t.column :thousands_sep,      :string, :limit => 1
-    t.column :decimal_sep,        :string, :limit => 1
+    t.column :code,                        :string, :limit => 2
+    t.column :english_name,                :string
+    t.column :date_format,                 :string
+    t.column :currency_format,             :string
+    t.column :currency_code,               :string, :limit => 3
+    t.column :thousands_sep,               :string, :limit => 1
+    t.column :decimal_sep,                 :string, :limit => 1
     t.column :currency_decimal_sep,        :string, :limit => 1
     t.column :number_grouping_scheme,      :string
   end
@@ -225,16 +225,18 @@ ActiveRecord::Schema.define do
 
 
   create_table :globalize_languages, :force => true do |t|
-    t.column :tag, :string
+    t.column :tag,            :string
     t.column :primary_subtag, :string
-    t.column :english_name, :string
-    t.column :native_name, :string
-    t.column :direction, :string
-    t.column :pluralization, :string
+    t.column :english_name,   :string
+    t.column :native_name,    :string
+    t.column :direction,      :string
+    t.column :pluralization,  :string
+    t.column :country_id,     :integer
   end
 
   add_index :globalize_languages, :tag
-
+  add_index :globalize_languages, :country_id
+  
   create_table :globalize_unlocalized_classes, :force => true do |t|
     t.column :code, :string
     t.column :name, :string

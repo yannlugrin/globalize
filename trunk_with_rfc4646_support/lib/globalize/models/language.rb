@@ -11,6 +11,8 @@ module Globalize
       :message => " has invalid characters. Allowed characters are: " +
         "'c', '=', 0-9, '?', ':', '%', '!', '<', '>', '&', '|', '(', ')', ' '."
 
+    belongs_to :default_country, :class_name => 'Country', :foreign_key => 'country_id'
+    
     def self.reloadable?; false end
 
     def after_initialize
@@ -85,6 +87,32 @@ module Globalize
                       :pluralization => pluralization)
       end
       self.create!(options)
+    end
+    
+=begin rdoc
+  Set the Country => Language default mapping.
+  Arguments:
+   - String (Language code) or Hash (mapping of language codes to country codes)
+   - String (Country code)
+=end
+    def self.set_default_country(language_or_mapping, country = nil)
+      case language_or_mapping
+        when Hash
+          language_or_mapping.each_key do |language|
+            lang = Language.pick(language)
+            lang.default_country = Country.pick(language_or_mapping[language])
+            lang.save!
+          end
+        else
+          lang = Language.pick(language_or_mapping)
+          lang.default_country = Country.pick(country)
+          lang.save!
+      end
+    end
+    
+    def set_default_country(country)
+      self.default_country = Country.pick(country)
+      save!
     end
 
     def code; tag; end

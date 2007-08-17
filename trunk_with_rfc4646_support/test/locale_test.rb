@@ -567,6 +567,19 @@ class LocaleTest < Test::Unit::TestCase
       assert !Locale.fallbacks?('es')
     end
   end
+  
+  def test_set_fallback_all_inclusive
+    Locale.clear_cache(true)
+    Locale.clear_fallbacks
+    
+    fallbacks = ['en-GB', 'en-AU']
+
+    assert_nothing_raised do
+      Locale.set_fallback(:all, *fallbacks)
+      assert Locale.all_fallback?
+      assert_equal(fallbacks, Locale.all_fallback)
+    end
+  end
 
   def test_switch_locale
     Locale.clear_cache
@@ -908,5 +921,23 @@ class LocaleTest < Test::Unit::TestCase
     assert !loc3.equal?(loc1)
     assert !loc1.equal?(loc3)
 
+  end
+  
+  def test_default_country
+    Locale.clear_cache(true)
+    assert !Locale.active?    
+   
+    language = 'en'
+    loc = Locale.set(language)
+    assert Locale.active?
+    assert_equal language, loc.language.code
+    assert(!loc.country, "There should be no active country!")
+    
+    language = 'es'
+    loc = Locale.set(language)
+    assert Locale.active?
+    assert_equal language, loc.language.code
+    assert(loc.country, "There should be an active country!")
+    assert_equal('ES', loc.country.code)
   end
 end

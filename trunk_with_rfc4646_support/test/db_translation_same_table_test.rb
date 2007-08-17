@@ -667,4 +667,52 @@ class DbTranslationSameTableTest < Test::Unit::TestCase
 
     ::Globalize::Locale.set_base_language(Language.pick('en'))
   end
+  
+  def test_all_inclusive_fallback
+    ::Globalize::Locale.clear_fallbacks
+    
+    article = ::Article.create!(:code => 'test-fallback',
+                           :name => 'english name fallbacks',
+                           :description => 'english desc fallbacks')
+    assert_equal 'english name fallbacks', article.name
+    assert_equal 'english desc fallbacks', article.description
+    assert_equal 'english name fallbacks', article.name_before_type_cast
+    assert_equal 'english desc fallbacks', article.description_before_type_cast
+
+    ::Globalize::Locale.set('es','ES')
+    assert_equal 'english name fallbacks', article.name
+    assert_equal 'english name fallbacks', article.name_before_type_cast
+    assert_nil article.description
+    assert_nil article.description_before_type_cast
+
+    article.name = "spanish name fallbacks"
+    article.save!
+    assert_equal 'spanish name fallbacks', article.name
+    assert_equal 'spanish name fallbacks', article.name_before_type_cast
+
+    assert_nil article.description
+    assert_nil article.description_before_type_cast
+
+    ::Globalize::Locale.set('es-MX','MX')
+    assert_equal 'spanish name fallbacks', article.name
+    assert_equal 'spanish name fallbacks', article.name_before_type_cast
+    assert_nil article.description
+    assert_nil article.description_before_type_cast
+
+    ::Globalize::Locale.set('he')
+    assert_equal 'english name fallbacks', article.name
+    assert_nil article.description            
+            
+    Locale.set_fallback(:all, 'es')
+    
+    ::Globalize::Locale.set('es-MX','MX')
+    assert_equal 'spanish name fallbacks', article.name
+    assert_equal 'spanish name fallbacks', article.name_before_type_cast
+    assert_nil article.description
+    assert_nil article.description_before_type_cast
+
+    ::Globalize::Locale.set('he')
+    assert_equal 'spanish name fallbacks', article.name
+    assert_nil article.description
+  end  
 end

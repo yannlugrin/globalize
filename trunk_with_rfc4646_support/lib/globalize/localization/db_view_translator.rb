@@ -17,7 +17,11 @@ module Globalize # :nodoc:
 
       case locale_or_language
         when Locale
-          fallbacks = locale_or_language.fallbacks(true, true) if Globalize::ViewTranslation::enable_fallbacks
+          if Globalize::ViewTranslation::enable_fallbacks
+            fallbacks = locale_or_language.fallbacks(true, true)
+            fallbacks << Locale.all_fallback(true) if Locale.all_fallback?
+            fallbacks = fallbacks.flatten.uniq.compact
+          end
           language = locale_or_language.language
         else
           language = locale_or_language
@@ -201,6 +205,7 @@ module Globalize # :nodoc:
             languages = []
             languages = fallbacks if fallbacks
             languages = languages.flatten.uniq.compact
+            languages.delete(language)
 
             unless languages.empty?
               languages.each do |lang|

@@ -559,4 +559,72 @@ class ViaAssociationTranslationTest < Test::Unit::TestCase
     assert_not_nil item4
     assert_equal item2, item4
   end
+  
+  def test_all_inclusive_fallback
+
+    ::Globalize::Locale.set('en','US')
+    simp = SimplePost.new
+    simp.name = 'A simple model'
+    simp.description = 'A simple model\'s description'
+    simp.save!
+
+    ::Globalize::Locale.set('es','ES')
+    simp.reload
+    simp.name = 'Un modelo simple'
+    simp.description = 'La descripción de un modelo simple'
+    simp.save!
+
+    ::Globalize::Locale.set('en','US')
+    simp.reload
+    assert_equal 'A simple model', simp.name
+    assert_equal 'A simple model\'s description', simp.description
+
+    ::Globalize::Locale.set('es','ES')
+    simp.reload
+    assert_equal 'Un modelo simple', simp.name
+    assert_equal 'La descripción de un modelo simple', simp.description
+
+    ::Globalize::Locale.set('es-MX','MX')
+    simp.reload
+    assert_equal 'Un modelo simple', simp.name
+    assert_nil simp.description
+
+    ::Globalize::Locale.set('de')
+    simp.reload
+    assert_equal 'A simple model', simp.name
+    assert_nil simp.description
+
+    ::Globalize::Locale.set('pl')
+    simp.reload
+    assert_equal 'A simple model', simp.name
+    assert_nil simp.description
+    
+    ::Globalize::Locale.set('ur')
+    simp.reload
+    assert_equal 'A simple model', simp.name
+    assert_nil simp.description
+    
+    Locale.set_fallback(:all, 'es')    
+    
+
+    ::Globalize::Locale.set('es-MX','MX')
+    simp.reload
+    assert_equal 'Un modelo simple', simp.name
+    assert_nil simp.description
+
+    ::Globalize::Locale.set('de')
+    simp.reload
+    assert_equal 'Un modelo simple', simp.name
+    assert_nil simp.description
+
+    ::Globalize::Locale.set('pl')
+    simp.reload
+    assert_equal 'Un modelo simple', simp.name
+    assert_nil simp.description
+    
+    ::Globalize::Locale.set('ur')
+    simp.reload
+    assert_equal 'Un modelo simple', simp.name
+    assert_nil simp.description    
+  end  
 end

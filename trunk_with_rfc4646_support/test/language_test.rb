@@ -152,4 +152,27 @@ class LanguageTest < Test::Unit::TestCase
     end
 
   end
+  
+  def test_mapping_default_country
+    lang = Language.pick('es')
+    
+    mapping = {
+      'es' => 'AR',
+      'en' => 'GB',
+      'he' => 'IL'
+    }
+    
+    assert_equal('ES', lang.default_country.code)
+    
+    Language.set_default_country('es', 'AR')
+    assert_equal('AR', lang.reload.default_country.code)
+    
+    Language.pick('es').set_default_country('MX')
+    assert_equal('MX', lang.reload.default_country.code)
+    
+    Language.set_default_country(mapping)
+    assert_equal('AR', lang.reload.default_country.code)
+    assert_equal('GB', Language.pick('en').default_country.code)
+    assert_equal('IL', Language.pick('he').default_country.code)
+  end
 end

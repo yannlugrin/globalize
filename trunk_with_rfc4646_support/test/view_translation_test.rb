@@ -320,6 +320,67 @@ class ViewTranslationTest < Test::Unit::TestCase
     assert_equal "english", "english".t, "Should not fallback!"
     Globalize::ViewTranslation::enable_fallbacks = true
   end
+  
+  def test_set_translation_with_all_inclusive_fallback
+    Locale.clear_cache
+    Locale.clear_fallbacks
+
+    assert_equal "english", "english".t
+    Locale.set_translation("english", "english translated")
+    assert_equal "english translated", "english".t
+
+    Locale.set('es-AR')
+    assert_equal "english", "english".t
+
+    Locale.set('es')
+    assert_equal "english", "english".t
+
+    Locale.set('es-MX')
+    assert_equal "english", "english".t
+
+
+    Locale.set_fallback(:all, 'en', 'es')
+    
+    Locale.set('es-AR')
+    assert_equal "english translated", "english".t
+    
+    Locale.set('es')
+    assert_equal "english translated", "english".t
+    
+    Locale.set('es-MX')
+    assert_equal "english translated", "english".t
+    
+    Locale.set('es')
+    assert_equal "spanish", "spanish".t
+    Locale.set_translation("spanish", "castellano")
+    
+    Locale.set('en')    
+    assert_equal "castellano", "spanish".t
+    
+    Locale.set('he')    
+    assert_equal "castellano", "spanish".t
+    
+    Locale.set('es-AR')    
+    assert_equal "castellano", "spanish".t
+    
+    Locale.set('ur')    
+    assert_equal "castellano", "spanish".t
+    
+    Locale.clear_all_fallback
+    Locale.translator.cache_reset
+    
+    Locale.set('en')
+    assert_equal "spanish", "spanish".t
+    
+    Locale.set('he')
+    assert_equal "spanish", "spanish".t
+    
+    Locale.set('es-AR')
+    assert_equal "castellano", "spanish".t
+    
+    Locale.set('ur')
+    assert_equal "spanish", "spanish".t
+  end
 
   def test_zero_form_with_explicit_fallbacks
     Locale.clear_fallbacks

@@ -4,6 +4,8 @@ module Globalize
 
     validates_presence_of :code, :english_name
     validates_uniqueness_of :code
+    
+    has_many :languages
 
     def self.reloadable?; false end
 

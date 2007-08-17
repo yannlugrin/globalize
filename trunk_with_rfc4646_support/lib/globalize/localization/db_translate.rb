@@ -510,7 +510,10 @@ module Globalize # :nodoc:
 
                   unless translation
                     if @@facet_options[:#{facet}][:fallback] && Globalize::DbTranslate::enable_fallbacks
-                      Locale.active.fallbacks(true, true).each do |fallback|
+                      fallbacks = Locale.active.fallbacks(true, true)
+                      fallbacks << Locale.all_fallback(true) if Locale.all_fallback?
+                      fallbacks = fallbacks.flatten.uniq.compact
+                      fallbacks.each do |fallback|
                         unless Locale.base_language.code == fallback.code
                           translation = self.#{facet}_translations.detect{|tr| tr.language_id == fallback.id }
                           break if translation
@@ -533,7 +536,10 @@ module Globalize # :nodoc:
                   #If the base locale value is nil and fallback is active...
                   unless result
                     if @@facet_options[:#{facet}][:fallback] && Globalize::DbTranslate::enable_fallbacks
-                      Locale.active.fallbacks(true, true).each do |fallback|
+                      fallbacks = Locale.active.fallbacks(true, true)
+                      fallbacks << Locale.all_fallback(true) if Locale.all_fallback?
+                      fallbacks = fallbacks.flatten.uniq.compact
+                      fallbacks.each do |fallback|
                         unless Locale.base_language.code == fallback.code
                           translation = self.#{facet}_translations.detect{|tr| tr.language_id == fallback.id }
                           break if translation
@@ -674,7 +680,10 @@ module Globalize # :nodoc:
                     if @@facet_options[:#{facet}][:fallback] && Globalize::DbTranslate::enable_fallbacks
                       #If fallbacks are active then go through each fallback locale
                       #and look for a translation
-                      Locale.active.fallbacks(true, true).each do |fallback|
+                      fallbacks = Locale.active.fallbacks(true, true)
+                      fallbacks << Locale.all_fallback(true) if Locale.all_fallback?
+                      fallbacks = fallbacks.flatten.uniq.compact
+                      fallbacks.each do |fallback|
                         unless Locale.base_language.code == fallback.code
                           localized_method = "#{facet}_\#{fallback.dbcode}"
                           value = read_attribute(localized_method.to_sym)
@@ -694,7 +703,10 @@ module Globalize # :nodoc:
                     if @@facet_options[:#{facet}][:fallback] && Globalize::DbTranslate::enable_fallbacks
                       #If fallbacks are active then go through each fallback locale
                       #and look for a translation
-                      Locale.active.fallbacks(true, true).each do |fallback|
+                      fallbacks = Locale.active.fallbacks(true, true)
+                      fallbacks << Locale.all_fallback(true) if Locale.all_fallback?
+                      fallbacks = fallbacks.flatten.uniq.compact
+                      fallbacks.each do |fallback|
                         unless Locale.base_language.code == fallback.code
                           localized_method = "#{facet}_\#{fallback.dbcode}"
                           value = read_attribute(localized_method.to_sym)
@@ -718,7 +730,10 @@ module Globalize # :nodoc:
                     if @@facet_options[:#{facet}][:fallback] && Globalize::DbTranslate::enable_fallbacks
                       #If fallbacks are active then go through each fallback locale
                       #and look for a translation
-                      Locale.active.fallbacks(true, true).each do |fallback|
+                      fallbacks = Locale.active.fallbacks(true, true)
+                      fallbacks << Locale.all_fallback(true) if Locale.all_fallback?
+                      fallbacks = fallbacks.flatten.uniq.compact
+                      fallbacks.each do |fallback|
                         unless Locale.base_language.code == fallback.code
                           localized_method = "#{facet}_\#{fallback.dbcode}_before_type_cast"
                           value = send(localized_method.to_sym)
@@ -738,7 +753,10 @@ module Globalize # :nodoc:
                     if @@facet_options[:#{facet}][:fallback] && Globalize::DbTranslate::enable_fallbacks
                       #If fallbacks are active then go through each fallback locale
                       #and look for a translation
-                      Locale.active.fallbacks(true, true).each do |fallback|
+                      fallbacks = Locale.active.fallbacks(true, true)
+                      fallbacks << Locale.all_fallback(true) if Locale.all_fallback?
+                      fallbacks = fallbacks.flatten.uniq.compact
+                      fallbacks.each do |fallback|
                         unless Locale.base_language.code == fallback.code
                           localized_method = "#{facet}_\#{fallback.dbcode}_before_type_cast"
                           value = send(localized_method.to_sym)
@@ -888,7 +906,10 @@ module Globalize # :nodoc:
                   if @@facet_options[:#{facet}][:fallback] && Globalize::DbTranslate::enable_fallbacks
                     #If fallbacks are active then go through each fallback locale
                     #and look for a translation
-                    Locale.active.fallbacks(true, true).each do |fallback|
+                    fallbacks = Locale.active.fallbacks(true, true)
+                    fallbacks << Locale.all_fallback(true) if Locale.all_fallback?
+                    fallbacks = fallbacks.flatten.uniq.compact
+                    fallbacks.each do |fallback|
                       #If the fallback locale is not the base locale, then search
                       #for a translation (db trip)
                       unless Locale.base_language.code == fallback.code
@@ -913,7 +934,10 @@ module Globalize # :nodoc:
                     #Is base with nil value
                     #If fallbacks are active then go through each fallback locale
                     #and look for a translation
-                    Locale.active.fallbacks(true, true).each do |fallback|
+                    fallbacks = Locale.active.fallbacks(true, true)
+                    fallbacks << Locale.all_fallback(true) if Locale.all_fallback?
+                    fallbacks = fallbacks.flatten.uniq.compact
+                    fallbacks.each do |fallback|
                       #If the fallback locale is not the base locale, then search
                       #for a translation (db trip)
                       unless Locale.base_language.code == fallback.code

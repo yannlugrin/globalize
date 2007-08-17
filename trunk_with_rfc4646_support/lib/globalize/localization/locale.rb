@@ -43,6 +43,7 @@ module Globalize
       end
 
       @language = Language.pick(@rfc)
+      @country = @language.default_country if @language && @language.default_country && !@country
 
       setup_fields
       setup_implicit_fallbacks
@@ -128,6 +129,18 @@ module Globalize
     def self.fallbacks?(language_code)
       @@fallbacks.key? language_code
     end
+    
+    def self.all_fallback?
+      @@fallbacks.key? :all
+    end
+    
+    def self.all_fallback(load_locale = false)
+      if load_locale
+        @@fallbacks[:all].collect {|f| Language.pick(f) }
+      else
+        @@fallbacks[:all]
+      end
+    end
 
     def fallbacks(load_locale = false, implicit = false)
       fallbacks = self.class.fallbacks[self.code]
@@ -148,6 +161,10 @@ module Globalize
         @@base_language = nil
         @@base_language_code = nil
       end
+    end
+    
+    def self.clear_all_fallback
+      @@fallbacks.delete(:all)
     end
 
     # Returns the active locale.
