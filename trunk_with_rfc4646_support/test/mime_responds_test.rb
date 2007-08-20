@@ -14,7 +14,7 @@ class RespondToController < ActionController::Base
       type.all  { render :text => "Nothing" }
     end
   end
-
+  
   def js_or_html
     respond_to do |type|
       type.html { render :text => "HTML"    }
@@ -30,13 +30,13 @@ class RespondToController < ActionController::Base
       type.all  { render :text => "Nothing" }
     end
   end
-
+  
   def just_xml
     respond_to do |type|
       type.xml  { render :text => "XML" }
     end
   end
-
+  
   def using_defaults
     respond_to do |type|
       type.html
@@ -44,11 +44,11 @@ class RespondToController < ActionController::Base
       type.xml
     end
   end
-
+  
   def using_defaults_with_type_list
     respond_to(:html, :js, :xml)
   end
-
+  
   def made_for_content_type
     respond_to do |type|
       type.rss  { render :text => "RSS"  }
@@ -82,7 +82,7 @@ class RespondToController < ActionController::Base
   def rescue_action(e)
     raise
   end
-
+  
   protected
     def set_layout
       if action_name == "all_types_with_layout"
@@ -91,12 +91,14 @@ class RespondToController < ActionController::Base
     end
 end
 
-RespondToController.prepend_view_path(File.dirname(__FILE__) + "/views")
+if RespondToController.respond_to?(:prepend_view_path)
+  RespondToController.prepend_view_path(File.dirname(__FILE__) + "/views")
+else
+  RespondToController.template_root = File.dirname(__FILE__) + "/views"
+end
 
 class MimeControllerTest < Test::Unit::TestCase
-  include Globalize
-  fixtures :globalize_languages, :globalize_countries
-
+  include Globalize 
   def setup
     Locale.set(nil)
     @request    = ActionController::TestRequest.new
@@ -105,21 +107,21 @@ class MimeControllerTest < Test::Unit::TestCase
     @controller = RespondToController.new
     @request.host = "www.example.com"
   end
-
+    
   def test_html
     @request.env["HTTP_ACCEPT"] = "text/html"
     get :js_or_html
     assert_equal 'HTML', @response.body
-
+    
     get :html_or_xml
     assert_equal 'HTML', @response.body
 
     get :just_xml
     assert_response 406
   end
-
+  
   def test_fr_html
-    Locale.set('fr','FR')
+    Locale.set('fr')
     test_html
   end
 
@@ -134,9 +136,9 @@ class MimeControllerTest < Test::Unit::TestCase
     get :just_xml
     assert_equal 'XML', @response.body
   end
-
+  
   def test_fr_all
-    Locale.set('fr','FR')
+    Locale.set('fr')
     test_all
   end
 
@@ -169,12 +171,12 @@ class MimeControllerTest < Test::Unit::TestCase
     get :just_xml
     assert_equal 'XML', @response.body
   end
-
+  
   def test_fr_js_or_anything
-    Locale.set('fr','FR')
+    Locale.set('fr')
     test_js_or_anything
   end
-
+  
   def test_using_defaults
     @request.env["HTTP_ACCEPT"] = "*/*"
     get :using_defaults
@@ -188,10 +190,9 @@ class MimeControllerTest < Test::Unit::TestCase
     get :using_defaults
     assert_equal "<p>Hello world!</p>\n", @response.body
   end
-
-  def test_fr_using_defaults(locale = nil)
-    Locale.set('fr','FR') unless locale
-    Locale.set(*locale) if locale
+  
+  def test_fr_using_defaults
+    Locale.set('fr')
     @request.env["HTTP_ACCEPT"] = "*/*"
     get :using_defaults
     assert_equal 'Bonjour le monde !', @response.body
@@ -204,16 +205,17 @@ class MimeControllerTest < Test::Unit::TestCase
     get :using_defaults
     assert_equal "<p>Bonjour le monde !</p>\n", @response.body
   end
-
+  
   def test_fr_CH_fallback_to_fr_using_defaults
-    test_fr_using_defaults ['fr-CH','CH']
+    Locale.set('fr-CH')
+    test_fr_using_defaults
   end
-
+  
   def test_de_fallback_to_default
-    Locale.set('de','CH')
+    Locale.set('de')
     test_using_defaults
   end
-
+  
   def test_using_defaults_with_type_list
     @request.env["HTTP_ACCEPT"] = "*/*"
     get :using_defaults_with_type_list
@@ -227,10 +229,10 @@ class MimeControllerTest < Test::Unit::TestCase
     get :using_defaults_with_type_list
     assert_equal "<p>Hello world!</p>\n", @response.body
   end
-
+  
   def test_fr_using_defaults_with_type_list
-    Locale.set('fr','FR')
-
+    Locale.set('fr')
+    
     @request.env["HTTP_ACCEPT"] = "*/*"
     get :using_defaults_with_type_list
     assert_equal 'Bonjour le monde !', @response.body
@@ -243,7 +245,7 @@ class MimeControllerTest < Test::Unit::TestCase
     get :using_defaults_with_type_list
     assert_equal "<p>Bonjour le monde !</p>\n", @response.body
   end
-
+  
   def test_with_content_type
     @request.env["CONTENT_TYPE"] = "application/atom+xml"
     get :made_for_content_type
@@ -253,12 +255,12 @@ class MimeControllerTest < Test::Unit::TestCase
     get :made_for_content_type
     assert_equal "RSS", @response.body
   end
-
+  
   def test_fr_with_content_type
-    Locale.set('fr','FR')
+    Locale.set('fr')
     test_with_content_type
   end
-
+  
   def test_synonyms
     @request.env["HTTP_ACCEPT"] = "application/javascript"
     get :js_or_html
@@ -268,12 +270,12 @@ class MimeControllerTest < Test::Unit::TestCase
     get :html_xml_or_rss
     assert_equal "XML", @response.body
   end
-
+  
   def test_fr_synonyms
-    Locale.set('fr','FR')
+    Locale.set('fr')
     test_synonyms
   end
-
+  
   def test_custom_types
     @request.env["HTTP_ACCEPT"] = "application/crazy-xml"
     get :custom_type_handling
@@ -283,9 +285,9 @@ class MimeControllerTest < Test::Unit::TestCase
     get :custom_type_handling
     assert_equal 'HTML', @response.body
   end
-
+  
   def test_fr_custom_types
-    Locale.set('fr','FR')
+    Locale.set('fr')
     test_custom_types
   end
 
@@ -294,20 +296,20 @@ class MimeControllerTest < Test::Unit::TestCase
     get :html_or_xml
     assert_equal 'HTML', @response.body
   end
-
+  
   def test_fr_xhtml_alias
-    Locale.set('fr','FR')
+    Locale.set('fr')
     test_custom_types
   end
-
+  
   def test_firefox_simulation
     @request.env["HTTP_ACCEPT"] = "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5"
     get :html_or_xml
     assert_equal 'HTML', @response.body
   end
-
+  
   def test_fr_firefox_simulation
-    Locale.set('fr','FR')
+    Locale.set('fr')
     test_firefox_simulation
   end
 
@@ -324,12 +326,12 @@ class MimeControllerTest < Test::Unit::TestCase
     get :handle_any
     assert_equal 'Either JS or XML', @response.body
   end
-
+  
   def test_fr_handle_any
-    Locale.set('fr','FR')
+    Locale.set('fr')
     test_handle_any
   end
-
+  
   def test_all_types_with_layout
     @request.env["HTTP_ACCEPT"] = "text/javascript"
     get :all_types_with_layout
@@ -339,9 +341,9 @@ class MimeControllerTest < Test::Unit::TestCase
     get :all_types_with_layout
     assert_equal '<html>HTML for all_types_with_layout</html>', @response.body
   end
-
+  
   def test_fr_all_types_with_layout
-    Locale.set('fr','FR')
+    Locale.set('fr')
     test_all_types_with_layout
   end
 
@@ -352,9 +354,9 @@ class MimeControllerTest < Test::Unit::TestCase
     xhr :get, :using_defaults
     assert_equal '$("body").visualEffect("highlight");', @response.body
   end
-
+  
   def test_fr_xhr
-    Locale.set('fr','FR')
+    Locale.set('fr')
     test_xhr
   end
 end
