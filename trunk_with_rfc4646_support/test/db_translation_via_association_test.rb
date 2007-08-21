@@ -504,7 +504,7 @@ class ViaAssociationTranslationTest < Test::Unit::TestCase
   def test_fallbacks_for_base_locale
 
     ::Globalize::Locale.clear_fallbacks
-    ::Globalize::Locale.set_base_language(Language.pick('es-MX'))
+    ::Globalize::Locale.set_base_language(::Globalize::Language.pick('es-MX'))
 
     ::Globalize::Locale.set('he','IL')
     simp = SimplePost.create!(:name => 'hebrew name fallbacks 2',
@@ -536,7 +536,7 @@ class ViaAssociationTranslationTest < Test::Unit::TestCase
     assert_equal 'hebrew name fallbacks 2', simp.name
     assert_nil simp.description
 
-    ::Globalize::Locale.set_base_language(Language.pick('en'))
+    ::Globalize::Locale.set_base_language(::Globalize::Language.pick('en'))
   end
 
   def test_dynamic_finders
@@ -604,7 +604,7 @@ class ViaAssociationTranslationTest < Test::Unit::TestCase
     assert_equal 'A simple model', simp.name
     assert_nil simp.description
     
-    Locale.set_fallback(:all, 'es')    
+    ::Globalize::Locale.set_fallback(:all, 'es')    
     
 
     ::Globalize::Locale.set('es-MX','MX')

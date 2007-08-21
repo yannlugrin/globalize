@@ -87,3 +87,10 @@ Optionally, try:
 
 * <tt>rake test_plugins</tt>
 * <tt>rake plugindoc</tt>
+
+
+Note: You may want to add:
+
+ include Globalize
+
+to your environment.rb.

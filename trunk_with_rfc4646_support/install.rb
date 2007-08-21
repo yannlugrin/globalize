@@ -8,3 +8,5 @@ begin
 rescue => e
  puts e.message
 end
+
+puts File.open('README').read

@@ -48,7 +48,7 @@ class DbTranslationSameTableTest < Test::Unit::TestCase
   end
 
   def setup
-    ::Globalize::Locale.set_base_language(Language.pick('en'))
+    ::Globalize::Locale.set_base_language(::Globalize::Language.pick('en'))
     ::Globalize::Locale.set('en','US')
   end
 
@@ -626,7 +626,7 @@ class DbTranslationSameTableTest < Test::Unit::TestCase
 
   def test_fallbacks_for_base_locale
     ::Globalize::Locale.clear_fallbacks
-    ::Globalize::Locale.set_base_language(Language.pick('es-MX'))
+    ::Globalize::Locale.set_base_language(::Globalize::Language.pick('es-MX'))
 
     ::Globalize::Locale.set('he','IL')
     article = ::Article.create!(:code => 'test-fallback 2',
@@ -665,7 +665,7 @@ class DbTranslationSameTableTest < Test::Unit::TestCase
     assert_nil article.description
     assert_nil article.description_before_type_cast
 
-    ::Globalize::Locale.set_base_language(Language.pick('en'))
+    ::Globalize::Locale.set_base_language(::Globalize::Language.pick('en'))
   end
   
   def test_all_inclusive_fallback
@@ -703,7 +703,7 @@ class DbTranslationSameTableTest < Test::Unit::TestCase
     assert_equal 'english name fallbacks', article.name
     assert_nil article.description            
             
-    Locale.set_fallback(:all, 'es')
+    ::Globalize::Locale.set_fallback(:all, 'es')
     
     ::Globalize::Locale.set('es-MX','MX')
     assert_equal 'spanish name fallbacks', article.name
