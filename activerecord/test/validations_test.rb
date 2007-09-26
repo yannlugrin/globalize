@@ -160,7 +160,7 @@ class ValidationsTest < Test::Unit::TestCase
     r.errors.each_full { |error| errors << error }
 
     assert_equal "Reply is not dignifying", r.errors.on_base
-
+    puts errors.inspect
     assert errors.include?("Title Empty")
     assert errors.include?("Reply is not dignifying")
     assert_equal 2, r.errors.count

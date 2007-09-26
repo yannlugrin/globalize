@@ -65,7 +65,7 @@ module ActionView
 
         case distance_in_minutes
           when 0..1
-            return (distance_in_minutes==0) ? 'less than a minute'.t : ('%d minutes' / 1) unless include_seconds
+            return (distance_in_minutes==0) ? 'less than a minute'.t : ('%d minutes'.t 1) unless include_seconds
             case distance_in_seconds
               when 0..4   then 'less than %d seconds'.t 5
               when 5..9  then 'less than %d seconds'.t 10
@@ -76,7 +76,7 @@ module ActionView
             end
 
           when 2..44           then '%d minutes'.t distance_in_minutes
-          when 45..89          then 'about %d hours'.t 1
+          when 45..89          then 'about %d hour'.t 1
           when 90..1439        then 'about %d hours'.t (distance_in_minutes.to_f / 60.0).round
           when 1440..2879      then '%d day'.t 1
           when 2880..43199     then 'about %d days'.t (distance_in_minutes.to_f / 1440.0).round
@@ -495,8 +495,8 @@ module ActionView
             end
 
             month_options << ((val == month_number) ?
-              %(<option value="#{month_number}" selected="selected">#{month_name}</option>\n) :
-              %(<option value="#{month_number}">#{month_name}</option>\n)
+              %(<option value="#{month_number}" selected="selected">#{month_name.t}</option>\n) :
+              %(<option value="#{month_number}">#{month_name.t}</option>\n)
             )
           end
           select_html(options[:field_name] || 'month', month_options, options)

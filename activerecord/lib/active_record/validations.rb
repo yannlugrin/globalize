@@ -52,18 +52,20 @@ module ActiveRecord
     # Adds an error to the base object instead of any particular attribute. This is used
     # to report errors that don't tie to any specific attribute, but rather to the object
     # as a whole. These error messages don't get prepended with any field name when iterating
-    # with each_full, so they should be complete sentences.
-    def add_to_base(msg)
-      add(:base, msg)
+    # with each_full, so they should be complete sentences. The optional +num+ argument
+    # specifies a quantity value for translatable messages.
+    def add_to_base(msg, num = nil)
+      add(:base, msg, num)
     end
 
     # Adds an error message (+msg+) to the +attribute+, which will be returned on a call to <tt>on(attribute)</tt>
     # for the same attribute and ensure that this error object returns false when asked if <tt>empty?</tt>. More than one
     # error can be added to the same +attribute+ in which case an array will be returned on a call to <tt>on(attribute)</tt>.
-    # If no +msg+ is supplied, "invalid" is assumed.
-    def add(attribute, msg = @@default_error_messages[:invalid])
+    # If no +msg+ is supplied, "invalid" is assumed. The optional +num+ argument specifies a quantity value for translatable 
+    # messages.
+    def add(attribute, msg = @@default_error_messages[:invalid], num = nil)
       @errors[attribute.to_s] = [] if @errors[attribute.to_s].nil?
-      @errors[attribute.to_s] << msg
+      @errors[attribute.to_s] << [ msg, num ]
     end
 
     # Will add an error message to each of the attributes in +attributes+ that is empty.
@@ -111,9 +113,13 @@ module ActiveRecord
     #   company.errors.on(:email)     # => "can't be blank"
     #   company.errors.on(:address)   # => nil
     def on(attribute)
-      errors = @errors[attribute.to_s]
-      return nil if errors.nil?
-      errors.size == 1 ? errors.first : errors
+      if @errors[attribute.to_s].nil?
+        return nil
+      else
+        msgs = @errors[attribute.to_s]
+        txt_msgs = msgs.map {|msg| msg.kind_of?(Array) ? msg.first.t(msg.last) : msg.first.t }
+        return txt_msgs.length == 1 ? txt_msgs.first : txt_msgs
+      end
     end
 
     alias :[] :on
@@ -172,11 +178,15 @@ module ActiveRecord
       @errors.each_key do |attr|
         @errors[attr].each do |msg|
           next if msg.nil?
-
+          
+          # Extract the message and its quantity value for translation
+          msg = [ msg ].flatten
+          msg_text, msg_num = msg
+    
           if attr == "base"
-            full_messages << msg
+            full_messages << msg_text.t(msg_num)
           else
-            full_messages << @base.class.human_attribute_name(attr) + " " + msg
+            full_messages << (("%s " + msg_text).t([@base.class.human_attribute_name(attr).t, msg_num]))            
           end
         end
       end
@@ -550,10 +560,10 @@ module ActiveRecord
             too_long  = options[:too_long]  % option_value.end
 
             validates_each(attrs, options) do |record, attr, value|
-              if value.nil? or value.split(//).size < option_value.begin
-                record.errors.add(attr, too_short)
-              elsif value.split(//).size > option_value.end
-                record.errors.add(attr, too_long)
+              if value.nil? or value.size < option_value.begin
+                record.errors.add(attr, too_short, option_value.begin)
+              elsif value.size > option_value.end
+                record.errors.add(attr, too_long, option_value.end)
               end
             end
           when :is, :minimum, :maximum
@@ -563,13 +573,14 @@ module ActiveRecord
             validity_checks = { :is => "==", :minimum => ">=", :maximum => "<=" }
             message_options = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }
 
+            # TODO: why %
             message = (options[:message] || options[message_options[option]]) % option_value
 
             validates_each(attrs, options) do |record, attr, value|
               if value.kind_of?(String)
-                record.errors.add(attr, message) unless !value.nil? and value.split(//).size.method(validity_checks[option])[option_value]
+                record.errors.add(attr, message, option_value) unless !value.nil? and value.split(//).size.method(validity_checks[option])[option_value]
               else
-                record.errors.add(attr, message) unless !value.nil? and value.size.method(validity_checks[option])[option_value]
+                record.errors.add(attr, message, option_value) unless !value.nil? and value.size.method(validity_checks[option])[option_value]
               end
             end
         end
