@@ -65,25 +65,25 @@ module ActionView
 
         case distance_in_minutes
           when 0..1
-            return (distance_in_minutes==0) ? 'less than a minute'.t : ('%d minutes'.t 1) unless include_seconds
+            return (distance_in_minutes==0) ? 'less than a minute'.t : ('%d minute'.t 1) unless include_seconds
             case distance_in_seconds
               when 0..4   then 'less than %d seconds'.t 5
               when 5..9  then 'less than %d seconds'.t 10
               when 10..19 then 'less than %d seconds'.t 20
               when 20..39 then 'half a minute'.t
               when 40..59 then 'less than a minute'.t
-              else             '%d minutes'.t 1
+              else             '%d minute'.t 1
             end
 
           when 2..44           then '%d minutes'.t distance_in_minutes
           when 45..89          then 'about %d hour'.t 1
-          when 90..1439        then 'about %d hours'.t (distance_in_minutes.to_f / 60.0).round
+          when 90..1439        then 'about %d hours'.t((distance_in_minutes.to_f / 60.0).round)
           when 1440..2879      then '%d day'.t 1
-          when 2880..43199     then 'about %d days'.t (distance_in_minutes.to_f / 1440.0).round
+          when 2880..43199     then '%d days'.t((distance_in_minutes / 1440).round)
           when 43200..86399    then 'about %d month'.t 1
-          when 86400..525959   then 'about %d months'.t (distance_in_minutes.to_f / 43200.0).round
+          when 86400..525959   then '%d months'.t((distance_in_minutes / 43200).round)
           when 525960..1051919 then 'about %d year'.t 1
-          else                      'over %d years'.t (distance_in_minutes.to_f / 525960.0).round
+          else                      'over %d years'.t((distance_in_minutes / 525600).round)
         end
       end
 
@@ -495,8 +495,8 @@ module ActionView
             end
 
             month_options << ((val == month_number) ?
-              %(<option value="#{month_number}" selected="selected">#{month_name.t}</option>\n) :
-              %(<option value="#{month_number}">#{month_name.t}</option>\n)
+              %(<option value="#{month_number}" selected="selected">#{month_name.to_s.t}</option>\n) :
+              %(<option value="#{month_number}">#{month_name.to_s.t}</option>\n)
             )
           end
           select_html(options[:field_name] || 'month', month_options, options)

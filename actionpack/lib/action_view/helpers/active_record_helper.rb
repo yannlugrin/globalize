@@ -118,7 +118,7 @@ module ActionView
       # you need is significantly different from the default presentation, it makes plenty of sense to access the object.errors
       # instance yourself and set it up. View the source of this method to see how easy it is.
       def error_messages_for(*params)
-        options = params.extract_options!.symbolize_keys
+        options = params.last.is_a?(Hash) ? params.pop.symbolize_keys : {}
         objects = params.collect {|object_name| instance_variable_get("@#{object_name}") }.compact
         count   = objects.inject(0) {|sum, object| sum + object.errors.count }
         unless count.zero?
@@ -131,11 +131,11 @@ module ActionView
               html[key] = 'errorExplanation'
             end
           end
-          header_message = "#{pluralize(count, 'error')} prohibited this #{(options[:object_name] || params.first).to_s.gsub('_', ' ')} from being saved"
+          header_message = "#{pluralize(count, 'error')} prohibited this #{(options[:object_name] || params.first).to_s.gsub('_', ' ').t} from being saved"
           error_messages = objects.map {|object| object.errors.full_messages.map {|msg| content_tag(:li, msg) } }
           content_tag(:div,
             content_tag(options[:header_tag] || :h2, header_message) <<
-              content_tag(:p, 'There were problems with the following fields:') <<
+              content_tag(:p, 'There were problems with the following fields:'.t) <<
               content_tag(:ul, error_messages),
             html
           )
