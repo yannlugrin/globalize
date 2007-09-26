@@ -27,7 +27,7 @@ class TranslationTest < Test::Unit::TestCase
   end
   
   def test_time
-    assert_equal @string,   @string.t
+    assert_equal @string, @string.t
   end  
 
 end
