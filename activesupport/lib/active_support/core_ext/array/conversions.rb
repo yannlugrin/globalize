@@ -7,7 +7,7 @@ module ActiveSupport #:nodoc:
         # * <tt>:skip_last_comma</tt>: Set to true to return "a, b and c" instead of "a, b, and c".
         def to_sentence(options = {})
           options.assert_valid_keys(:connector, :skip_last_comma)
-          options.reverse_merge! :connector => 'and', :skip_last_comma => false
+          options.reverse_merge! :connector => 'and'.t, :skip_last_comma => false
           
           case length
           	when 0
