@@ -560,9 +560,10 @@ module ActiveRecord
             too_long  = options[:too_long]  % option_value.end
 
             validates_each(attrs, options) do |record, attr, value|
-              if value.nil? or value.size < option_value.begin
+              
+              if value.nil? or value.split(//).size < option_value.begin
                 record.errors.add(attr, too_short, option_value.begin)
-              elsif value.size > option_value.end
+              elsif value.split(//).size > option_value.end
                 record.errors.add(attr, too_long, option_value.end)
               end
             end

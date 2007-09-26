@@ -130,8 +130,11 @@ class ValidationsTest < Test::Unit::TestCase
     r.save
 
     errors = []
-    r.errors.each { |attr, msg| errors << [attr, msg] }
-
+    r.errors.each do |attr, msg|
+      txt_msg = msg.kind_of?(Array) ? msg.first.t(msg.last) : msg.first.t
+      errors << [attr, txt_msg]
+    end
+    
     assert errors.include?(["title", "Empty"])
     assert errors.include?(["content", "Empty"])
   end
@@ -160,7 +163,6 @@ class ValidationsTest < Test::Unit::TestCase
     r.errors.each_full { |error| errors << error }
 
     assert_equal "Reply is not dignifying", r.errors.on_base
-    puts errors.inspect
     assert errors.include?("Title Empty")
     assert errors.include?("Reply is not dignifying")
     assert_equal 2, r.errors.count
