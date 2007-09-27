@@ -3,8 +3,8 @@ module ActiveSupport #:nodoc:
     module Date #:nodoc:
       # Define methods for handeling translation of strings.
       module Translation
-        def t(*args)
-          ActiveSupport::Translation::TranslatableDate.translate(self, args)
+        def t
+          ActiveSupport::Translation::TranslatableDate.new(self.year,self.mon, self.mday)
         end
       end
     end    

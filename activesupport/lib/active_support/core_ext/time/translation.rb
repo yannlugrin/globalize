@@ -1,12 +1,12 @@
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Time #:nodoc:
-      # Define methods for handeling translation of strings.
+      # Define methods for handeling translation of times.
       module Translation
-        def t(*args)
-          ActiveSupport::Translation::TranslatableTime.translate(self, args)
+        def t
+          ActiveSupport::Translation::TranslatableTime.at(self)
         end
       end
-    end    
+    end
   end
 end

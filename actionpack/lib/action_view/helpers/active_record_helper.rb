@@ -131,7 +131,7 @@ module ActionView
               html[key] = 'errorExplanation'
             end
           end
-          header_message = "#{pluralize(count, 'error')} prohibited this #{(options[:object_name] || params.first).to_s.gsub('_', ' ').t} from being saved"
+          header_message = "%d errors prohibited this #{(options[:object_name] || params.first).to_s.gsub('_', ' ')} from being saved".t(count)
           error_messages = objects.map {|object| object.errors.full_messages.map {|msg| content_tag(:li, msg) } }
           content_tag(:div,
             content_tag(options[:header_tag] || :h2, header_message) <<

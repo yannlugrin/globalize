@@ -1,8 +1,8 @@
 module ActiveSupport #:nodoc:
   module Translation #:nodoc:
-    module TranslatableDateTime #:nodoc:
-      def self.translate(datetime, *args)
-        datetime.strftime(args)
+    class TranslatableDateTime < ::DateTime #:nodoc:
+      def strftime(*args)
+        super(*args)
       end
     end
   end

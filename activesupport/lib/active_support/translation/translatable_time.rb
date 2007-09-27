@@ -1,9 +1,9 @@
 module ActiveSupport #:nodoc:
   module Translation #:nodoc:
-    module TranslatableTime #:nodoc:
-      def self.translate(time, *args)
-        time.strftime(args)
+    class TranslatableTime < ::Time#:nodoc:
+      def strftime(*args)
+        super(*args)
       end
-    end    
+    end
   end
 end
