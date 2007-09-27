@@ -34,7 +34,7 @@ module ActiveSupport #:nodoc:
       def self.translate(string, args)
         return string unless args
         
-        translated_string,string_interpolations, pluralization = nil
+        translated_string,string_interpolations, pluralization, plural = nil
         
         case args
           when String
@@ -54,15 +54,23 @@ module ActiveSupport #:nodoc:
          
          #Handle plurals
          matches = translated_string ? translated_string.match(PLURALIZATION_REGEXP) : string.match(PLURALIZATION_REGEXP)
-         pluralizable_string = matches[1] if matches
-         plural = (pluralizable_string.gsub(/%d\s+/,'') % pluralization)
-         plural = (pluralization == 1) ? Inflector.singularize(plural) : plural
-         
-         translated_string = if translated_string
-             translated_string.gsub(PLURALIZATION_REGEXP, "#{pluralization} #{plural}")           
-           else
-             string.gsub(PLURALIZATION_REGEXP, "#{pluralization} #{plural}")             
-           end
+         if matches
+           pluralizable_string = matches[1] 
+           plural = (pluralizable_string.gsub(/%d\s+/,'') % pluralization) if pluralizable_string
+           plural = (pluralization == 1) ? Inflector.singularize(plural) : plural if plural
+
+           if plural
+             translated_string = if translated_string
+                 translated_string.gsub(PLURALIZATION_REGEXP, "#{pluralization} #{plural}")           
+               else
+                 string.gsub(PLURALIZATION_REGEXP, "#{pluralization} #{plural}")             
+               end           
+           end           
+         else
+           #If there's still a %d in the string but it's not pluralizable then just do a normal interpolation
+           translated_string = translated_string ? (translated_string % pluralization) : (string % pluralization) if string.match(/%d/)
+         end
+
        end
        
        #Handle string interpolations

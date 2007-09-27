@@ -10,7 +10,7 @@ module ActiveRecord
     attr_reader :record
     def initialize(record)
       @record = record
-      super("Validation failed: #{@record.errors.full_messages.join(", ")}")
+      super("Validation failed: %s".t(@record.errors.full_messages.join(", ")))
     end
   end
 
@@ -53,7 +53,7 @@ module ActiveRecord
     # to report errors that don't tie to any specific attribute, but rather to the object
     # as a whole. These error messages don't get prepended with any field name when iterating
     # with each_full, so they should be complete sentences. The optional +num+ argument
-    # specifies a quantity value for translatable messages.
+    # specifies a pluralization value for translatable messages.
     def add_to_base(msg, num = nil)
       add(:base, msg, num)
     end
@@ -61,7 +61,7 @@ module ActiveRecord
     # Adds an error message (+msg+) to the +attribute+, which will be returned on a call to <tt>on(attribute)</tt>
     # for the same attribute and ensure that this error object returns false when asked if <tt>empty?</tt>. More than one
     # error can be added to the same +attribute+ in which case an array will be returned on a call to <tt>on(attribute)</tt>.
-    # If no +msg+ is supplied, "invalid" is assumed. The optional +num+ argument specifies a quantity value for translatable 
+    # If no +msg+ is supplied, "invalid" is assumed. The optional +num+ argument specifies a pluralization value for translatable 
     # messages.
     def add(attribute, msg = @@default_error_messages[:invalid], num = nil)
       @errors[attribute.to_s] = [] if @errors[attribute.to_s].nil?
@@ -186,7 +186,7 @@ module ActiveRecord
           if attr == "base"
             full_messages << msg_text.t(msg_num)
           else
-            full_messages << (("%s " + msg_text).t([@base.class.human_attribute_name(attr).t, msg_num]))            
+            full_messages << (("%s " + msg_text).t(@base.class.human_attribute_name(attr), msg_num))            
           end
         end
       end
@@ -339,8 +339,8 @@ module ActiveRecord
             else
               raise(
                 ActiveRecordError,
-                "Validations need to be either a symbol, string (to be eval'ed), proc/method, or " +
-                "class implementing a static validation method"
+                ("Validations need to be either a symbol, string (to be eval'ed), proc/method, or " +
+                "class implementing a static validation method").t
               )
             end
           end
@@ -541,11 +541,11 @@ module ActiveRecord
         range_options = ALL_RANGE_OPTIONS & options.keys
         case range_options.size
           when 0
-            raise ArgumentError, 'Range unspecified.  Specify the :within, :maximum, :minimum, or :is option.'
+            raise ArgumentError, 'Range unspecified.  Specify the :within, :maximum, :minimum, or :is option.'.t
           when 1
             # Valid number of options; do nothing.
           else
-            raise ArgumentError, 'Too many range options specified.  Choose only one.'
+            raise ArgumentError, 'Too many range options specified.  Choose only one.'.t
         end
 
         # Get range option and value.
@@ -554,10 +554,10 @@ module ActiveRecord
 
         case option
           when :within, :in
-            raise ArgumentError, ":#{option} must be a Range" unless option_value.is_a?(Range)
+            raise ArgumentError, ":%s must be a Range".t(option) unless option_value.is_a?(Range)
 
-            too_short = options[:too_short] % option_value.begin
-            too_long  = options[:too_long]  % option_value.end
+            too_short = options[:too_short].t(option_value.begin)
+            too_long  = options[:too_long].t(option_value.end)
 
             validates_each(attrs, options) do |record, attr, value|
               
@@ -568,14 +568,13 @@ module ActiveRecord
               end
             end
           when :is, :minimum, :maximum
-            raise ArgumentError, ":#{option} must be a nonnegative Integer" unless option_value.is_a?(Integer) and option_value >= 0
+            raise ArgumentError, ":%s must be a nonnegative Integer".t(option) unless option_value.is_a?(Integer) and option_value >= 0
 
             # Declare different validations per option.
             validity_checks = { :is => "==", :minimum => ">=", :maximum => "<=" }
             message_options = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }
 
-            # TODO: why %
-            message = (options[:message] || options[message_options[option]]) % option_value
+            message = (options[:message] || options[message_options[option]]).t(option_value)
 
             validates_each(attrs, options) do |record, attr, value|
               if value.kind_of?(String)
@@ -705,7 +704,7 @@ module ActiveRecord
 
         enum = configuration[:in] || configuration[:within]
 
-        raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?("include?")
+        raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash".t) unless enum.respond_to?("include?")
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
           record.errors.add(attr_name, configuration[:message]) unless enum.include?(value)
@@ -736,7 +735,7 @@ module ActiveRecord
 
         enum = configuration[:in] || configuration[:within]
 
-        raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?("include?")
+        raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash".t) unless enum.respond_to?("include?")
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
           record.errors.add(attr_name, configuration[:message]) if enum.include?(value)
@@ -817,7 +816,7 @@ module ActiveRecord
         numericality_options = ALL_NUMERICALITY_CHECKS.keys & configuration.keys
 
         (numericality_options - [ :odd, :even ]).each do |option|
-          raise ArgumentError, ":#{option} must be a number" unless configuration[option].is_a?(Numeric)
+          raise ArgumentError, ":%s must be a number".t(option) unless configuration[option].is_a?(Numeric)
         end
 
         validates_each(attr_names,configuration) do |record, attr_name, value|
@@ -959,8 +958,8 @@ module ActiveRecord
           else
             raise(
               ActiveRecordError,
-              "Validations need to be either a symbol, string (to be eval'ed), proc/method, or " +
-              "class implementing a static validation method"
+              ("Validations need to be either a symbol, string (to be eval'ed), proc/method, or " +
+              "class implementing a static validation method").t
             )
           end
         end
