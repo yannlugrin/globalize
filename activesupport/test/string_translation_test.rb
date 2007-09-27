@@ -45,5 +45,15 @@ class StringTranslationTest < Test::Unit::TestCase
     assert_equal "Is there 1 translation to do?",   "Are there %d translations to do?".t(1)
     assert_equal "Are there 2 translations to do?", "Are there %d translations to do?".t(2)    
   end
+  
+  def test_pluralizable_string_with_non_whitespace_characters_after_pluralizable_word
+    assert_equal "Omellette recipe (1 egg)",  "Omellette recipe (%d eggs)".t(1)
+    assert_equal "Omellette recipe (2 eggs)", "Omellette recipe (%d eggs)".t(2)    
+  end  
+  
+  def test_non_pluralizable_string_with_numeric_interpolation
+    assert_equal "Omellette recipe (eggs: 1)",  "Omellette recipe (eggs: %d)".t(1)    
+    assert_equal "Omellette recipe (eggs: 3)",  "Omellette recipe (eggs: %d)".t(3)    
+  end
 
 end
