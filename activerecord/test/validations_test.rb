@@ -25,9 +25,34 @@ class ValidationsTest < Test::Unit::TestCase
   fixtures :topics, :developers
 
   def setup
+    
+    Object.class_eval <<-ENDDEF
+      class ::ActiveSupport::Translation::TranslatableString
+        def self.overidden_translate(string, args)
+          DefaultTranslatableString.translate(string, args)
+        end
+        
+        class << self
+          alias_method :old_translate, :translate        
+          alias_method :translate, :overidden_translate
+        end
+      end      
+    ENDDEF
+        
     Topic.write_inheritable_attribute(:validate, nil)
     Topic.write_inheritable_attribute(:validate_on_create, nil)
     Topic.write_inheritable_attribute(:validate_on_update, nil)
+  end
+  
+  def tear_down
+    Object.class_eval <<-ENDDEF
+      class ::ActiveSupport::Translation::TranslatableString
+        class << self
+          alias_method :translate, :old_translate
+        end
+      end      
+    ENDDEF
+        
   end
 
   def test_single_field_validation

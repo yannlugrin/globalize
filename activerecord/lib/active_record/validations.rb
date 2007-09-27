@@ -556,8 +556,8 @@ module ActiveRecord
           when :within, :in
             raise ArgumentError, ":%s must be a Range".t(option) unless option_value.is_a?(Range)
 
-            too_short = options[:too_short].t(option_value.begin)
-            too_long  = options[:too_long].t(option_value.end)
+            too_short = options[:too_short]
+            too_long  = options[:too_long]
 
             validates_each(attrs, options) do |record, attr, value|
               
@@ -574,7 +574,7 @@ module ActiveRecord
             validity_checks = { :is => "==", :minimum => ">=", :maximum => "<=" }
             message_options = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }
 
-            message = (options[:message] || options[message_options[option]]).t(option_value)
+            message = (options[:message] || options[message_options[option]])
 
             validates_each(attrs, options) do |record, attr, value|
               if value.kind_of?(String)
