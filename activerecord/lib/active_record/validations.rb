@@ -186,7 +186,7 @@ module ActiveRecord
           if attr == "base"
             full_messages << msg_text.t(msg_num)
           else
-            full_messages << (("%s " + msg_text).t(@base.class.human_attribute_name(attr), msg_num))            
+            full_messages << (("#{@base.class.human_attribute_name(attr)} #{msg_text}").t(msg_num))
           end
         end
       end
