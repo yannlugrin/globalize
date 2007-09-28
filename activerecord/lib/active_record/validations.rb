@@ -339,8 +339,8 @@ module ActiveRecord
             else
               raise(
                 ActiveRecordError,
-                ("Validations need to be either a symbol, string (to be eval'ed), proc/method, or " +
-                "class implementing a static validation method").t
+                "Validations need to be either a symbol, string (to be eval'ed), proc/method, or " +
+                "class implementing a static validation method"
               )
             end
           end
@@ -541,11 +541,11 @@ module ActiveRecord
         range_options = ALL_RANGE_OPTIONS & options.keys
         case range_options.size
           when 0
-            raise ArgumentError, 'Range unspecified.  Specify the :within, :maximum, :minimum, or :is option.'.t
+            raise ArgumentError, 'Range unspecified.  Specify the :within, :maximum, :minimum, or :is option.'
           when 1
             # Valid number of options; do nothing.
           else
-            raise ArgumentError, 'Too many range options specified.  Choose only one.'.t
+            raise ArgumentError, 'Too many range options specified.  Choose only one.'
         end
 
         # Get range option and value.
@@ -554,7 +554,7 @@ module ActiveRecord
 
         case option
           when :within, :in
-            raise ArgumentError, ":%s must be a Range".t(option) unless option_value.is_a?(Range)
+            raise ArgumentError, ":#{option} must be a Range" unless option_value.is_a?(Range)
 
             too_short = options[:too_short]
             too_long  = options[:too_long]
@@ -568,7 +568,7 @@ module ActiveRecord
               end
             end
           when :is, :minimum, :maximum
-            raise ArgumentError, ":%s must be a nonnegative Integer".t(option) unless option_value.is_a?(Integer) and option_value >= 0
+            raise ArgumentError, ":#{option} must be a nonnegative Integer" unless option_value.is_a?(Integer) and option_value >= 0
 
             # Declare different validations per option.
             validity_checks = { :is => "==", :minimum => ">=", :maximum => "<=" }
@@ -704,7 +704,7 @@ module ActiveRecord
 
         enum = configuration[:in] || configuration[:within]
 
-        raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash".t) unless enum.respond_to?("include?")
+        raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?("include?")
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
           record.errors.add(attr_name, configuration[:message]) unless enum.include?(value)
@@ -735,7 +735,7 @@ module ActiveRecord
 
         enum = configuration[:in] || configuration[:within]
 
-        raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash".t) unless enum.respond_to?("include?")
+        raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?("include?")
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
           record.errors.add(attr_name, configuration[:message]) if enum.include?(value)
@@ -816,7 +816,7 @@ module ActiveRecord
         numericality_options = ALL_NUMERICALITY_CHECKS.keys & configuration.keys
 
         (numericality_options - [ :odd, :even ]).each do |option|
-          raise ArgumentError, ":%s must be a number".t(option) unless configuration[option].is_a?(Numeric)
+          raise ArgumentError, ":#{option} must be a number" unless configuration[option].is_a?(Numeric)
         end
 
         validates_each(attr_names,configuration) do |record, attr_name, value|
@@ -958,8 +958,8 @@ module ActiveRecord
           else
             raise(
               ActiveRecordError,
-              ("Validations need to be either a symbol, string (to be eval'ed), proc/method, or " +
-              "class implementing a static validation method").t
+              "Validations need to be either a symbol, string (to be eval'ed), proc/method, or " +
+              "class implementing a static validation method"
             )
           end
         end
