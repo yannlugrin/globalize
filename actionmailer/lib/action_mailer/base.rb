@@ -442,7 +442,7 @@ module ActionMailer #:nodoc:
     # object (from the #create! method). If no cached mail object exists, and
     # no alternate has been given as the parameter, this will fail.
     def deliver!(mail = @mail)
-      raise "no mail object available for delivery!" unless mail
+      raise "no mail object available for delivery!".t(:exceptions) unless mail
       logger.info "Sent mail:\n #{mail.encoded}" unless logger.nil?
 
       begin

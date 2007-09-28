@@ -55,5 +55,23 @@ class StringTranslationTest < Test::Unit::TestCase
     assert_equal "Omellette recipe (eggs: 1)",  "Omellette recipe (eggs: %d)".t(1)    
     assert_equal "Omellette recipe (eggs: 3)",  "Omellette recipe (eggs: %d)".t(3)    
   end
+  
+  def test_pluralizable_strings_with_adjectives_before_noun_dont_singularize
+    assert_equal("Thomas has 1 old toys", "Thomas has %d old toys".t(1))
+    assert_equal("Thomas has 10 old toys", "Thomas has %d old toys".t(10))
+    
+    assert_equal("Thomas has 1 old scrabby toys", "Thomas has %d old scrabby toys".t(1))
+    assert_equal("Thomas has 10 old scrabby toys", "Thomas has %d old scrabby toys".t(10))    
+  end
+  
+  
+  def test_ignores_namespaces
+    assert_equal "any old string", "any old string".t(:namespace)
+    assert_equal "any old string", "any old %s".t(:namespace, 'string')
+    assert_equal "any 1 string", "any %d strings".t(:namespace, 1)
+    assert_equal "any 10 strings", "any %d strings".t(:namespace, 10)
+    assert_equal "Tommy has 1 string", "%s has %d strings".t(:namespace, 1, 'Tommy')
+    assert_equal "Tommy has 10 strings", "%s has %d strings".t(:namespace, 10, 'Tommy')
+  end
 
 end

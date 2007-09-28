@@ -34,7 +34,12 @@ module ActiveSupport #:nodoc:
         #        "Are there %d penguins?".t(3) => 'Are there 3 penguins?'        
         def self.translate(string, args)
            return string if args.nil? || (args.is_a?(Array) && args.compact.empty?)
-
+                      
+           #Add support for namespaces (ns if first argument is symbol)
+           return string if args.is_a? Symbol
+           args.shift if args.first.is_a? Symbol
+           return string if args.is_a?(Array) && args.empty?
+                                 
            translated_string,string_interpolations, pluralization, plural = nil
 
            case args
