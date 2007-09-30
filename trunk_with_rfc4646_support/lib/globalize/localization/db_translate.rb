@@ -1148,7 +1148,7 @@ module Globalize # :nodoc:
           return globalize_old_find_every(options) if options[:untranslated]
           raise StandardError,
             ":select option not allowed on translatable models " +
-            "(#{options[:select]})" if options[:select] && !options[:select].empty?
+            "(#{options[:select]})" if options[:select] && !options[:select].empty? && options[:select] != '*'
 
           # do quick version if base language is active
           if Locale.base? && !options.has_key?(:include_translated)
@@ -1217,7 +1217,7 @@ module Globalize # :nodoc:
               joins_args << name << facet << language_id
 
               #for translated fields inside WHERE clause substitute corresponding COALESCE string
-              where_clause.gsub!(/((((#{table_name}\.)|\W)#{facet})|^#{facet})\W/, " COALESCE(#{facet_table_alias}.text, #{table_name}.`#{facet}`) ")
+              where_clause.gsub!(/(\W|^)(#{table_name}\.)?#{facet}(\W|$)/, "\\1COALESCE(#{facet_table_alias}.text, #{table_name}.#{facet})\\3") 
             end
 
             options[:conditions] = sanitize_sql(
@@ -1285,8 +1285,7 @@ module Globalize # :nodoc:
       # Note: <i>Used when Globalize::DbTranslate.storage_method = :same_table</i>
       def method_missing(method_id, *arguments)
         if match = /find_(all_by|by)_([_a-zA-Z]\w*)/.match(method_id.to_s)
-          finder, deprecated_finder = determine_finder(match), determine_deprecated_finder(match)
-
+          finder = determine_finder(match)
           facets = extract_attribute_names_from_match(match)
           super unless all_attributes_exists?(facets)
 
@@ -1315,9 +1314,7 @@ module Globalize # :nodoc:
               end
 
             else
-              ActiveSupport::Deprecation.silence do
-                send(deprecated_finder, sanitize_sql(attributes), *arguments[facets.length..-1])
-              end
+             raise ArgumentError, "Unrecognized arguments for #{method_id}: #{extra_options.inspect}"
           end
         elsif match = /find_or_(initialize|create)_by_([_a-zA-Z]\w*)/.match(method_id.to_s)
           instantiator = determine_instantiator(match)
@@ -1348,7 +1345,7 @@ module Globalize # :nodoc:
       # Note: <i>Used when Globalize::DbTranslate.storage_method = :same_table</i>
       def method_missing(method_id, *arguments)
         if match = /find_(all_by|by)_([_a-zA-Z]\w*)/.match(method_id.to_s)
-          finder, deprecated_finder = determine_finder(match), determine_deprecated_finder(match)
+          finder = determine_finder(match)
 
           facets = extract_attribute_names_from_match(match)
           super unless all_attributes_exists?(facets)
@@ -1392,9 +1389,7 @@ module Globalize # :nodoc:
               end
 
             else
-              ActiveSupport::Deprecation.silence do
-                send(deprecated_finder, sanitize_sql(attributes), *arguments[facets.length..-1])
-              end
+              raise ArgumentError, "Unrecognized arguments for #{method_id}: #{extra_options.inspect}"
           end
         elsif match = /find_or_(initialize|create)_by_([_a-zA-Z]\w*)/.match(method_id.to_s)
           instantiator = determine_instantiator(match)
