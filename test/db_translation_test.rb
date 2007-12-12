@@ -372,6 +372,11 @@ class TranslationTest < Test::Unit::TestCase
     assert_equal "\xe2\x80\xaaThis is a description of the second product\xe2\x80\xac",
       prod.description
   end
-
+  
+  def test_product_show_is_language_code
+    prod = Product.find(1)
+    assert_equal('en', prod.language_code)
+  end
+  
   # association building/creating?
 end

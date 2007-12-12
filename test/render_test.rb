@@ -6,7 +6,7 @@ class RenderController < ActionController::Base
   def rescue_action(e) raise; end
 end
 
-RenderController.prepend_view_path(File.dirname(__FILE__) + "/views")
+RenderController.prepend_view_path(File.dirname(__FILE__) + "/views") 
 
 class RenderControllerTest < Test::Unit::TestCase
   include Globalize

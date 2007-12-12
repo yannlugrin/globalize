@@ -16,11 +16,11 @@ module ActionView # :nodoc: all
         localized_path = locate_globalize_path(template_path, use_full_path)
         # don't use_full_path -- we've already expanded the path
         globalize_old_render_file(localized_path, false, local_assigns)
-      else 
+      else
         globalize_old_render_file(template_path, use_full_path, local_assigns)
       end
     end
-    
+  
     private
     
       # Override because the original version is too minimalist
@@ -30,11 +30,9 @@ module ActionView # :nodoc: all
       end
       
       def locate_globalize_path(template_path, use_full_path)
-      
         active_locale = Globalize::Locale.active
         locale_code = active_locale.code
-
-        cache_key = "#{locale_code}:#{template_path}"
+        cache_key = "#{locale_code}:#{template_path}:#{template_format}"
         cached = @@globalize_path_cache[cache_key]
         return cached if cached
 
@@ -45,13 +43,17 @@ module ActionView # :nodoc: all
             template_file_name = full_template_path(template_path_without_extension, template_extension)
           else
             template_extension = pick_template_extension(template_path).to_s
+            unless template_extension
+              raise ActionViewError, "No #{template_handler_preferences.to_sentence} template found for #{template_path} in #{view_paths.inspect}"
+            end
             template_file_name = full_template_path(template_path, template_extension)
+            template_extension = template_extension.gsub(/^\w+\./, '') # strip off any formats
           end
         else
           template_file_name = template_path
           template_extension = template_path.split('.').last
         end
-
+        
         pn = Pathname.new(template_file_name)
         dir, filename = pn.dirname, pn.basename('.' + template_extension)
 
@@ -73,7 +75,7 @@ module ActionView # :nodoc: all
           # otherwise use default
           localized_path = template_file_name
         end
-
+        
         @@globalize_path_cache[cache_key] = localized_path.to_s
       end
 

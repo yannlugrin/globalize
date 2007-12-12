@@ -91,7 +91,7 @@ class RespondToController < ActionController::Base
     end
 end
 
-RespondToController.prepend_view_path(File.dirname(__FILE__) + "/views")
+RespondToController.prepend_view_path(File.dirname(__FILE__) + "/views") 
 
 class MimeControllerTest < Test::Unit::TestCase
   include Globalize
@@ -242,19 +242,26 @@ class MimeControllerTest < Test::Unit::TestCase
     assert_equal "<p>Bonjour le monde !</p>\n", @response.body
   end
 
-  def test_with_content_type
+  def test_with_content_type_atom
     @request.env["CONTENT_TYPE"] = "application/atom+xml"
     get :made_for_content_type
     assert_equal "ATOM", @response.body
-
+  end
+  
+  def test_with_content_type_rss
     @request.env["CONTENT_TYPE"] = "application/rss+xml"
     get :made_for_content_type
     assert_equal "RSS", @response.body
   end
 
-  def test_fr_with_content_type
+  def test_fr_with_content_type_atom
     Locale.set('fr')
-    test_with_content_type
+    test_with_content_type_atom
+  end
+
+  def test_fr_with_content_type_rss
+    Locale.set('fr')
+    test_with_content_type_rss
   end
 
   def test_synonyms
