@@ -373,10 +373,5 @@ class TranslationTest < Test::Unit::TestCase
       prod.description
   end
   
-  def test_product_show_is_language_code
-    prod = Product.find(1)
-    assert_equal('en', prod.language_code)
-  end
-  
   # association building/creating?
 end
