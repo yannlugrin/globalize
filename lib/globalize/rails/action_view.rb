@@ -5,7 +5,7 @@ module ActionView # :nodoc: all
     
     # Name of file extensions which are handled internally in rails. Other types
     # like liquid has to register through register_handler.
-    @@re_extension = /\.(rjs|rhtml|rxml)$/
+    @@re_extension = /\.(erb|rjs|builder)$/
     
     @@globalize_path_cache = {}
 
@@ -36,9 +36,8 @@ module ActionView # :nodoc: all
         cached = @@globalize_path_cache[cache_key]
         return cached if cached
 
-        if use_full_path
-          template_path_without_extension, template_extension = path_and_extension(template_path)
-          
+        template_path_without_extension, template_extension = path_and_extension(template_path)
+        if use_full_path  
           if template_extension
             template_file_name = full_template_path(template_path_without_extension, template_extension)
           else
@@ -47,7 +46,7 @@ module ActionView # :nodoc: all
               raise ActionViewError, "No #{template_handler_preferences.to_sentence} template found for #{template_path} in #{view_paths.inspect}"
             end
             template_file_name = full_template_path(template_path, template_extension)
-            template_extension = template_extension.gsub(/^\w+\./, '') # strip off any formats
+            template_extension = template_extension.gsub(/^.+\./, '') # strip off any formats
           end
         else
           template_file_name = template_path
